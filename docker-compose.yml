@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15
+    container_name: news_aggregator_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: news_aggregator
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - news_network
+
+  # Laravel Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: news_aggregator_backend
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./backend:/var/www/html
+      - backend_storage:/var/www/html/storage
+    env_file:
+      - .env.docker
+    environment:
+      - APP_NAME=News Aggregator
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=news_aggregator
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=password
+    depends_on:
+      - db
+    networks:
+      - news_network
+
+  # Redis (for caching and queues)
+  redis:
+    image: redis:7-alpine
+    container_name: news_aggregator_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - news_network
+
+volumes:
+  postgres_data:
+  backend_storage:
+  redis_data:
+
+networks:
+  news_network:
+    driver: bridge
