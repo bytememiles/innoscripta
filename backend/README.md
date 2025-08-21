@@ -48,13 +48,17 @@ A comprehensive news aggregation system built with Laravel that collects, proces
    - Configure SMTP settings for email functionality
    - Adjust database settings if needed (defaults work with Docker)
 
-3. **Build and Start Services**
+3. **Start Everything (One Command)**
    ```bash
-   docker-compose up -d --build
+   # Easy way - handles everything automatically
+   ./start.sh
    ```
-
-4. **Initialize the Application**
+   
+   **OR Manual Setup:**
    ```bash
+   # Build and start services
+   docker-compose up -d --build
+
    # Generate application key
    docker-compose exec backend php artisan key:generate
    
@@ -85,6 +89,24 @@ A comprehensive news aggregation system built with Laravel that collects, proces
 - **Backend API**: http://localhost:8000
 - **Database**: localhost:5432 (postgres/password)
 - **Redis**: localhost:6380 (to avoid conflicts with system Redis)
+
+## Quick Start Scripts
+
+For convenience, use these scripts to manage your development environment:
+
+```bash
+# Start all services (builds, migrates, seeds data)
+./start.sh
+
+# Stop all services
+./stop.sh
+
+# Check status
+docker compose ps
+
+# View logs
+docker compose logs -f backend
+```
 
 ## API Endpoints
 
@@ -211,6 +233,30 @@ php artisan email:test --type=welcome
 
 # Test with custom recipient
 php artisan email:test --to=your-email@example.com --type=welcome
+```
+
+### Production/Vendor Commands
+```bash
+# Install dependencies for production
+docker compose exec backend composer install --no-dev --optimize-autoloader
+
+# Run migrations
+docker compose exec backend php artisan migrate --force
+
+# Clear and cache configuration
+docker compose exec backend php artisan config:clear && docker compose exec backend php artisan config:cache
+
+# View recent logs
+docker compose exec backend tail -20 storage/logs/laravel.log
+
+# Search for errors in logs
+docker compose exec backend grep -A 10 -B 10 "ERROR\|Exception\|Fatal" storage/logs/laravel.log | tail -30
+
+# Test Redis connection
+docker compose exec backend php artisan tinker --execute="use Illuminate\Support\Facades\Cache; Cache::put('test', 'Redis is working!', 60); echo Cache::get('test');"
+
+# Check migration status
+docker compose exec backend php artisan migrate:status
 ```
 
 ## Environment Configuration
