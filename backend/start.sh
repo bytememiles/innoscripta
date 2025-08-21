@@ -6,7 +6,7 @@
 set -e  # Exit on any error
 
 echo "🚀 Starting News Aggregator Backend..."
-echo "=================================="
+echo "======================================"
 
 # Colors for better output
 GREEN='\033[0;32m'

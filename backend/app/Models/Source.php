@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Source extends Model
 {
@@ -11,6 +12,7 @@ class Source extends Model
 
     protected $fillable = [
         'name',
+        'slug',
         'api_name',
         'base_url',
         'description',
@@ -26,5 +28,22 @@ class Source extends Model
     public function articles()
     {
         return $this->hasMany(Article::class);
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($source) {
+            if (empty($source->slug)) {
+                $source->slug = Str::slug($source->name);
+            }
+        });
+
+        static::updating(function ($source) {
+            if ($source->isDirty('name') && empty($source->slug)) {
+                $source->slug = Str::slug($source->name);
+            }
+        });
     }
 }
