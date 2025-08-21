@@ -14,10 +14,7 @@ import {
 import { format } from 'date-fns';
 
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
-import {
-  useGetLatestArticlesQuery,
-  useGetTopHeadlinesQuery,
-} from '../store/api/newsApi';
+import { useGetArticlesQuery } from '../store/api/newsApi';
 import type { Article } from '../types';
 
 const ArticleCard: React.FC<{ article: Article }> = ({ article }) => {
@@ -139,17 +136,23 @@ export const HomePage: React.FC = () => {
   // Set page title
   useDocumentTitle('Home');
 
+  // Get recent articles for top headlines section
   const {
-    data: topHeadlines,
+    data: topHeadlinesData,
     isLoading: headlinesLoading,
     error: headlinesError,
-  } = useGetTopHeadlinesQuery(6);
+  } = useGetArticlesQuery({ per_page: 6 });
 
+  // Get more recent articles for latest section
   const {
-    data: latestArticles,
+    data: latestArticlesData,
     isLoading: latestLoading,
     error: latestError,
-  } = useGetLatestArticlesQuery(12);
+  } = useGetArticlesQuery({ per_page: 12, page: 1 });
+
+  // Extract articles from paginated response
+  const topHeadlines = topHeadlinesData?.data || [];
+  const latestArticles = latestArticlesData?.data || [];
 
   return (
     <Box>

@@ -5,15 +5,12 @@ import {
 } from '@reduxjs/toolkit';
 
 import { authService } from '../../services/authService';
-import type { LoginCredentials, RegisterCredentials, User } from '../../types';
-
-interface AuthState {
-  user: User | null;
-  token: string | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  error: string | null;
-}
+import type {
+  AuthState,
+  LoginCredentials,
+  RegisterCredentials,
+  User,
+} from '../../types';
 
 const initialState: AuthState = {
   user: authService.getStoredUser(),

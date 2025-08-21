@@ -50,17 +50,18 @@ export const newsApi = createApi({
 
     getArticle: builder.query<Article, number>({
       query: id => `/articles/${id}`,
-      transformResponse: (response: ApiResponse<Article>) => response.data,
+      transformResponse: (response: ApiResponse<{ article: Article }>) =>
+        response.data.article,
       providesTags: (_result, _error, id) => [{ type: 'Article', id }],
     }),
 
     searchArticles: builder.query<
       PaginatedResponse<Article>,
-      { query: string; filters?: Omit<ArticleFilters, 'search'> }
+      { query: string; filters?: Omit<ArticleFilters, 'keyword'> }
     >({
       query: ({ query, filters = {} }) => {
         const params = new URLSearchParams();
-        params.append('search', query);
+        params.append('q', query); // Changed from 'search' to 'q'
         Object.entries(filters).forEach(([key, value]) => {
           if (value !== undefined && value !== null && value !== '') {
             params.append(key, value.toString());
@@ -73,29 +74,24 @@ export const newsApi = createApi({
 
     getPersonalizedFeed: builder.query<
       PaginatedResponse<Article>,
-      { page?: number; perPage?: number }
+      { page?: number; perPage?: number; fromDate?: string; toDate?: string }
     >({
-      query: ({ page = 1, perPage = 20 }) =>
-        `/articles/personalized?page=${page}&per_page=${perPage}`,
-      providesTags: ['Article'],
-    }),
-
-    getTopHeadlines: builder.query<Article[], number | void>({
-      query: (limit = 10) => `/articles/top-headlines?limit=${limit}`,
-      transformResponse: (response: ApiResponse<Article[]>) => response.data,
-      providesTags: ['Article'],
-    }),
-
-    getLatestArticles: builder.query<Article[], number | void>({
-      query: (limit = 10) => `/articles/latest?limit=${limit}`,
-      transformResponse: (response: ApiResponse<Article[]>) => response.data,
+      query: ({ page = 1, perPage = 20, fromDate, toDate }) => {
+        const params = new URLSearchParams();
+        params.append('page', page.toString());
+        params.append('per_page', perPage.toString());
+        if (fromDate) params.append('from_date', fromDate);
+        if (toDate) params.append('to_date', toDate);
+        return `/personalized-feed?${params.toString()}`;
+      },
       providesTags: ['Article'],
     }),
 
     // Categories
     getCategories: builder.query<Category[], void>({
       query: () => '/categories',
-      transformResponse: (response: ApiResponse<Category[]>) => response.data,
+      transformResponse: (response: ApiResponse<{ categories: Category[] }>) =>
+        response.data.categories,
       providesTags: ['Category'],
     }),
 
@@ -108,7 +104,8 @@ export const newsApi = createApi({
     // Sources
     getSources: builder.query<Source[], void>({
       query: () => '/sources',
-      transformResponse: (response: ApiResponse<Source[]>) => response.data,
+      transformResponse: (response: ApiResponse<{ sources: Source[] }>) =>
+        response.data.sources,
       providesTags: ['Source'],
     }),
 
@@ -120,9 +117,10 @@ export const newsApi = createApi({
 
     // User Preferences
     getUserPreferences: builder.query<UserPreferences, void>({
-      query: () => '/user/preferences',
-      transformResponse: (response: ApiResponse<UserPreferences>) =>
-        response.data,
+      query: () => '/preferences',
+      transformResponse: (
+        response: ApiResponse<{ preferences: UserPreferences }>
+      ) => response.data.preferences,
       providesTags: ['UserPreferences'],
     }),
 
@@ -133,12 +131,13 @@ export const newsApi = createApi({
       >
     >({
       query: preferences => ({
-        url: '/user/preferences',
-        method: 'PUT',
+        url: '/preferences',
+        method: 'POST',
         body: preferences,
       }),
-      transformResponse: (response: ApiResponse<UserPreferences>) =>
-        response.data,
+      transformResponse: (
+        response: ApiResponse<{ preferences: UserPreferences }>
+      ) => response.data.preferences,
       invalidatesTags: ['UserPreferences', 'Article'],
     }),
   }),
@@ -150,8 +149,6 @@ export const {
   useGetArticleQuery,
   useSearchArticlesQuery,
   useGetPersonalizedFeedQuery,
-  useGetTopHeadlinesQuery,
-  useGetLatestArticlesQuery,
   useLazyGetArticlesQuery,
   useLazySearchArticlesQuery,
 

@@ -32,10 +32,10 @@ export class NewsService {
   }
 
   async getArticle(id: number): Promise<Article> {
-    const response = await apiService.get<ApiResponse<Article>>(
+    const response = await apiService.get<ApiResponse<{ article: Article }>>(
       `/articles/${id}`
     );
-    return response.data;
+    return response.data.article;
   }
 
   async searchArticles(
@@ -43,7 +43,7 @@ export class NewsService {
     filters?: Omit<ArticleFilters, 'search'>
   ): Promise<PaginatedResponse<Article>> {
     const params = new URLSearchParams();
-    params.append('search', query);
+    params.append('q', query); // Changed from 'search' to 'q' as per Postman API
 
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
@@ -61,14 +61,19 @@ export class NewsService {
 
   async getPersonalizedFeed(
     page = 1,
-    perPage = 20
+    perPage = 20,
+    fromDate?: string,
+    toDate?: string
   ): Promise<PaginatedResponse<Article>> {
     const params = new URLSearchParams();
     params.append('page', page.toString());
     params.append('per_page', perPage.toString());
 
+    if (fromDate) params.append('from_date', fromDate);
+    if (toDate) params.append('to_date', toDate);
+
     const response = await apiService.get<PaginatedResponse<Article>>(
-      `/articles/personalized?${params.toString()}`
+      `/personalized-feed?${params.toString()}`
     );
     return response;
   }
@@ -76,8 +81,10 @@ export class NewsService {
   // Categories
   async getCategories(): Promise<Category[]> {
     const response =
-      await apiService.get<ApiResponse<Category[]>>('/categories');
-    return response.data;
+      await apiService.get<ApiResponse<{ categories: Category[] }>>(
+        '/categories'
+      );
+    return response.data.categories;
   }
 
   async getCategory(id: number): Promise<Category> {
@@ -89,8 +96,9 @@ export class NewsService {
 
   // Sources
   async getSources(): Promise<Source[]> {
-    const response = await apiService.get<ApiResponse<Source[]>>('/sources');
-    return response.data;
+    const response =
+      await apiService.get<ApiResponse<{ sources: Source[] }>>('/sources');
+    return response.data.sources;
   }
 
   async getSource(id: number): Promise<Source> {
@@ -103,8 +111,10 @@ export class NewsService {
   // User Preferences
   async getUserPreferences(): Promise<UserPreferences> {
     const response =
-      await apiService.get<ApiResponse<UserPreferences>>('/user/preferences');
-    return response.data;
+      await apiService.get<ApiResponse<{ preferences: UserPreferences }>>(
+        '/preferences'
+      );
+    return response.data.preferences;
   }
 
   async updateUserPreferences(
@@ -112,58 +122,61 @@ export class NewsService {
       Omit<UserPreferences, 'id' | 'user_id' | 'created_at' | 'updated_at'>
     >
   ): Promise<UserPreferences> {
-    const response = await apiService.put<ApiResponse<UserPreferences>>(
-      '/user/preferences',
-      preferences
-    );
-    return response.data;
+    const response = await apiService.post<
+      ApiResponse<{ preferences: UserPreferences }>
+    >('/preferences', preferences);
+    return response.data.preferences;
   }
 
-  // Utility methods
-  async getTopHeadlines(limit = 10): Promise<Article[]> {
-    const response = await apiService.get<ApiResponse<Article[]>>(
-      `/articles/top-headlines?limit=${limit}`
-    );
-    return response.data;
-  }
-
-  async getLatestArticles(limit = 10): Promise<Article[]> {
-    const response = await apiService.get<ApiResponse<Article[]>>(
-      `/articles/latest?limit=${limit}`
-    );
-    return response.data;
-  }
-
+  // Utility methods using the main getArticles method with filters
   async getArticlesByCategory(
-    categoryId: number,
+    categorySlug: string,
     page = 1,
     perPage = 20
   ): Promise<PaginatedResponse<Article>> {
-    const params = new URLSearchParams();
-    params.append('category_id', categoryId.toString());
-    params.append('page', page.toString());
-    params.append('per_page', perPage.toString());
-
-    const response = await apiService.get<PaginatedResponse<Article>>(
-      `/articles?${params.toString()}`
-    );
-    return response;
+    return this.getArticles({
+      category: categorySlug,
+      page,
+      per_page: perPage,
+    });
   }
 
   async getArticlesBySource(
-    sourceId: number,
+    sourceSlug: string,
     page = 1,
     perPage = 20
   ): Promise<PaginatedResponse<Article>> {
-    const params = new URLSearchParams();
-    params.append('source_id', sourceId.toString());
-    params.append('page', page.toString());
-    params.append('per_page', perPage.toString());
+    return this.getArticles({
+      source: sourceSlug,
+      page,
+      per_page: perPage,
+    });
+  }
 
-    const response = await apiService.get<PaginatedResponse<Article>>(
-      `/articles?${params.toString()}`
-    );
-    return response;
+  async getArticlesByKeyword(
+    keyword: string,
+    page = 1,
+    perPage = 20
+  ): Promise<PaginatedResponse<Article>> {
+    return this.getArticles({
+      keyword,
+      page,
+      per_page: perPage,
+    });
+  }
+
+  async getArticlesByDateRange(
+    fromDate: string,
+    toDate: string,
+    page = 1,
+    perPage = 20
+  ): Promise<PaginatedResponse<Article>> {
+    return this.getArticles({
+      from_date: fromDate,
+      to_date: toDate,
+      page,
+      per_page: perPage,
+    });
   }
 }
 

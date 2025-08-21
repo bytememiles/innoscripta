@@ -1,31 +1,11 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
-import type { ThemeMode } from '../../types';
-
-interface UiState {
-  theme: ThemeMode;
-  sidebarOpen: boolean;
-  loading: {
-    [key: string]: boolean;
-  };
-  notifications: Notification[];
-  searchQuery: string;
-  searchFilters: {
-    category_id?: number;
-    source_id?: number;
-    from_date?: string;
-    to_date?: string;
-    author?: string;
-  };
-}
-
-interface Notification {
-  id: string;
-  type: 'success' | 'error' | 'warning' | 'info';
-  message: string;
-  timestamp: number;
-  autoHide?: boolean;
-}
+import type {
+  ArticleFilters,
+  Notification,
+  ThemeMode,
+  UiState,
+} from '../../types';
 
 const initialState: UiState = {
   theme: 'light',
@@ -83,14 +63,14 @@ const uiSlice = createSlice({
     },
     setSearchFilters: (
       state,
-      action: PayloadAction<typeof initialState.searchFilters>
+      action: PayloadAction<Partial<ArticleFilters>>
     ) => {
       state.searchFilters = action.payload;
     },
     updateSearchFilter: (
       state,
       action: PayloadAction<{
-        key: keyof typeof initialState.searchFilters;
+        key: keyof ArticleFilters;
         value: any;
       }>
     ) => {

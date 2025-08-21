@@ -21,7 +21,7 @@ interface JwtPayload {
 export class AuthService {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     const response = await apiService.post<ApiResponse<AuthResponse>>(
-      '/auth/login',
+      '/login',
       credentials
     );
 
@@ -36,7 +36,7 @@ export class AuthService {
 
   async register(credentials: RegisterCredentials): Promise<AuthResponse> {
     const response = await apiService.post<ApiResponse<AuthResponse>>(
-      '/auth/register',
+      '/register',
       credentials
     );
 
@@ -51,7 +51,7 @@ export class AuthService {
 
   async logout(): Promise<void> {
     try {
-      await apiService.post('/auth/logout');
+      await apiService.post('/logout');
     } catch (error) {
       // Even if logout fails on server, we should clear local storage
       console.error('Logout error:', error);
@@ -61,7 +61,7 @@ export class AuthService {
   }
 
   async getCurrentUser(): Promise<User> {
-    const response = await apiService.get<ApiResponse<User>>('/auth/user');
+    const response = await apiService.get<ApiResponse<User>>('/user');
     return response.data;
   }
 
