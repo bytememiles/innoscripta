@@ -83,6 +83,33 @@ export const refreshTokenAsync = createAsyncThunk(
   }
 );
 
+export const initializeAuthAsync = createAsyncThunk(
+  'auth/initialize',
+  async (_, { rejectWithValue }) => {
+    try {
+      const token = authService.getAuthToken();
+      const storedUser = authService.getStoredUser();
+
+      if (!token || !storedUser) {
+        return { isAuthenticated: false, user: null };
+      }
+
+      // Validate the session with the server
+      const isValid = await authService.validateSession();
+
+      if (!isValid) {
+        authService.removeAuthToken();
+        return { isAuthenticated: false, user: null };
+      }
+
+      return { isAuthenticated: true, user: storedUser };
+    } catch (error: any) {
+      authService.removeAuthToken();
+      return rejectWithValue(error.message || 'Session validation failed');
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -184,6 +211,26 @@ const authSlice = createSlice({
         state.user = null;
         state.token = null;
         state.isAuthenticated = false;
+      });
+
+    // Initialize auth
+    builder
+      .addCase(initializeAuthAsync.pending, state => {
+        state.isLoading = true;
+      })
+      .addCase(initializeAuthAsync.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isAuthenticated = action.payload.isAuthenticated;
+        state.user = action.payload.user;
+        if (!action.payload.isAuthenticated) {
+          state.token = null;
+        }
+      })
+      .addCase(initializeAuthAsync.rejected, state => {
+        state.isLoading = false;
+        state.isAuthenticated = false;
+        state.user = null;
+        state.token = null;
       });
   },
 });

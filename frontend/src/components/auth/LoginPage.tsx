@@ -1,6 +1,6 @@
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Alert,
@@ -33,6 +33,7 @@ const schema = yup.object().shape({
 export const LoginPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { isLoading, error } = useAppSelector(state => state.auth);
 
   // Set page title
@@ -58,7 +59,10 @@ export const LoginPage: React.FC = () => {
             message: 'Welcome back! Login successful.',
           })
         );
-        navigate('/');
+
+        // Navigate to intended destination or home
+        const from = (location.state as any)?.from || '/';
+        navigate(from, { replace: true });
       }
     } catch (error) {
       // Error is handled by the reducer

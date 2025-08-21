@@ -1,3 +1,5 @@
+import { jwtDecode } from 'jwt-decode';
+
 import type {
   ApiResponse,
   AuthResponse,
@@ -7,6 +9,14 @@ import type {
 } from '../types';
 
 import { apiService } from './api';
+
+// JWT payload interface
+interface JwtPayload {
+  exp: number;
+  iat: number;
+  sub: string;
+  [key: string]: any;
+}
 
 export class AuthService {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
@@ -126,9 +136,95 @@ export class AuthService {
     return apiService.getAuthToken();
   }
 
-  // Check if user is authenticated
+  // Check if user is authenticated (including token expiration check)
   isAuthenticated(): boolean {
-    return !!apiService.getAuthToken() && !!this.getStoredUser();
+    const hasToken = !!apiService.getAuthToken();
+    const hasUser = !!this.getStoredUser();
+    const tokenValid = !this.isTokenExpired();
+
+    return hasToken && hasUser && tokenValid;
+  }
+
+  // Remove auth token and user data
+  removeAuthToken(): void {
+    apiService.removeAuthToken();
+    localStorage.removeItem('user');
+  }
+
+  // Check if token is expired using jwt-decode
+  isTokenExpired(): boolean {
+    const token = this.getAuthToken();
+    if (!token) return true;
+
+    try {
+      const decoded = jwtDecode<JwtPayload>(token);
+
+      // Check if token has expiration claim
+      if (!decoded.exp) {
+        console.warn('JWT token does not contain expiration claim');
+        return false; // Assume valid if no exp claim
+      }
+
+      // Convert exp from seconds to milliseconds and compare with current time
+      const expirationTime = decoded.exp * 1000;
+      const currentTime = Date.now();
+
+      // Add a small buffer (30 seconds) to account for clock skew
+      const bufferTime = 30 * 1000;
+
+      return currentTime >= expirationTime - bufferTime;
+    } catch (error) {
+      console.error('Error decoding JWT token:', error);
+      return true; // Treat invalid tokens as expired
+    }
+  }
+
+  // Get token expiration date (useful for debugging or UI display)
+  getTokenExpirationDate(): Date | null {
+    const token = this.getAuthToken();
+    if (!token) return null;
+
+    try {
+      const decoded = jwtDecode<JwtPayload>(token);
+
+      if (!decoded.exp) {
+        return null;
+      }
+
+      return new Date(decoded.exp * 1000);
+    } catch (error) {
+      console.error('Error decoding JWT token for expiration date:', error);
+      return null;
+    }
+  }
+
+  // Get remaining time before token expires (in milliseconds)
+  getTokenTimeRemaining(): number {
+    const expirationDate = this.getTokenExpirationDate();
+    if (!expirationDate) return 0;
+
+    const remaining = expirationDate.getTime() - Date.now();
+    return Math.max(0, remaining);
+  }
+
+  // Validate current session
+  async validateSession(): Promise<boolean> {
+    try {
+      if (!this.isAuthenticated()) return false;
+
+      // Check if token is expired
+      if (this.isTokenExpired()) {
+        this.removeAuthToken();
+        return false;
+      }
+
+      // Verify token with server
+      await this.getCurrentUser();
+      return true;
+    } catch (error) {
+      this.removeAuthToken();
+      return false;
+    }
   }
 }
 
