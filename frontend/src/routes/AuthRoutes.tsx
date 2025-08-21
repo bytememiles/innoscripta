@@ -9,7 +9,7 @@ import Loadable from '../components/ui/Loadable';
 
 const LoginPage = Loadable(
   lazy(() =>
-    import('../components/auth/LoginPage').then(module => ({
+    import('../sections/auth').then(module => ({
       default: module.LoginPage,
     }))
   )
@@ -17,7 +17,7 @@ const LoginPage = Loadable(
 
 const RegisterPage = Loadable(
   lazy(() =>
-    import('../components/auth/RegisterPage').then(module => ({
+    import('../sections/auth').then(module => ({
       default: module.RegisterPage,
     }))
   )
@@ -25,7 +25,7 @@ const RegisterPage = Loadable(
 
 const ForgotPasswordPage = Loadable(
   lazy(() =>
-    import('../components/auth/ForgotPasswordPage').then(module => ({
+    import('../sections/auth').then(module => ({
       default: module.ForgotPasswordPage,
     }))
   )

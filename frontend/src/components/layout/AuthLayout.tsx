@@ -3,16 +3,10 @@ import {
   DarkMode as DarkModeIcon,
   LightMode as LightModeIcon,
 } from '@mui/icons-material';
-import {
-  Box,
-  Container,
-  IconButton,
-  Paper,
-  Typography,
-  useTheme,
-} from '@mui/material';
+import { Box, Grid, IconButton, Typography } from '@mui/material';
 
 import { useTheme as useCustomTheme } from '../../theme/ThemeProvider';
+import { AuthBackground, AuthCard } from '../auth';
 import { Logo } from '../ui/Logo';
 
 interface AuthLayoutProps {
@@ -20,22 +14,13 @@ interface AuthLayoutProps {
 }
 
 export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
-  const theme = useTheme();
   const { mode, toggleTheme } = useCustomTheme();
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        bgcolor: 'background.default',
-        backgroundImage: `linear-gradient(135deg, ${theme.palette.primary.main}15 0%, ${theme.palette.secondary.main}15 100%)`,
-        position: 'relative',
-      }}
-    >
+    <Box sx={{ minHeight: '100vh', position: 'relative' }}>
+      {/* Abstract Background */}
+      <AuthBackground />
+
       {/* Theme Toggle */}
       <IconButton
         onClick={toggleTheme}
@@ -43,66 +28,61 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
           position: 'absolute',
           top: 16,
           right: 16,
+          zIndex: 10,
           bgcolor: 'background.paper',
           '&:hover': {
             bgcolor: 'action.hover',
           },
+          boxShadow: 2,
         }}
       >
         {mode === 'light' ? <DarkModeIcon /> : <LightModeIcon />}
       </IconButton>
 
-      <Container maxWidth='sm'>
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            mb: 4,
-          }}
-        >
-          {/* Logo and Title */}
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 2,
-              mb: 2,
-            }}
-          >
+      {/* Main Grid Layout */}
+      <Grid container direction='column' justifyContent='flex-end'>
+        {/* Logo Section */}
+        <Grid item xs={12} sx={{ ml: 3, mt: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Logo height={46} />
           </Box>
+        </Grid>
 
-          <Typography
-            variant='body1'
-            color='text.secondary'
-            textAlign='center'
-            sx={{ mb: 4 }}
+        {/* Centered Auth Card Section */}
+        <Grid item xs={12}>
+          <Grid
+            item
+            xs={12}
+            container
+            justifyContent='center'
+            alignItems='center'
+            sx={{
+              minHeight: {
+                xs: 'calc(100vh - 210px)',
+                md: 'calc(100vh - 151px)',
+              },
+            }}
           >
-            Stay informed with news from multiple trusted sources
-          </Typography>
-        </Box>
+            <AuthCard>{children}</AuthCard>
+          </Grid>
+        </Grid>
 
-        {/* Auth Form Container */}
-        <Paper
-          elevation={8}
-          sx={{
-            p: 4,
-            borderRadius: 3,
-            bgcolor: 'background.paper',
-            boxShadow: theme.shadows[8],
-          }}
-        >
-          {children}
-        </Paper>
-
-        {/* Footer */}
-        <Box sx={{ mt: 4, textAlign: 'center' }}>
-          <Typography variant='body2' color='text.secondary'>
-            © 2024 News Aggregator. All rights reserved.
-          </Typography>
-        </Box>
-      </Container>
+        {/* Footer Section */}
+        <Grid item xs={12} sx={{ m: 3, mt: 1 }}>
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography variant='body2' color='text.secondary'>
+              © 2025 News Aggregator. All rights reserved.
+            </Typography>
+            <Typography
+              variant='body2'
+              color='text.secondary'
+              sx={{ mt: 0.5, opacity: 0.7 }}
+            >
+              Stay informed with news from multiple trusted sources
+            </Typography>
+          </Box>
+        </Grid>
+      </Grid>
     </Box>
   );
 };
