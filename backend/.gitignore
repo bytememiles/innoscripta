@@ -17,3 +17,10 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+
+# Scribe API Documentation
+/.scribe/
+/config/scribe.php.bak
+
+# Generated API docs (uncomment next line if you want to ignore generated docs)
+# /public/docs/

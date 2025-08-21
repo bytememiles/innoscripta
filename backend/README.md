@@ -101,6 +101,9 @@ For convenience, use these scripts to manage your development environment:
 # Stop all services
 ./stop.sh
 
+# Generate API documentation
+./generate-docs.sh
+
 # Check status
 docker compose ps
 
@@ -257,6 +260,9 @@ docker compose exec backend php artisan tinker --execute="use Illuminate\Support
 
 # Check migration status
 docker compose exec backend php artisan migrate:status
+
+# Generate API documentation
+docker compose exec backend php artisan scribe:generate --force
 ```
 
 ## Environment Configuration
@@ -398,7 +404,31 @@ docker-compose logs -f backend
 
 ## API Documentation
 
-Full API documentation will be available at `/api/documentation` once the frontend is integrated with tools like Swagger/OpenAPI.
+**Interactive API documentation is now available!**
+
+- **Web Documentation**: http://localhost:8000/docs
+- **OpenAPI Spec**: http://localhost:8000/docs/openapi.yaml
+- **Postman Collection**: http://localhost:8000/docs/collection.json
+
+The documentation includes:
+- ✅ Interactive "Try It Out" buttons for testing endpoints
+- ✅ Complete request/response examples
+- ✅ Authentication instructions
+- ✅ Parameter validation rules
+- ✅ OpenAPI 3.0 specification
+- ✅ Postman collection for API testing
+
+### Regenerating Documentation
+
+To update the API documentation after making changes:
+
+```bash
+# Regenerate documentation
+docker compose exec backend php artisan scribe:generate
+
+# Or using the production command
+docker compose exec backend php artisan scribe:generate --force
+```
 
 ## Contributing
 

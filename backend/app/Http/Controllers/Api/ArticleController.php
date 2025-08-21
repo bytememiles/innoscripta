@@ -1,0 +1,320 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\Article;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Validator;
+
+/**
+ * @group Articles
+ * 
+ * APIs for managing and retrieving news articles
+ */
+class ArticleController extends Controller
+{
+    /**
+     * List articles
+     * 
+     * Retrieve a paginated list of articles with optional filtering.
+     * 
+     * @queryParam page integer Page number for pagination. Example: 1
+     * @queryParam per_page integer Number of articles per page (max 50). Example: 10
+     * @queryParam category string Filter by category slug. Example: technology
+     * @queryParam source string Filter by source slug. Example: newsapi
+     * @queryParam from_date string Filter articles from this date (Y-m-d format). Example: 2024-01-01
+     * @queryParam to_date string Filter articles to this date (Y-m-d format). Example: 2024-01-31
+     * @queryParam keyword string Search articles by keyword in title or description. Example: AI
+     * 
+     * @response 200 {
+     *   "success": true,
+     *   "data": {
+     *     "current_page": 1,
+     *     "data": [
+     *       {
+     *         "id": 1,
+     *         "title": "Breaking News: AI Revolution",
+     *         "description": "Latest developments in artificial intelligence...",
+     *         "content": "Full article content here...",
+     *         "url": "https://example.com/article/1",
+     *         "url_to_image": "https://example.com/image.jpg",
+     *         "published_at": "2024-01-15T10:30:00.000000Z",
+     *         "source": {
+     *           "id": 1,
+     *           "name": "NewsAPI",
+     *           "slug": "newsapi"
+     *         },
+     *         "category": {
+     *           "id": 1,
+     *           "name": "Technology",
+     *           "slug": "technology"
+     *         },
+     *         "created_at": "2024-01-15T10:30:00.000000Z",
+     *         "updated_at": "2024-01-15T10:30:00.000000Z"
+     *       }
+     *     ],
+     *     "first_page_url": "http://localhost:8000/api/articles?page=1",
+     *     "from": 1,
+     *     "last_page": 10,
+     *     "last_page_url": "http://localhost:8000/api/articles?page=10",
+     *     "links": [],
+     *     "next_page_url": "http://localhost:8000/api/articles?page=2",
+     *     "path": "http://localhost:8000/api/articles",
+     *     "per_page": 10,
+     *     "prev_page_url": null,
+     *     "to": 10,
+     *     "total": 100
+     *   }
+     * }
+     * 
+     * @response 422 {
+     *   "success": false,
+     *   "message": "Validation error",
+     *   "errors": {
+     *     "per_page": ["The per page must not be greater than 50."],
+     *     "from_date": ["The from date does not match the format Y-m-d."]
+     *   }
+     * }
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'page' => 'integer|min:1',
+            'per_page' => 'integer|min:1|max:50',
+            'category' => 'string|exists:categories,slug',
+            'source' => 'string|exists:sources,slug',
+            'from_date' => 'date_format:Y-m-d',
+            'to_date' => 'date_format:Y-m-d|after_or_equal:from_date',
+            'keyword' => 'string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $query = Article::with(['source', 'category']);
+
+        // Apply filters
+        if ($request->filled('category')) {
+            $query->whereHas('category', function ($q) use ($request) {
+                $q->where('slug', $request->category);
+            });
+        }
+
+        if ($request->filled('source')) {
+            $query->whereHas('source', function ($q) use ($request) {
+                $q->where('slug', $request->source);
+            });
+        }
+
+        if ($request->filled('from_date')) {
+            $query->whereDate('published_at', '>=', $request->from_date);
+        }
+
+        if ($request->filled('to_date')) {
+            $query->whereDate('published_at', '<=', $request->to_date);
+        }
+
+        if ($request->filled('keyword')) {
+            $keyword = $request->keyword;
+            $query->where(function ($q) use ($keyword) {
+                $q->where('title', 'ILIKE', "%{$keyword}%")
+                  ->orWhere('description', 'ILIKE', "%{$keyword}%");
+            });
+        }
+
+        $perPage = $request->get('per_page', 10);
+        $articles = $query->orderBy('published_at', 'desc')->paginate($perPage);
+
+        return response()->json([
+            'success' => true,
+            'data' => $articles
+        ]);
+    }
+
+    /**
+     * Get article details
+     * 
+     * Retrieve a specific article by its ID.
+     * 
+     * @urlParam id integer required The article ID. Example: 1
+     * 
+     * @response 200 {
+     *   "success": true,
+     *   "data": {
+     *     "article": {
+     *       "id": 1,
+     *       "title": "Breaking News: AI Revolution",
+     *       "description": "Latest developments in artificial intelligence...",
+     *       "content": "Full article content here...",
+     *       "url": "https://example.com/article/1",
+     *       "url_to_image": "https://example.com/image.jpg",
+     *       "published_at": "2024-01-15T10:30:00.000000Z",
+     *       "source": {
+     *         "id": 1,
+     *         "name": "NewsAPI",
+     *         "slug": "newsapi"
+     *       },
+     *       "category": {
+     *         "id": 1,
+     *         "name": "Technology",
+     *         "slug": "technology"
+     *       },
+     *       "created_at": "2024-01-15T10:30:00.000000Z",
+     *       "updated_at": "2024-01-15T10:30:00.000000Z"
+     *     }
+     *   }
+     * }
+     * 
+     * @response 404 {
+     *   "success": false,
+     *   "message": "Article not found"
+     * }
+     */
+    public function show(int $id): JsonResponse
+    {
+        $article = Article::with(['source', 'category'])->find($id);
+
+        if (!$article) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Article not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'article' => $article
+            ]
+        ]);
+    }
+
+    /**
+     * Search articles
+     * 
+     * Full-text search across article title, description, and content.
+     * 
+     * @queryParam q string required The search query. Example: artificial intelligence
+     * @queryParam page integer Page number for pagination. Example: 1
+     * @queryParam per_page integer Number of articles per page (max 50). Example: 10
+     * @queryParam category string Filter by category slug. Example: technology
+     * @queryParam source string Filter by source slug. Example: newsapi
+     * @queryParam from_date string Filter articles from this date (Y-m-d format). Example: 2024-01-01
+     * @queryParam to_date string Filter articles to this date (Y-m-d format). Example: 2024-01-31
+     * 
+     * @response 200 {
+     *   "success": true,
+     *   "data": {
+     *     "current_page": 1,
+     *     "data": [
+     *       {
+     *         "id": 1,
+     *         "title": "Breaking News: AI Revolution",
+     *         "description": "Latest developments in artificial intelligence...",
+     *         "content": "Full article content here...",
+     *         "url": "https://example.com/article/1",
+     *         "url_to_image": "https://example.com/image.jpg",
+     *         "published_at": "2024-01-15T10:30:00.000000Z",
+     *         "source": {
+     *           "id": 1,
+     *           "name": "NewsAPI",
+     *           "slug": "newsapi"
+     *         },
+     *         "category": {
+     *           "id": 1,
+     *           "name": "Technology",
+     *           "slug": "technology"
+     *         },
+     *         "created_at": "2024-01-15T10:30:00.000000Z",
+     *         "updated_at": "2024-01-15T10:30:00.000000Z"
+     *       }
+     *     ],
+     *     "first_page_url": "http://localhost:8000/api/articles/search?q=ai&page=1",
+     *     "from": 1,
+     *     "last_page": 5,
+     *     "last_page_url": "http://localhost:8000/api/articles/search?q=ai&page=5",
+     *     "links": [],
+     *     "next_page_url": "http://localhost:8000/api/articles/search?q=ai&page=2",
+     *     "path": "http://localhost:8000/api/articles/search",
+     *     "per_page": 10,
+     *     "prev_page_url": null,
+     *     "to": 10,
+     *     "total": 50
+     *   }
+     * }
+     * 
+     * @response 422 {
+     *   "success": false,
+     *   "message": "Validation error",
+     *   "errors": {
+     *     "q": ["The q field is required."]
+     *   }
+     * }
+     */
+    public function search(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'q' => 'required|string|min:1|max:255',
+            'page' => 'integer|min:1',
+            'per_page' => 'integer|min:1|max:50',
+            'category' => 'string|exists:categories,slug',
+            'source' => 'string|exists:sources,slug',
+            'from_date' => 'date_format:Y-m-d',
+            'to_date' => 'date_format:Y-m-d|after_or_equal:from_date',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $searchTerm = $request->q;
+        $query = Article::with(['source', 'category']);
+
+        // Full-text search
+        $query->where(function ($q) use ($searchTerm) {
+            $q->where('title', 'ILIKE', "%{$searchTerm}%")
+              ->orWhere('description', 'ILIKE', "%{$searchTerm}%")
+              ->orWhere('content', 'ILIKE', "%{$searchTerm}%");
+        });
+
+        // Apply filters
+        if ($request->filled('category')) {
+            $query->whereHas('category', function ($q) use ($request) {
+                $q->where('slug', $request->category);
+            });
+        }
+
+        if ($request->filled('source')) {
+            $query->whereHas('source', function ($q) use ($request) {
+                $q->where('slug', $request->source);
+            });
+        }
+
+        if ($request->filled('from_date')) {
+            $query->whereDate('published_at', '>=', $request->from_date);
+        }
+
+        if ($request->filled('to_date')) {
+            $query->whereDate('published_at', '<=', $request->to_date);
+        }
+
+        $perPage = $request->get('per_page', 10);
+        $articles = $query->orderBy('published_at', 'desc')->paginate($perPage);
+
+        return response()->json([
+            'success' => true,
+            'data' => $articles
+        ]);
+    }
+}
