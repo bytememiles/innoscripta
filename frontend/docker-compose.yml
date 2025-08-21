@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  # React Frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: news_aggregator_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    environment:
+      - VITE_API_URL=http://localhost:8000/api
+      - VITE_APP_NAME=News Aggregator | Innoscripta
+    networks:
+      - frontend_network
+
+  # Development service (alternative for development)
+  frontend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: news_aggregator_frontend_dev
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8000/api
+      - VITE_APP_NAME=News Aggregator | Innoscripta
+    networks:
+      - frontend_network
+    profiles:
+      - dev
+
+networks:
+  frontend_network:
+    driver: bridge
