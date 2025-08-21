@@ -29,18 +29,22 @@ services:
     volumes:
       - ./backend:/var/www/html
       - backend_storage:/var/www/html/storage
-    env_file:
-      - .env.docker
     environment:
       - APP_NAME=News Aggregator
       - APP_ENV=production
-      - APP_DEBUG=false
+      - APP_DEBUG=true
+      - APP_KEY=base64:BbdyL3S7kWrMRjbVJji7r39h141SkaBRwOJ1GGjSMkI=
       - DB_CONNECTION=pgsql
       - DB_HOST=db
       - DB_PORT=5432
       - DB_DATABASE=news_aggregator
       - DB_USERNAME=postgres
       - DB_PASSWORD=password
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CACHE_DRIVER=redis
+      - SESSION_DRIVER=redis
+      - QUEUE_CONNECTION=redis
     depends_on:
       - db
     networks:
@@ -52,7 +56,7 @@ services:
     container_name: news_aggregator_redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "6380:6379"
     volumes:
       - redis_data:/data
     networks:
