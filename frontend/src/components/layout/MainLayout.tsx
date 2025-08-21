@@ -1,38 +1,39 @@
 import type React from 'react';
 import { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
-  Box,
+  DarkMode as DarkModeIcon,
+  Home as HomeIcon,
+  LightMode as LightModeIcon,
+  Logout as LogoutIcon,
+  Menu as MenuIcon,
+  Person as PersonIcon,
+  Search as SearchIcon,
+  Settings as SettingsIcon,
+} from '@mui/icons-material';
+import {
   AppBar,
-  Toolbar,
-  Typography,
-  IconButton,
+  Avatar,
+  Box,
+  Divider,
   Drawer,
+  IconButton,
   List,
   ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  useTheme,
-  useMediaQuery,
-  Divider,
-  Avatar,
   Menu,
   MenuItem,
+  Toolbar,
+  Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
-import {
-  Menu as MenuIcon,
-  Home as HomeIcon,
-  Search as SearchIcon,
-  Person as PersonIcon,
-  Settings as SettingsIcon,
-  Logout as LogoutIcon,
-  LightMode as LightModeIcon,
-  DarkMode as DarkModeIcon,
-} from '@mui/icons-material';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useTheme as useCustomTheme } from '../../theme/ThemeProvider';
+
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { logoutAsync } from '../../store/slices/authSlice';
+import { useTheme as useCustomTheme } from '../../theme/ThemeProvider';
 import { Logo } from '../ui/Logo';
 
 interface MainLayoutProps {
@@ -47,11 +48,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const { mode, toggleTheme } = useCustomTheme();
-  const { user } = useAppSelector((state) => state.auth);
-  
+  const { user } = useAppSelector(state => state.auth);
+
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [userMenuAnchorEl, setUserMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const [userMenuAnchorEl, setUserMenuAnchorEl] = useState<null | HTMLElement>(
+    null
+  );
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -86,7 +89,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       </Toolbar>
       <Divider />
       <List>
-        {navigationItems.map((item) => (
+        {navigationItems.map(item => (
           <ListItem key={item.text} disablePadding>
             <ListItemButton
               selected={location.pathname === item.path}
@@ -108,7 +111,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <ListItemIcon>
               {mode === 'light' ? <DarkModeIcon /> : <LightModeIcon />}
             </ListItemIcon>
-            <ListItemText primary={`${mode === 'light' ? 'Dark' : 'Light'} Mode`} />
+            <ListItemText
+              primary={`${mode === 'light' ? 'Dark' : 'Light'} Mode`}
+            />
           </ListItemButton>
         </ListItem>
       </List>
@@ -119,7 +124,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     <Box sx={{ display: 'flex' }}>
       {/* App Bar */}
       <AppBar
-        position="fixed"
+        position='fixed'
         sx={{
           width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
           ml: { md: `${DRAWER_WIDTH}px` },
@@ -127,17 +132,18 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       >
         <Toolbar>
           <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
+            color='inherit'
+            aria-label='open drawer'
+            edge='start'
             onClick={handleDrawerToggle}
             sx={{ mr: 2, display: { md: 'none' } }}
           >
             <MenuIcon />
           </IconButton>
-          
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            {navigationItems.find(item => item.path === location.pathname)?.text || 'News Aggregator'}
+
+          <Typography variant='h6' noWrap component='div' sx={{ flexGrow: 1 }}>
+            {navigationItems.find(item => item.path === location.pathname)
+              ?.text || 'News Aggregator'}
           </Typography>
 
           {/* User Menu */}
@@ -146,7 +152,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               {user?.name?.charAt(0).toUpperCase() || 'U'}
             </Avatar>
           </IconButton>
-          
+
           <Menu
             anchorEl={userMenuAnchorEl}
             open={Boolean(userMenuAnchorEl)}
@@ -155,20 +161,20 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           >
             <MenuItem onClick={() => navigate('/profile')}>
               <ListItemIcon>
-                <PersonIcon fontSize="small" />
+                <PersonIcon fontSize='small' />
               </ListItemIcon>
               Profile
             </MenuItem>
             <MenuItem onClick={() => navigate('/settings')}>
               <ListItemIcon>
-                <SettingsIcon fontSize="small" />
+                <SettingsIcon fontSize='small' />
               </ListItemIcon>
               Settings
             </MenuItem>
             <Divider />
             <MenuItem onClick={handleLogout}>
               <ListItemIcon>
-                <LogoutIcon fontSize="small" />
+                <LogoutIcon fontSize='small' />
               </ListItemIcon>
               Logout
             </MenuItem>
@@ -178,29 +184,35 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
       {/* Navigation Drawer */}
       <Box
-        component="nav"
+        component='nav'
         sx={{ width: { md: DRAWER_WIDTH }, flexShrink: { md: 0 } }}
       >
         {/* Mobile drawer */}
         <Drawer
-          variant="temporary"
+          variant='temporary'
           open={mobileOpen}
           onClose={handleDrawerToggle}
           ModalProps={{ keepMounted: true }}
           sx={{
             display: { xs: 'block', md: 'none' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: DRAWER_WIDTH },
+            '& .MuiDrawer-paper': {
+              boxSizing: 'border-box',
+              width: DRAWER_WIDTH,
+            },
           }}
         >
           {drawer}
         </Drawer>
-        
+
         {/* Desktop drawer */}
         <Drawer
-          variant="permanent"
+          variant='permanent'
           sx={{
             display: { xs: 'none', md: 'block' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: DRAWER_WIDTH },
+            '& .MuiDrawer-paper': {
+              boxSizing: 'border-box',
+              width: DRAWER_WIDTH,
+            },
           }}
           open
         >
@@ -210,7 +222,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
       {/* Main Content */}
       <Box
-        component="main"
+        component='main'
         sx={{
           flexGrow: 1,
           p: 3,

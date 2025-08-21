@@ -1,22 +1,23 @@
 import type React from 'react';
 import { useState } from 'react';
-import {
-  Box,
-  Typography,
-  TextField,
-  Button,
-  Link,
-  Alert,
-  CircularProgress,
-} from '@mui/material';
 import { useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
 import { Link as RouterLink } from 'react-router-dom';
-import { authService } from '../../services/authService';
+import { yupResolver } from '@hookform/resolvers/yup';
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Link,
+  TextField,
+  Typography,
+} from '@mui/material';
+import * as yup from 'yup';
+
 import { useAppDispatch } from '../../hooks/redux';
-import { addNotification } from '../../store/slices/uiSlice';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { authService } from '../../services/authService';
+import { addNotification } from '../../store/slices/uiSlice';
 
 const schema = yup.object().shape({
   email: yup
@@ -50,14 +51,16 @@ export const ForgotPasswordPage: React.FC = () => {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       await authService.forgotPassword(data.email);
-      
+
       setIsSubmitted(true);
-      dispatch(addNotification({
-        type: 'success',
-        message: 'Password reset link has been sent to your email.',
-      }));
+      dispatch(
+        addNotification({
+          type: 'success',
+          message: 'Password reset link has been sent to your email.',
+        })
+      );
     } catch (error: any) {
       setError(error.message || 'Failed to send password reset email');
     } finally {
@@ -68,70 +71,74 @@ export const ForgotPasswordPage: React.FC = () => {
   if (isSubmitted) {
     return (
       <Box sx={{ textAlign: 'center' }}>
-        <Typography variant="h4" component="h1" gutterBottom>
+        <Typography variant='h4' component='h1' gutterBottom>
           Check Your Email
         </Typography>
-        
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-          We've sent a password reset link to your email address.
-          Please check your inbox and follow the instructions to reset your password.
+
+        <Typography variant='body1' color='text.secondary' sx={{ mb: 3 }}>
+          We've sent a password reset link to your email address. Please check
+          your inbox and follow the instructions to reset your password.
         </Typography>
 
-        <Alert severity="info" sx={{ mb: 3 }}>
+        <Alert severity='info' sx={{ mb: 3 }}>
           Didn't receive the email? Check your spam folder or try again.
         </Alert>
 
         <Button
-          variant="outlined"
+          variant='outlined'
           onClick={() => setIsSubmitted(false)}
           sx={{ mr: 2 }}
         >
           Try Again
         </Button>
 
-        <Link component={RouterLink} to="/login">
-          <Button variant="text">
-            Back to Sign In
-          </Button>
+        <Link component={RouterLink} to='/login'>
+          <Button variant='text'>Back to Sign In</Button>
         </Link>
       </Box>
     );
   }
 
   return (
-    <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
-      <Typography variant="h4" component="h1" textAlign="center" gutterBottom>
+    <Box component='form' onSubmit={handleSubmit(onSubmit)} noValidate>
+      <Typography variant='h4' component='h1' textAlign='center' gutterBottom>
         Forgot Password
       </Typography>
-      
-      <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ mb: 3 }}>
-        Enter your email address and we'll send you a link to reset your password.
+
+      <Typography
+        variant='body2'
+        color='text.secondary'
+        textAlign='center'
+        sx={{ mb: 3 }}
+      >
+        Enter your email address and we'll send you a link to reset your
+        password.
       </Typography>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert severity='error' sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
 
       <TextField
         {...register('email')}
-        margin="normal"
+        margin='normal'
         required
         fullWidth
-        id="email"
-        label="Email Address"
-        name="email"
-        autoComplete="email"
+        id='email'
+        label='Email Address'
+        name='email'
+        autoComplete='email'
         autoFocus
         error={!!errors.email}
         helperText={errors.email?.message}
       />
 
       <Button
-        type="submit"
+        type='submit'
         fullWidth
-        variant="contained"
+        variant='contained'
         sx={{ mt: 3, mb: 2, py: 1.5 }}
         disabled={isLoading}
         startIcon={isLoading ? <CircularProgress size={20} /> : null}
@@ -140,9 +147,9 @@ export const ForgotPasswordPage: React.FC = () => {
       </Button>
 
       <Box sx={{ textAlign: 'center', mt: 2 }}>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant='body2' color='text.secondary'>
           Remember your password?{' '}
-          <Link component={RouterLink} to="/login" variant="body2">
+          <Link component={RouterLink} to='/login' variant='body2'>
             Back to Sign In
           </Link>
         </Typography>

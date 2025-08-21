@@ -1,7 +1,8 @@
 import { configureStore } from '@reduxjs/toolkit';
+
+import { newsApi } from './api/newsApi';
 import { authSlice } from './slices/authSlice';
 import { uiSlice } from './slices/uiSlice';
-import { newsApi } from './api/newsApi';
 
 export const store = configureStore({
   reducer: {
@@ -9,7 +10,7 @@ export const store = configureStore({
     ui: uiSlice.reducer,
     [newsApi.reducerPath]: newsApi.reducer,
   },
-  middleware: (getDefaultMiddleware) =>
+  middleware: getDefaultMiddleware =>
     getDefaultMiddleware({
       serializableCheck: {
         ignoredActions: [newsApi.util.resetApiState.type],

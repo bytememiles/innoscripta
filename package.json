@@ -1,0 +1,33 @@
+{
+  "name": "innoscripta-news-aggregator",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --filter frontend dev",
+    "build": "pnpm --filter frontend build",
+    "lint": "pnpm --filter frontend lint",
+    "lint:fix": "pnpm --filter frontend lint:fix",
+    "type-check": "pnpm --filter frontend type-check",
+    "format": "pnpm --filter frontend format",
+    "format:check": "pnpm --filter frontend format:check",
+    "prepare": "husky"
+  },
+  "workspaces": [
+    "frontend"
+  ],
+  "devDependencies": {
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.2"
+  },
+  "lint-staged": {
+    "frontend/**/*.{ts,tsx,js,jsx}": [
+      "cd frontend && pnpm lint:fix",
+      "cd frontend && pnpm format",
+      "cd frontend && pnpm type-check"
+    ],
+    "frontend/**/*.{json,md,css,scss}": [
+      "cd frontend && pnpm format"
+    ]
+  }
+}

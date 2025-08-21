@@ -1,34 +1,41 @@
-import { apiService } from './api';
 import type {
+  ApiResponse,
+  AuthResponse,
   LoginCredentials,
   RegisterCredentials,
-  AuthResponse,
   User,
-  ApiResponse
 } from '../types';
+
+import { apiService } from './api';
 
 export class AuthService {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const response = await apiService.post<ApiResponse<AuthResponse>>('/auth/login', credentials);
-    
+    const response = await apiService.post<ApiResponse<AuthResponse>>(
+      '/auth/login',
+      credentials
+    );
+
     // Store token and user in localStorage
     if (response.data.token) {
       apiService.setAuthToken(response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
     }
-    
+
     return response.data;
   }
 
   async register(credentials: RegisterCredentials): Promise<AuthResponse> {
-    const response = await apiService.post<ApiResponse<AuthResponse>>('/auth/register', credentials);
-    
+    const response = await apiService.post<ApiResponse<AuthResponse>>(
+      '/auth/register',
+      credentials
+    );
+
     // Store token and user in localStorage
     if (response.data.token) {
       apiService.setAuthToken(response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
     }
-    
+
     return response.data;
   }
 
@@ -49,38 +56,54 @@ export class AuthService {
   }
 
   async refreshToken(): Promise<AuthResponse> {
-    const response = await apiService.post<ApiResponse<AuthResponse>>('/auth/refresh');
-    
+    const response =
+      await apiService.post<ApiResponse<AuthResponse>>('/auth/refresh');
+
     if (response.data.token) {
       apiService.setAuthToken(response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
     }
-    
+
     return response.data;
   }
 
   async forgotPassword(email: string): Promise<{ message: string }> {
-    const response = await apiService.post<ApiResponse<{ message: string }>>('/auth/forgot-password', { email });
+    const response = await apiService.post<ApiResponse<{ message: string }>>(
+      '/auth/forgot-password',
+      { email }
+    );
     return response.data;
   }
 
-  async resetPassword(token: string, email: string, password: string, passwordConfirmation: string): Promise<{ message: string }> {
-    const response = await apiService.post<ApiResponse<{ message: string }>>('/auth/reset-password', {
-      token,
-      email,
-      password,
-      password_confirmation: passwordConfirmation,
-    });
+  async resetPassword(
+    token: string,
+    email: string,
+    password: string,
+    passwordConfirmation: string
+  ): Promise<{ message: string }> {
+    const response = await apiService.post<ApiResponse<{ message: string }>>(
+      '/auth/reset-password',
+      {
+        token,
+        email,
+        password,
+        password_confirmation: passwordConfirmation,
+      }
+    );
     return response.data;
   }
 
   async verifyEmail(id: string, hash: string): Promise<{ message: string }> {
-    const response = await apiService.post<ApiResponse<{ message: string }>>(`/email/verify/${id}/${hash}`);
+    const response = await apiService.post<ApiResponse<{ message: string }>>(
+      `/email/verify/${id}/${hash}`
+    );
     return response.data;
   }
 
   async resendVerificationEmail(): Promise<{ message: string }> {
-    const response = await apiService.post<ApiResponse<{ message: string }>>('/email/verification-notification');
+    const response = await apiService.post<ApiResponse<{ message: string }>>(
+      '/email/verification-notification'
+    );
     return response.data;
   }
 

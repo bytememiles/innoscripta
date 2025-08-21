@@ -189,19 +189,23 @@ The application is fully responsive and optimized for:
 ### Common Issues
 
 **Build fails with Node.js version error:**
+
 - Ensure you're using Node.js 20+ or use Docker
 
 **CORS errors:**
+
 - Check that `VITE_API_URL` points to the correct backend URL
 - Ensure the backend allows the frontend's origin
 
 **Hot reloading not working in Docker:**
+
 - Use the development Docker setup with `--profile dev`
 - Ensure port 5173 is properly mapped
 
 ### Docker Issues
 
 **Container won't start:**
+
 ```bash
 # Check logs
 docker-compose logs frontend
@@ -211,6 +215,7 @@ docker-compose build --no-cache frontend
 ```
 
 **Port conflicts:**
+
 ```bash
 # Change ports in docker-compose.yml
 ports:

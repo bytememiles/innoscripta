@@ -1,6 +1,11 @@
-import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
-import type { User, LoginCredentials, RegisterCredentials, AuthResponse } from '../../types';
+import {
+  createAsyncThunk,
+  createSlice,
+  type PayloadAction,
+} from '@reduxjs/toolkit';
+
 import { authService } from '../../services/authService';
+import type { LoginCredentials, RegisterCredentials, User } from '../../types';
 
 interface AuthState {
   user: User | null;
@@ -82,24 +87,24 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    clearError: (state) => {
+    clearError: state => {
       state.error = null;
     },
     setUser: (state, action: PayloadAction<User>) => {
       state.user = action.payload;
       state.isAuthenticated = true;
     },
-    clearAuth: (state) => {
+    clearAuth: state => {
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
       state.error = null;
     },
   },
-  extraReducers: (builder) => {
+  extraReducers: builder => {
     // Login
     builder
-      .addCase(loginAsync.pending, (state) => {
+      .addCase(loginAsync.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
@@ -118,7 +123,7 @@ const authSlice = createSlice({
 
     // Register
     builder
-      .addCase(registerAsync.pending, (state) => {
+      .addCase(registerAsync.pending, state => {
         state.isLoading = true;
         state.error = null;
       })
@@ -137,10 +142,10 @@ const authSlice = createSlice({
 
     // Logout
     builder
-      .addCase(logoutAsync.pending, (state) => {
+      .addCase(logoutAsync.pending, state => {
         state.isLoading = true;
       })
-      .addCase(logoutAsync.fulfilled, (state) => {
+      .addCase(logoutAsync.fulfilled, state => {
         state.isLoading = false;
         state.user = null;
         state.token = null;
@@ -162,7 +167,7 @@ const authSlice = createSlice({
         state.user = action.payload;
         state.isAuthenticated = true;
       })
-      .addCase(getCurrentUserAsync.rejected, (state) => {
+      .addCase(getCurrentUserAsync.rejected, state => {
         state.user = null;
         state.token = null;
         state.isAuthenticated = false;
@@ -175,7 +180,7 @@ const authSlice = createSlice({
         state.token = action.payload.token;
         state.isAuthenticated = true;
       })
-      .addCase(refreshTokenAsync.rejected, (state) => {
+      .addCase(refreshTokenAsync.rejected, state => {
         state.user = null;
         state.token = null;
         state.isAuthenticated = false;

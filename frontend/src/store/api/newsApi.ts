@@ -1,21 +1,23 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+
 import type {
+  ApiResponse,
   Article,
+  ArticleFilters,
   Category,
+  PaginatedResponse,
   Source,
   UserPreferences,
-  PaginatedResponse,
-  ArticleFilters,
-  ApiResponse
 } from '../../types';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 export const newsApi = createApi({
   reducerPath: 'newsApi',
   baseQuery: fetchBaseQuery({
     baseUrl: API_BASE_URL,
-    prepareHeaders: (headers) => {
+    prepareHeaders: headers => {
       const token = localStorage.getItem('auth_token');
       if (token) {
         headers.set('authorization', `Bearer ${token}`);
@@ -26,10 +28,13 @@ export const newsApi = createApi({
     },
   }),
   tagTypes: ['Article', 'Category', 'Source', 'UserPreferences'],
-  endpoints: (builder) => ({
+  endpoints: builder => ({
     // Articles
-    getArticles: builder.query<PaginatedResponse<Article>, ArticleFilters | void>({
-      query: (filters) => {
+    getArticles: builder.query<
+      PaginatedResponse<Article>,
+      ArticleFilters | void
+    >({
+      query: filters => {
         const params = new URLSearchParams();
         if (filters) {
           Object.entries(filters).forEach(([key, value]) => {
@@ -44,12 +49,15 @@ export const newsApi = createApi({
     }),
 
     getArticle: builder.query<Article, number>({
-      query: (id) => `/articles/${id}`,
+      query: id => `/articles/${id}`,
       transformResponse: (response: ApiResponse<Article>) => response.data,
       providesTags: (_result, _error, id) => [{ type: 'Article', id }],
     }),
 
-    searchArticles: builder.query<PaginatedResponse<Article>, { query: string; filters?: Omit<ArticleFilters, 'search'> }>({
+    searchArticles: builder.query<
+      PaginatedResponse<Article>,
+      { query: string; filters?: Omit<ArticleFilters, 'search'> }
+    >({
       query: ({ query, filters = {} }) => {
         const params = new URLSearchParams();
         params.append('search', query);
@@ -63,8 +71,12 @@ export const newsApi = createApi({
       providesTags: ['Article'],
     }),
 
-    getPersonalizedFeed: builder.query<PaginatedResponse<Article>, { page?: number; perPage?: number }>({
-      query: ({ page = 1, perPage = 20 }) => `/articles/personalized?page=${page}&per_page=${perPage}`,
+    getPersonalizedFeed: builder.query<
+      PaginatedResponse<Article>,
+      { page?: number; perPage?: number }
+    >({
+      query: ({ page = 1, perPage = 20 }) =>
+        `/articles/personalized?page=${page}&per_page=${perPage}`,
       providesTags: ['Article'],
     }),
 
@@ -88,7 +100,7 @@ export const newsApi = createApi({
     }),
 
     getCategory: builder.query<Category, number>({
-      query: (id) => `/categories/${id}`,
+      query: id => `/categories/${id}`,
       transformResponse: (response: ApiResponse<Category>) => response.data,
       providesTags: (_result, _error, id) => [{ type: 'Category', id }],
     }),
@@ -101,7 +113,7 @@ export const newsApi = createApi({
     }),
 
     getSource: builder.query<Source, number>({
-      query: (id) => `/sources/${id}`,
+      query: id => `/sources/${id}`,
       transformResponse: (response: ApiResponse<Source>) => response.data,
       providesTags: (_result, _error, id) => [{ type: 'Source', id }],
     }),
@@ -109,17 +121,24 @@ export const newsApi = createApi({
     // User Preferences
     getUserPreferences: builder.query<UserPreferences, void>({
       query: () => '/user/preferences',
-      transformResponse: (response: ApiResponse<UserPreferences>) => response.data,
+      transformResponse: (response: ApiResponse<UserPreferences>) =>
+        response.data,
       providesTags: ['UserPreferences'],
     }),
 
-    updateUserPreferences: builder.mutation<UserPreferences, Partial<Omit<UserPreferences, 'id' | 'user_id' | 'created_at' | 'updated_at'>>>({
-      query: (preferences) => ({
+    updateUserPreferences: builder.mutation<
+      UserPreferences,
+      Partial<
+        Omit<UserPreferences, 'id' | 'user_id' | 'created_at' | 'updated_at'>
+      >
+    >({
+      query: preferences => ({
         url: '/user/preferences',
         method: 'PUT',
         body: preferences,
       }),
-      transformResponse: (response: ApiResponse<UserPreferences>) => response.data,
+      transformResponse: (response: ApiResponse<UserPreferences>) =>
+        response.data,
       invalidatesTags: ['UserPreferences', 'Article'],
     }),
   }),
@@ -135,15 +154,15 @@ export const {
   useGetLatestArticlesQuery,
   useLazyGetArticlesQuery,
   useLazySearchArticlesQuery,
-  
+
   // Categories
   useGetCategoriesQuery,
   useGetCategoryQuery,
-  
+
   // Sources
   useGetSourcesQuery,
   useGetSourceQuery,
-  
+
   // User Preferences
   useGetUserPreferencesQuery,
   useUpdateUserPreferencesMutation,

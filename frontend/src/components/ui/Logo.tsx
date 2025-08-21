@@ -16,8 +16,8 @@ export const Logo: React.FC<LogoProps> = ({
 }) => {
   return (
     <Box
-      component="img"
-      src="/innoscripta-logo-blue.svg"
+      component='img'
+      src='/innoscripta-logo-blue.svg'
       alt={alt}
       sx={{
         height,

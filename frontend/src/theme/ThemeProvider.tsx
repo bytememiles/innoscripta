@@ -1,8 +1,16 @@
 import type React from 'react';
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
+import {
+  createContext,
+  type ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 import CssBaseline from '@mui/material/CssBaseline';
+import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
+
 import type { ThemeContextType, ThemeMode } from '../types';
+
 import { createAppTheme } from './index';
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -28,19 +36,22 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     if (savedTheme === 'light' || savedTheme === 'dark') {
       return savedTheme;
     }
-    
+
     // Check system preference
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (
+      window.matchMedia &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches
+    ) {
       return 'dark';
     }
-    
+
     return 'light';
   });
 
   // Listen for system theme changes
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
+
     const handleChange = (e: MediaQueryListEvent) => {
       // Only update if no theme is explicitly saved
       const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
@@ -59,7 +70,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   }, [mode]);
 
   const toggleTheme = () => {
-    setMode(prevMode => prevMode === 'light' ? 'dark' : 'light');
+    setMode(prevMode => (prevMode === 'light' ? 'dark' : 'light'));
   };
 
   const theme = createAppTheme(mode);

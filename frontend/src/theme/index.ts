@@ -1,4 +1,5 @@
 import { createTheme, type ThemeOptions } from '@mui/material/styles';
+
 import type { ThemeMode } from '../types';
 
 // Color palette
@@ -155,7 +156,7 @@ const commonTheme: ThemeOptions = {
 
 export const createAppTheme = (mode: ThemeMode) => {
   const palette = mode === 'light' ? lightPalette : darkPalette;
-  
+
   return createTheme({
     ...commonTheme,
     palette: {

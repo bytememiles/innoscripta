@@ -1,4 +1,5 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+
 import type { ThemeMode } from '../../types';
 
 interface UiState {
@@ -42,19 +43,25 @@ const uiSlice = createSlice({
     setTheme: (state, action: PayloadAction<ThemeMode>) => {
       state.theme = action.payload;
     },
-    toggleSidebar: (state) => {
+    toggleSidebar: state => {
       state.sidebarOpen = !state.sidebarOpen;
     },
     setSidebarOpen: (state, action: PayloadAction<boolean>) => {
       state.sidebarOpen = action.payload;
     },
-    setLoading: (state, action: PayloadAction<{ key: string; loading: boolean }>) => {
+    setLoading: (
+      state,
+      action: PayloadAction<{ key: string; loading: boolean }>
+    ) => {
       state.loading[action.payload.key] = action.payload.loading;
     },
     clearLoading: (state, action: PayloadAction<string>) => {
       delete state.loading[action.payload];
     },
-    addNotification: (state, action: PayloadAction<Omit<Notification, 'id' | 'timestamp'>>) => {
+    addNotification: (
+      state,
+      action: PayloadAction<Omit<Notification, 'id' | 'timestamp'>>
+    ) => {
       const notification: Notification = {
         ...action.payload,
         id: Date.now().toString(),
@@ -68,16 +75,25 @@ const uiSlice = createSlice({
         notification => notification.id !== action.payload
       );
     },
-    clearNotifications: (state) => {
+    clearNotifications: state => {
       state.notifications = [];
     },
     setSearchQuery: (state, action: PayloadAction<string>) => {
       state.searchQuery = action.payload;
     },
-    setSearchFilters: (state, action: PayloadAction<typeof initialState.searchFilters>) => {
+    setSearchFilters: (
+      state,
+      action: PayloadAction<typeof initialState.searchFilters>
+    ) => {
       state.searchFilters = action.payload;
     },
-    updateSearchFilter: (state, action: PayloadAction<{ key: keyof typeof initialState.searchFilters; value: any }>) => {
+    updateSearchFilter: (
+      state,
+      action: PayloadAction<{
+        key: keyof typeof initialState.searchFilters;
+        value: any;
+      }>
+    ) => {
       const { key, value } = action.payload;
       if (value === undefined || value === null || value === '') {
         delete state.searchFilters[key];
@@ -85,7 +101,7 @@ const uiSlice = createSlice({
         state.searchFilters[key] = value;
       }
     },
-    clearSearchFilters: (state) => {
+    clearSearchFilters: state => {
       state.searchFilters = {};
     },
   },

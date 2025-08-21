@@ -15,7 +15,7 @@ export const useDocumentTitle = (
 
   useEffect(() => {
     const prevTitle = prevTitleRef.current;
-    
+
     // Set the new title
     if (title) {
       document.title = `${title} | ${APP_NAME}`;

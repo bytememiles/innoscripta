@@ -1,22 +1,23 @@
 import type React from 'react';
-import {
-  Box,
-  Typography,
-  TextField,
-  Button,
-  Link,
-  Alert,
-  CircularProgress,
-} from '@mui/material';
 import { useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { yupResolver } from '@hookform/resolvers/yup';
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Link,
+  TextField,
+  Typography,
+} from '@mui/material';
+import * as yup from 'yup';
+
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
-import { registerAsync, clearError } from '../../store/slices/authSlice';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { clearError, registerAsync } from '../../store/slices/authSlice';
 import { addNotification } from '../../store/slices/uiSlice';
 import type { RegisterCredentials } from '../../types';
-import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 const schema = yup.object().shape({
   name: yup
@@ -44,7 +45,7 @@ const schema = yup.object().shape({
 export const RegisterPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { isLoading, error } = useAppSelector((state) => state.auth);
+  const { isLoading, error } = useAppSelector(state => state.auth);
 
   // Set page title
   useDocumentTitle('Create Account');
@@ -61,12 +62,14 @@ export const RegisterPage: React.FC = () => {
     try {
       dispatch(clearError());
       const result = await dispatch(registerAsync(data));
-      
+
       if (registerAsync.fulfilled.match(result)) {
-        dispatch(addNotification({
-          type: 'success',
-          message: 'Welcome! Your account has been created successfully.',
-        }));
+        dispatch(
+          addNotification({
+            type: 'success',
+            message: 'Welcome! Your account has been created successfully.',
+          })
+        );
         navigate('/');
       }
     } catch (error) {
@@ -75,30 +78,35 @@ export const RegisterPage: React.FC = () => {
   };
 
   return (
-    <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
-      <Typography variant="h4" component="h1" textAlign="center" gutterBottom>
+    <Box component='form' onSubmit={handleSubmit(onSubmit)} noValidate>
+      <Typography variant='h4' component='h1' textAlign='center' gutterBottom>
         Create Account
       </Typography>
-      
-      <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ mb: 3 }}>
+
+      <Typography
+        variant='body2'
+        color='text.secondary'
+        textAlign='center'
+        sx={{ mb: 3 }}
+      >
         Join us today and stay updated with the latest news.
       </Typography>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert severity='error' sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
 
       <TextField
         {...register('name')}
-        margin="normal"
+        margin='normal'
         required
         fullWidth
-        id="name"
-        label="Full Name"
-        name="name"
-        autoComplete="name"
+        id='name'
+        label='Full Name'
+        name='name'
+        autoComplete='name'
         autoFocus
         error={!!errors.name}
         helperText={errors.name?.message}
@@ -106,49 +114,49 @@ export const RegisterPage: React.FC = () => {
 
       <TextField
         {...register('email')}
-        margin="normal"
+        margin='normal'
         required
         fullWidth
-        id="email"
-        label="Email Address"
-        name="email"
-        autoComplete="email"
+        id='email'
+        label='Email Address'
+        name='email'
+        autoComplete='email'
         error={!!errors.email}
         helperText={errors.email?.message}
       />
 
       <TextField
         {...register('password')}
-        margin="normal"
+        margin='normal'
         required
         fullWidth
-        name="password"
-        label="Password"
-        type="password"
-        id="password"
-        autoComplete="new-password"
+        name='password'
+        label='Password'
+        type='password'
+        id='password'
+        autoComplete='new-password'
         error={!!errors.password}
         helperText={errors.password?.message}
       />
 
       <TextField
         {...register('password_confirmation')}
-        margin="normal"
+        margin='normal'
         required
         fullWidth
-        name="password_confirmation"
-        label="Confirm Password"
-        type="password"
-        id="password_confirmation"
-        autoComplete="new-password"
+        name='password_confirmation'
+        label='Confirm Password'
+        type='password'
+        id='password_confirmation'
+        autoComplete='new-password'
         error={!!errors.password_confirmation}
         helperText={errors.password_confirmation?.message}
       />
 
       <Button
-        type="submit"
+        type='submit'
         fullWidth
-        variant="contained"
+        variant='contained'
         sx={{ mt: 3, mb: 2, py: 1.5 }}
         disabled={isLoading}
         startIcon={isLoading ? <CircularProgress size={20} /> : null}
@@ -157,9 +165,9 @@ export const RegisterPage: React.FC = () => {
       </Button>
 
       <Box sx={{ textAlign: 'center', mt: 2 }}>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant='body2' color='text.secondary'>
           Already have an account?{' '}
-          <Link component={RouterLink} to="/login" variant="body2">
+          <Link component={RouterLink} to='/login' variant='body2'>
             Sign in here
           </Link>
         </Typography>
