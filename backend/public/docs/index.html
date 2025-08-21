@@ -30,9 +30,9 @@
         var useCsrf = Boolean();
         var csrfUrl = "/sanctum/csrf-cookie";
     </script>
-    <script src="../docs/js/tryitout-4.40.0.js"></script>
+    <script src="../docs/js/tryitout-5.3.0.js"></script>
 
-    <script src="../docs/js/theme-default-4.40.0.js"></script>
+    <script src="../docs/js/theme-default-5.3.0.js"></script>
 
 </head>
 
@@ -204,13 +204,13 @@
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
-    \"page\": 17,
-    \"per_page\": 25,
-    \"category\": \"modi\",
-    \"source\": \"consequuntur\",
+    \"page\": 82,
+    \"per_page\": 5,
+    \"category\": \"amet\",
+    \"source\": \"ad\",
     \"from_date\": \"2025-08-21\",
-    \"to_date\": \"2109-03-22\",
-    \"keyword\": \"ztgbvmabekijkenvhkvvglswn\"
+    \"to_date\": \"2029-08-09\",
+    \"keyword\": \"tglnkryfhjfcnwi\"
 }"
 </code></pre></div>
 
@@ -238,13 +238,13 @@ const headers = {
 };
 
 let body = {
-    "page": 17,
-    "per_page": 25,
-    "category": "modi",
-    "source": "consequuntur",
+    "page": 82,
+    "per_page": 5,
+    "category": "amet",
+    "source": "ad",
     "from_date": "2025-08-21",
-    "to_date": "2109-03-22",
-    "keyword": "ztgbvmabekijkenvhkvvglswn"
+    "to_date": "2029-08-09",
+    "keyword": "tglnkryfhjfcnwi"
 };
 
 fetch(url, {
@@ -475,10 +475,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <i>optional</i> &nbsp;
                 <input type="number" style="display: none"
                step="any"               name="page"                data-endpoint="GETapi-articles"
-               value="17"
+               value="82"
                data-component="body">
     <br>
-<p>Must be at least 1. Example: <code>17</code></p>
+<p>Must be at least 1. Example: <code>82</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>per_page</code></b>&nbsp;&nbsp;
@@ -486,10 +486,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <i>optional</i> &nbsp;
                 <input type="number" style="display: none"
                step="any"               name="per_page"                data-endpoint="GETapi-articles"
-               value="25"
+               value="5"
                data-component="body">
     <br>
-<p>Must be at least 1. Must not be greater than 50. Example: <code>25</code></p>
+<p>Must be at least 1. Must not be greater than 50. Example: <code>5</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>category</code></b>&nbsp;&nbsp;
@@ -497,10 +497,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <i>optional</i> &nbsp;
                 <input type="text" style="display: none"
                               name="category"                data-endpoint="GETapi-articles"
-               value="modi"
+               value="amet"
                data-component="body">
     <br>
-<p>The <code>slug</code> of an existing record in the categories table. Example: <code>modi</code></p>
+<p>The <code>slug</code> of an existing record in the categories table. Example: <code>amet</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>source</code></b>&nbsp;&nbsp;
@@ -508,10 +508,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <i>optional</i> &nbsp;
                 <input type="text" style="display: none"
                               name="source"                data-endpoint="GETapi-articles"
-               value="consequuntur"
+               value="ad"
                data-component="body">
     <br>
-<p>The <code>slug</code> of an existing record in the sources table. Example: <code>consequuntur</code></p>
+<p>The <code>slug</code> of an existing record in the sources table. Example: <code>ad</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>from_date</code></b>&nbsp;&nbsp;
@@ -530,10 +530,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <i>optional</i> &nbsp;
                 <input type="text" style="display: none"
                               name="to_date"                data-endpoint="GETapi-articles"
-               value="2109-03-22"
+               value="2029-08-09"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Must be a date after or equal to <code>from_date</code>. Example: <code>2109-03-22</code></p>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Must be a date after or equal to <code>from_date</code>. Example: <code>2029-08-09</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>keyword</code></b>&nbsp;&nbsp;
@@ -541,10 +541,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <i>optional</i> &nbsp;
                 <input type="text" style="display: none"
                               name="keyword"                data-endpoint="GETapi-articles"
-               value="ztgbvmabekijkenvhkvvglswn"
+               value="tglnkryfhjfcnwi"
                data-component="body">
     <br>
-<p>Must not be greater than 255 characters. Example: <code>ztgbvmabekijkenvhkvvglswn</code></p>
+<p>Must not be greater than 255 characters. Example: <code>tglnkryfhjfcnwi</code></p>
         </div>
         </form>
 
@@ -565,13 +565,13 @@ You can check the Dev Tools console for debugging information.</code></pre>
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
-    \"q\": \"rliyb\",
-    \"page\": 37,
-    \"per_page\": 20,
-    \"category\": \"est\",
-    \"source\": \"assumenda\",
+    \"q\": \"jdkawqrrfdrlrpgcclqr\",
+    \"page\": 66,
+    \"per_page\": 17,
+    \"category\": \"aut\",
+    \"source\": \"totam\",
     \"from_date\": \"2025-08-21\",
-    \"to_date\": \"2070-04-21\"
+    \"to_date\": \"2101-12-26\"
 }"
 </code></pre></div>
 
@@ -599,13 +599,13 @@ const headers = {
 };
 
 let body = {
-    "q": "rliyb",
-    "page": 37,
-    "per_page": 20,
-    "category": "est",
-    "source": "assumenda",
+    "q": "jdkawqrrfdrlrpgcclqr",
+    "page": 66,
+    "per_page": 17,
+    "category": "aut",
+    "source": "totam",
     "from_date": "2025-08-21",
-    "to_date": "2070-04-21"
+    "to_date": "2101-12-26"
 };
 
 fetch(url, {
@@ -833,10 +833,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="q"                data-endpoint="GETapi-articles-search"
-               value="rliyb"
+               value="jdkawqrrfdrlrpgcclqr"
                data-component="body">
     <br>
-<p>Must be at least 1 character. Must not be greater than 255 characters. Example: <code>rliyb</code></p>
+<p>Must be at least 1 character. Must not be greater than 255 characters. Example: <code>jdkawqrrfdrlrpgcclqr</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>page</code></b>&nbsp;&nbsp;
@@ -844,10 +844,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <i>optional</i> &nbsp;
                 <input type="number" style="display: none"
                step="any"               name="page"                data-endpoint="GETapi-articles-search"
-               value="37"
+               value="66"
                data-component="body">
     <br>
-<p>Must be at least 1. Example: <code>37</code></p>
+<p>Must be at least 1. Example: <code>66</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>per_page</code></b>&nbsp;&nbsp;
@@ -855,10 +855,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <i>optional</i> &nbsp;
                 <input type="number" style="display: none"
                step="any"               name="per_page"                data-endpoint="GETapi-articles-search"
-               value="20"
+               value="17"
                data-component="body">
     <br>
-<p>Must be at least 1. Must not be greater than 50. Example: <code>20</code></p>
+<p>Must be at least 1. Must not be greater than 50. Example: <code>17</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>category</code></b>&nbsp;&nbsp;
@@ -866,10 +866,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <i>optional</i> &nbsp;
                 <input type="text" style="display: none"
                               name="category"                data-endpoint="GETapi-articles-search"
-               value="est"
+               value="aut"
                data-component="body">
     <br>
-<p>The <code>slug</code> of an existing record in the categories table. Example: <code>est</code></p>
+<p>The <code>slug</code> of an existing record in the categories table. Example: <code>aut</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>source</code></b>&nbsp;&nbsp;
@@ -877,10 +877,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <i>optional</i> &nbsp;
                 <input type="text" style="display: none"
                               name="source"                data-endpoint="GETapi-articles-search"
-               value="assumenda"
+               value="totam"
                data-component="body">
     <br>
-<p>The <code>slug</code> of an existing record in the sources table. Example: <code>assumenda</code></p>
+<p>The <code>slug</code> of an existing record in the sources table. Example: <code>totam</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>from_date</code></b>&nbsp;&nbsp;
@@ -899,10 +899,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <i>optional</i> &nbsp;
                 <input type="text" style="display: none"
                               name="to_date"                data-endpoint="GETapi-articles-search"
-               value="2070-04-21"
+               value="2101-12-26"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Must be a date after or equal to <code>from_date</code>. Example: <code>2070-04-21</code></p>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Must be a date after or equal to <code>from_date</code>. Example: <code>2101-12-26</code></p>
         </div>
         </form>
 
@@ -2426,10 +2426,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
-    \"page\": 6,
-    \"per_page\": 22,
+    \"page\": 83,
+    \"per_page\": 2,
     \"from_date\": \"2025-08-21\",
-    \"to_date\": \"2063-07-31\"
+    \"to_date\": \"2068-12-11\"
 }"
 </code></pre></div>
 
@@ -2454,10 +2454,10 @@ const headers = {
 };
 
 let body = {
-    "page": 6,
-    "per_page": 22,
+    "page": 83,
+    "per_page": 2,
     "from_date": "2025-08-21",
-    "to_date": "2063-07-31"
+    "to_date": "2068-12-11"
 };
 
 fetch(url, {
@@ -2662,10 +2662,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <i>optional</i> &nbsp;
                 <input type="number" style="display: none"
                step="any"               name="page"                data-endpoint="GETapi-personalized-feed"
-               value="6"
+               value="83"
                data-component="body">
     <br>
-<p>Must be at least 1. Example: <code>6</code></p>
+<p>Must be at least 1. Example: <code>83</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>per_page</code></b>&nbsp;&nbsp;
@@ -2673,10 +2673,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <i>optional</i> &nbsp;
                 <input type="number" style="display: none"
                step="any"               name="per_page"                data-endpoint="GETapi-personalized-feed"
-               value="22"
+               value="2"
                data-component="body">
     <br>
-<p>Must be at least 1. Must not be greater than 50. Example: <code>22</code></p>
+<p>Must be at least 1. Must not be greater than 50. Example: <code>2</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>from_date</code></b>&nbsp;&nbsp;
@@ -2695,10 +2695,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <i>optional</i> &nbsp;
                 <input type="text" style="display: none"
                               name="to_date"                data-endpoint="GETapi-personalized-feed"
-               value="2063-07-31"
+               value="2068-12-11"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Must be a date after or equal to <code>from_date</code>. Example: <code>2063-07-31</code></p>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Must be a date after or equal to <code>from_date</code>. Example: <code>2068-12-11</code></p>
         </div>
         </form>
 

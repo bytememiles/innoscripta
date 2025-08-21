@@ -6,6 +6,22 @@ info:
 servers:
   -
     url: 'http://localhost:8000'
+tags:
+  -
+    name: Articles
+    description: "\nAPIs for managing and retrieving news articles"
+  -
+    name: Authentication
+    description: "\nAPIs for user authentication and account management"
+  -
+    name: Categories
+    description: "\nAPIs for retrieving article categories"
+  -
+    name: Sources
+    description: "\nAPIs for retrieving news sources"
+  -
+    name: 'User Preferences'
+    description: "\nAPIs for managing user preferences and personalized feeds"
 paths:
   /api/articles:
     get:
@@ -297,22 +313,22 @@ paths:
                 page:
                   type: integer
                   description: 'Must be at least 1.'
-                  example: 17
+                  example: 82
                   nullable: false
                 per_page:
                   type: integer
                   description: 'Must be at least 1. Must not be greater than 50.'
-                  example: 25
+                  example: 5
                   nullable: false
                 category:
                   type: string
                   description: 'The <code>slug</code> of an existing record in the categories table.'
-                  example: modi
+                  example: amet
                   nullable: false
                 source:
                   type: string
                   description: 'The <code>slug</code> of an existing record in the sources table.'
-                  example: consequuntur
+                  example: ad
                   nullable: false
                 from_date:
                   type: string
@@ -322,12 +338,12 @@ paths:
                 to_date:
                   type: string
                   description: 'Must be a valid date in the format <code>Y-m-d</code>. Must be a date after or equal to <code>from_date</code>.'
-                  example: '2109-03-22'
+                  example: '2029-08-09'
                   nullable: false
                 keyword:
                   type: string
                   description: 'Must not be greater than 255 characters.'
-                  example: ztgbvmabekijkenvhkvvglswn
+                  example: tglnkryfhjfcnwi
                   nullable: false
       security: []
   /api/articles/search:
@@ -612,27 +628,27 @@ paths:
                 q:
                   type: string
                   description: 'Must be at least 1 character. Must not be greater than 255 characters.'
-                  example: rliyb
+                  example: jdkawqrrfdrlrpgcclqr
                   nullable: false
                 page:
                   type: integer
                   description: 'Must be at least 1.'
-                  example: 37
+                  example: 66
                   nullable: false
                 per_page:
                   type: integer
                   description: 'Must be at least 1. Must not be greater than 50.'
-                  example: 20
+                  example: 17
                   nullable: false
                 category:
                   type: string
                   description: 'The <code>slug</code> of an existing record in the categories table.'
-                  example: est
+                  example: aut
                   nullable: false
                 source:
                   type: string
                   description: 'The <code>slug</code> of an existing record in the sources table.'
-                  example: assumenda
+                  example: totam
                   nullable: false
                 from_date:
                   type: string
@@ -642,7 +658,7 @@ paths:
                 to_date:
                   type: string
                   description: 'Must be a valid date in the format <code>Y-m-d</code>. Must be a date after or equal to <code>from_date</code>.'
-                  example: '2070-04-21'
+                  example: '2101-12-26'
                   nullable: false
               required:
                 - q
@@ -1818,12 +1834,12 @@ paths:
                 page:
                   type: integer
                   description: 'Must be at least 1.'
-                  example: 6
+                  example: 83
                   nullable: false
                 per_page:
                   type: integer
                   description: 'Must be at least 1. Must not be greater than 50.'
-                  example: 22
+                  example: 2
                   nullable: false
                 from_date:
                   type: string
@@ -1833,21 +1849,5 @@ paths:
                 to_date:
                   type: string
                   description: 'Must be a valid date in the format <code>Y-m-d</code>. Must be a date after or equal to <code>from_date</code>.'
-                  example: '2063-07-31'
+                  example: '2068-12-11'
                   nullable: false
-tags:
-  -
-    name: Articles
-    description: "\nAPIs for managing and retrieving news articles"
-  -
-    name: Authentication
-    description: "\nAPIs for user authentication and account management"
-  -
-    name: Categories
-    description: "\nAPIs for retrieving article categories"
-  -
-    name: Sources
-    description: "\nAPIs for retrieving news sources"
-  -
-    name: 'User Preferences'
-    description: "\nAPIs for managing user preferences and personalized feeds"
