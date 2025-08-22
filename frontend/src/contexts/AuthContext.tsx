@@ -1,6 +1,4 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-// third-party
-import { jwtDecode } from 'jwt-decode';
 
 // project imports
 import { apiService } from '../services/api';
@@ -33,12 +31,13 @@ const setSession = (token?: string | null) => {
 const verifyToken = (token: string): boolean => {
   if (!token) return false;
 
-  try {
-    const decoded = jwtDecode<{ exp: number }>(token);
-    return decoded.exp > Date.now() / 1000;
-  } catch {
-    return false;
-  }
+  // For Laravel Sanctum tokens, we can't decode them like JWT
+  // Instead, we'll validate them by checking if they have the correct format
+  // Laravel Sanctum tokens typically have format: "id|hash"
+  const tokenParts = token.split('|');
+  const isValid = tokenParts.length === 2 && !!tokenParts[0] && !!tokenParts[1];
+
+  return isValid;
 };
 
 // ==============================|| AUTH CONTEXT ||============================== //
@@ -69,10 +68,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             );
             setUser(response.data.user);
             setIsAuthenticated(true);
-          } catch {
-            setSession(null);
-            setIsAuthenticated(false);
-            setUser(null);
+          } catch (error) {
+            // Don't immediately clear auth data on API failure
+            // Instead, try to use the stored user data
+            try {
+              const storedUser = JSON.parse(userStr);
+              setUser(storedUser);
+              setIsAuthenticated(true);
+            } catch (parseError) {
+              // Only clear auth data if we can't parse the stored user
+              setSession(null);
+              setIsAuthenticated(false);
+              setUser(null);
+            }
           }
         } else {
           setSession(null);

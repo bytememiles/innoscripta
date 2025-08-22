@@ -92,7 +92,7 @@ const ForgotPasswordPage: React.FC = () => {
           Try Again
         </Button>
 
-        <Link component={RouterLink} to='/login'>
+        <Link component={RouterLink} to='/auth/login'>
           <Button variant='text'>Back to Sign In</Button>
         </Link>
       </Box>
@@ -149,7 +149,7 @@ const ForgotPasswordPage: React.FC = () => {
       <Box sx={{ textAlign: 'center', mt: 2 }}>
         <Typography variant='body2' color='text.secondary'>
           Remember your password?{' '}
-          <Link component={RouterLink} to='/login' variant='body2'>
+          <Link component={RouterLink} to='/auth/login' variant='body2'>
             Back to Sign In
           </Link>
         </Typography>

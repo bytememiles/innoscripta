@@ -17,8 +17,8 @@ const GuestGuard: React.FC<GuardProps> = ({ children }) => {
 
   useEffect(() => {
     if (isInitialized && isAuthenticated) {
-      // Navigate to intended destination or dashboard
-      const from = (location.state as any)?.from || '/dashboard';
+      // Navigate to intended destination or app
+      const from = (location.state as any)?.from || '/app';
       navigate(from, {
         state: { from: null },
         replace: true,

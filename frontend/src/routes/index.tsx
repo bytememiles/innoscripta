@@ -10,7 +10,7 @@ import MainRoutes from './MainRoutes';
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Navigate to='/dashboard' replace />,
+    element: <Navigate to='/app' replace />,
   },
   AuthRoutes,
   MainRoutes,

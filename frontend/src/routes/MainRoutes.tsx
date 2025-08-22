@@ -42,7 +42,7 @@ const ProfilePage = Loadable(
 // ==============================|| MAIN ROUTING ||============================== //
 
 const MainRoutes = {
-  path: '/dashboard',
+  path: '/app',
   element: (
     <AuthGuard>
       <MainLayout>

@@ -65,8 +65,8 @@ const LoginPage: React.FC = () => {
         })
       );
 
-      // Navigate to intended destination or dashboard
-      const from = (location.state as any)?.from || '/dashboard';
+      // Navigate to intended destination or app
+      const from = (location.state as any)?.from || '/app';
       navigate(from, { replace: true });
     } catch (error: any) {
       setError(error.message || 'Login failed. Please try again.');
@@ -136,7 +136,7 @@ const LoginPage: React.FC = () => {
       </Button>
 
       <Box sx={{ textAlign: 'center' }}>
-        <Link component={RouterLink} to='/forgot-password' variant='body2'>
+        <Link component={RouterLink} to='/auth/forgot-password' variant='body2'>
           Forgot password?
         </Link>
       </Box>
@@ -144,7 +144,7 @@ const LoginPage: React.FC = () => {
       <Box sx={{ textAlign: 'center', mt: 2 }}>
         <Typography variant='body2' color='text.secondary'>
           Don't have an account?{' '}
-          <Link component={RouterLink} to='/register' variant='body2'>
+          <Link component={RouterLink} to='/auth/register' variant='body2'>
             Sign up here
           </Link>
         </Typography>

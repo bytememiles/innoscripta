@@ -20,7 +20,7 @@ const ForgotPasswordPage = Loadable(
 // ==============================|| AUTH ROUTING ||============================== //
 
 const AuthRoutes = {
-  path: '/',
+  path: '/auth',
   element: (
     <GuestGuard>
       <AuthLayout>

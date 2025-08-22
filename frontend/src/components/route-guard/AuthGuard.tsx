@@ -18,7 +18,7 @@ const AuthGuard: React.FC<GuardProps> = ({ children }) => {
 
   useEffect(() => {
     if (isInitialized && !isAuthenticated) {
-      navigate('/login', {
+      navigate('/auth/login', {
         state: {
           from: location.pathname + location.search,
         },

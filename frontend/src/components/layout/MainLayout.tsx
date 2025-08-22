@@ -69,13 +69,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const handleLogout = async () => {
     handleUserMenuClose();
     logout();
-    navigate('/login');
+    navigate('/auth/login');
   };
 
   const navigationItems = [
-    { text: 'Home', icon: <HomeIcon />, path: '/' },
-    { text: 'Search', icon: <SearchIcon />, path: '/search' },
-    { text: 'Profile', icon: <PersonIcon />, path: '/profile' },
+    { text: 'Home', icon: <HomeIcon />, path: '/app' },
+    { text: 'Search', icon: <SearchIcon />, path: '/app/search' },
+    { text: 'Profile', icon: <PersonIcon />, path: '/app/profile' },
   ];
 
   const drawer = (
