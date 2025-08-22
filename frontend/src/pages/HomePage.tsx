@@ -1,14 +1,7 @@
 import type React from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Alert,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Skeleton,
-  Typography,
-} from '@mui/material';
+import { Alert, Box, Button, Typography } from '@mui/material';
 
 import { ArticleCard, ArticleCardSkeleton } from '../components/ui';
 import { ROUTES } from '../constants';
@@ -17,15 +10,41 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import {
   useGetArticlesQuery,
   useGetPersonalizedFeedQuery,
+  useGetUserPreferencesQuery,
 } from '../store/api/newsApi';
-import type { Article } from '../types';
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [showPersonalizedAlert, setShowPersonalizedAlert] = useState(true);
+  const isInitialLoad = useRef(true);
 
   // Set page title
   useDocumentTitle('Home');
+
+  // Reset alert only when user preferences actually change
+  useEffect(() => {
+    if (user) {
+      setShowPersonalizedAlert(true);
+    }
+  }, [user]);
+
+  // Listen for preference changes from the store
+  const { data: userPreferences } = useGetUserPreferencesQuery(undefined, {
+    skip: !user,
+  });
+
+  // Reset alert when preferences change (but not on initial load)
+  useEffect(() => {
+    if (userPreferences && user && !isInitialLoad.current) {
+      // Only reset if we have preferences, user is logged in, and it's not the initial load
+      // This will trigger when preferences are actually updated via the ProfilePage
+      setShowPersonalizedAlert(true);
+    }
+    if (userPreferences && isInitialLoad.current) {
+      isInitialLoad.current = false;
+    }
+  }, [userPreferences?.updated_at, user]);
 
   // Get personalized feed for authenticated users
   const {
@@ -90,8 +109,21 @@ export const HomePage: React.FC = () => {
           Stay informed with the latest news from trusted sources around the
           world
         </Typography>
-        {user && (
-          <Alert severity='info' sx={{ mt: 2 }}>
+        {user && showPersonalizedAlert && (
+          <Alert
+            severity='info'
+            sx={{ mt: 2 }}
+            onClose={() => setShowPersonalizedAlert(false)}
+            action={
+              <Button
+                color='inherit'
+                size='small'
+                onClick={() => setShowPersonalizedAlert(false)}
+              >
+                Got it!
+              </Button>
+            }
+          >
             🎯 Showing personalized content based on your preferences
           </Alert>
         )}

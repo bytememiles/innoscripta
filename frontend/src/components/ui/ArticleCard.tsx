@@ -15,12 +15,21 @@ import { ROUTES } from '../../constants';
 import type { Article } from '../../types';
 
 interface ArticleCardProps {
+  /** The article data to display */
   article: Article;
+  /** Visual variant of the card */
   variant?: 'default' | 'compact';
+  /** Whether to show the source information */
   showSource?: boolean;
+  /** Whether to show the category information */
   showCategory?: boolean;
+  /** Whether to show the publication date */
   showDate?: boolean;
+  /** Whether to show the aggregator source (e.g., "via NewsAPI") */
+  showAggregator?: boolean;
+  /** Maximum number of lines for the title */
   maxTitleLines?: number;
+  /** Maximum number of lines for the description */
   maxDescriptionLines?: number;
 }
 
@@ -30,6 +39,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
   showSource = true,
   showCategory = true,
   showDate = true,
+  showAggregator = false,
   maxTitleLines = 2,
   maxDescriptionLines = 3,
 }) => {
@@ -125,15 +135,45 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
           {/* Source and Category Chips */}
           {(showSource || showCategory) && (
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              {showSource && article.source && (
+              {/* Original Publisher Source */}
+              {showSource && article.metadata?.original_data?.source?.name && (
                 <Chip
-                  label={article.source.name}
+                  label={article.metadata.original_data.source.name}
                   size='small'
-                  variant='outlined'
+                  variant='filled'
                   color='primary'
                   sx={{ fontSize: '0.75rem' }}
+                  title='Original publisher'
                 />
               )}
+              {/* Aggregator Source (if different from original) */}
+              {showAggregator &&
+                showSource &&
+                article.source &&
+                article.metadata?.original_data?.source?.name &&
+                article.source.name !==
+                  article.metadata.original_data.source.name && (
+                  <Chip
+                    label={`via ${article.source.name}`}
+                    size='small'
+                    variant='outlined'
+                    color='info'
+                    sx={{ fontSize: '0.75rem' }}
+                    title='Content aggregator'
+                  />
+                )}
+              {/* Fallback to main source if no metadata */}
+              {showSource &&
+                article.source &&
+                !article.metadata?.original_data?.source?.name && (
+                  <Chip
+                    label={article.source.name}
+                    size='small'
+                    variant='outlined'
+                    color='primary'
+                    sx={{ fontSize: '0.75rem' }}
+                  />
+                )}
               {showCategory && article.category && (
                 <Chip
                   label={article.category.name}
@@ -146,16 +186,35 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
             </Box>
           )}
 
-          {/* Date */}
-          {showDate && (
-            <Typography
-              variant='caption'
-              color='text.secondary'
-              sx={{ fontSize: '0.75rem' }}
-            >
-              {format(new Date(article.published_at), 'MMM dd, yyyy')}
-            </Typography>
-          )}
+          {/* Author and Date */}
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            {/* Author */}
+            {article.author && (
+              <Typography
+                variant='caption'
+                color='text.secondary'
+                sx={{ fontSize: '0.75rem', fontStyle: 'italic' }}
+              >
+                By {article.author}
+              </Typography>
+            )}
+            {/* Date */}
+            {showDate && (
+              <Typography
+                variant='caption'
+                color='text.secondary'
+                sx={{ fontSize: '0.75rem' }}
+              >
+                {format(new Date(article.published_at), 'MMM dd, yyyy')}
+              </Typography>
+            )}
+          </Box>
         </Box>
       </CardContent>
     </Card>

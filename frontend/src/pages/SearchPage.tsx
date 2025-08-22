@@ -1,5 +1,5 @@
 import type React from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Clear as ClearIcon, Search as SearchIcon } from '@mui/icons-material';
 import {
@@ -7,7 +7,6 @@ import {
   Box,
   Button,
   Card,
-  CardContent,
   Chip,
   FormControl,
   Grid,
@@ -16,14 +15,12 @@ import {
   MenuItem,
   Pagination,
   Select,
-  Skeleton,
   TextField,
   Typography,
 } from '@mui/material';
 import { format } from 'date-fns';
 
 import { ArticleCard, ArticleCardSkeleton } from '../components/ui';
-import { ROUTES } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import {
@@ -31,12 +28,15 @@ import {
   useGetCategoriesQuery,
   useGetPersonalizedFeedQuery,
   useGetSourcesQuery,
+  useGetUserPreferencesQuery,
 } from '../store/api/newsApi';
-import type { Article, ArticleFilters, Category, Source } from '../types';
+import type { ArticleFilters } from '../types';
 
 export const SearchPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
+  const [showPersonalizedAlert, setShowPersonalizedAlert] = useState(true);
+  const isInitialLoad = useRef(true);
 
   // Set page title
   useDocumentTitle('Search Articles');
@@ -61,6 +61,33 @@ export const SearchPage: React.FC = () => {
     query || category || source || fromDate || toDate
   );
   const shouldUsePersonalizedFeed = Boolean(user && !hasSpecificFilters);
+
+  // Reset alert when personalized feed status changes
+  useEffect(() => {
+    if (shouldUsePersonalizedFeed) {
+      setShowPersonalizedAlert(true);
+    }
+  }, [shouldUsePersonalizedFeed]);
+
+  // Listen for preference changes from the store
+  const { data: userPreferences } = useGetUserPreferencesQuery(undefined, {
+    skip: !user,
+  });
+
+  // Reset alert when preferences change (but not on initial load)
+  useEffect(() => {
+    if (
+      userPreferences &&
+      shouldUsePersonalizedFeed &&
+      !isInitialLoad.current
+    ) {
+      // Only reset if we have preferences, personalized feed is active, and it's not the initial load
+      setShowPersonalizedAlert(true);
+    }
+    if (userPreferences && isInitialLoad.current) {
+      isInitialLoad.current = false;
+    }
+  }, [userPreferences?.updated_at, shouldUsePersonalizedFeed]);
 
   const {
     data: personalizedResults,
@@ -188,8 +215,21 @@ export const SearchPage: React.FC = () => {
         <Typography variant='body1' color='text.secondary'>
           Find the latest news articles by keyword, category, source, and date
         </Typography>
-        {shouldUsePersonalizedFeed && (
-          <Alert severity='info' sx={{ mt: 2 }}>
+        {shouldUsePersonalizedFeed && showPersonalizedAlert && (
+          <Alert
+            severity='info'
+            sx={{ mt: 2 }}
+            onClose={() => setShowPersonalizedAlert(false)}
+            action={
+              <Button
+                color='inherit'
+                size='small'
+                onClick={() => setShowPersonalizedAlert(false)}
+              >
+                Got it!
+              </Button>
+            }
+          >
             🎯 Showing personalized content based on your preferences
           </Alert>
         )}
