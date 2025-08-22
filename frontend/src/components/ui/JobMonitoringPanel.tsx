@@ -63,7 +63,7 @@ export const JobMonitoringPanel: React.FC = () => {
 
     const interval = setInterval(() => {
       refetch();
-    }, 1000);
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [expanded, autoRefresh, refetch]);

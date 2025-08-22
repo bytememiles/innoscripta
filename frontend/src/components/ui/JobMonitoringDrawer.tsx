@@ -73,7 +73,7 @@ export const JobMonitoringDrawer: React.FC<JobMonitoringDrawerProps> = ({
 
     const interval = setInterval(() => {
       refetch();
-    }, 1000);
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [open, autoRefresh, refetch]);
