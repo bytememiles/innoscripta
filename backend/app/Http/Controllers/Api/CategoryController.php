@@ -23,7 +23,7 @@ class CategoryController extends Controller
      *   "data": {
      *     "categories": [
      *       {
-     *         "id": 1,
+     *         "id": "550e8400-e29b-41d4-a716-446655440001",
      *         "name": "Technology",
      *         "slug": "technology",
      *         "description": "Latest technology news and updates",
@@ -31,7 +31,7 @@ class CategoryController extends Controller
      *         "updated_at": "2024-01-15T10:30:00.000000Z"
      *       },
      *       {
-     *         "id": 2,
+     *         "id": "550e8400-e29b-41d4-a716-446655440002",
      *         "name": "Business",
      *         "slug": "business",
      *         "description": "Business and finance news",

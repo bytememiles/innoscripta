@@ -143,13 +143,13 @@ class ArticleController extends Controller
      * 
      * Retrieve a specific article by its ID.
      * 
-     * @urlParam id integer required The article ID. Example: 1
+     * @urlParam id string required The article UUID. Example: 550e8400-e29b-41d4-a716-446655440000
      * 
      * @response 200 {
      *   "success": true,
      *   "data": {
      *     "article": {
-     *       "id": 1,
+     *       "id": "550e8400-e29b-41d4-a716-446655440000",
      *       "title": "Breaking News: AI Revolution",
      *       "description": "Latest developments in artificial intelligence...",
      *       "content": "Full article content here...",
@@ -157,12 +157,12 @@ class ArticleController extends Controller
      *       "url_to_image": "https://example.com/image.jpg",
      *       "published_at": "2024-01-15T10:30:00.000000Z",
      *       "source": {
-     *         "id": 1,
+     *         "id": "550e8400-e29b-41d4-a716-446655440001",
      *         "name": "NewsAPI",
      *         "slug": "newsapi"
      *       },
      *       "category": {
-     *         "id": 1,
+     *         "id": "550e8400-e29b-41d4-a716-446655440002",
      *         "name": "Technology",
      *         "slug": "technology"
      *       },
@@ -177,7 +177,7 @@ class ArticleController extends Controller
      *   "message": "Article not found"
      * }
      */
-    public function show(int $id): JsonResponse
+    public function show(string $id): JsonResponse
     {
         $article = Article::with(['source', 'category'])->find($id);
 

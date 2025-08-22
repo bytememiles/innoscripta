@@ -23,7 +23,7 @@ class SourceController extends Controller
      *   "data": {
      *     "sources": [
      *       {
-     *         "id": 1,
+     *         "id": "550e8400-e29b-41d4-a716-446655440001",
      *         "name": "NewsAPI",
      *         "slug": "newsapi",
      *         "description": "NewsAPI.org news aggregator",
@@ -32,7 +32,7 @@ class SourceController extends Controller
      *         "updated_at": "2024-01-15T10:30:00.000000Z"
      *       },
      *       {
-     *         "id": 2,
+     *         "id": "550e8400-e29b-41d4-a716-446655440002",
      *         "name": "NewsData.io",
      *         "slug": "newsdata",
      *         "description": "NewsData.io API service",
@@ -41,7 +41,7 @@ class SourceController extends Controller
      *         "updated_at": "2024-01-15T10:30:00.000000Z"
      *       },
      *       {
-     *         "id": 3,
+     *         "id": "550e8400-e29b-41d4-a716-446655440003",
      *         "name": "The New York Times",
      *         "slug": "nyt",
      *         "description": "The New York Times API",
