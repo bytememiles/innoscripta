@@ -4,6 +4,7 @@ import axios, {
   type AxiosResponse,
 } from 'axios';
 
+import { ROUTES } from '../constants/routes';
 import type { ApiError } from '../types';
 
 const API_BASE_URL =
@@ -43,20 +44,37 @@ class ApiService {
     this.client.interceptors.response.use(
       (response: AxiosResponse) => response,
       error => {
-        // Handle 401 unauthorized
+        // Handle 401 unauthorized - don't redirect automatically
+        // Let the components handle authentication errors themselves
         if (error.response?.status === 401) {
           localStorage.removeItem('auth_token');
           localStorage.removeItem('user');
-          window.location.href = '/login';
+          // Remove automatic redirect to prevent page refresh
+          // window.location.href = ROUTES.LOGIN;
         }
 
-        // Transform error to our ApiError format
+        // Transform error to our ApiError format with enhanced messages
+        let errorMessage =
+          error.response?.data?.message || error.message || 'An error occurred';
+
+        // Provide more specific error messages for common status codes
+        if (error.response?.status === 401) {
+          errorMessage =
+            'Invalid credentials. Please check your email and password.';
+        } else if (error.response?.status === 422) {
+          errorMessage = 'Validation error. Please check your input.';
+        } else if (error.response?.status === 404) {
+          errorMessage = 'Resource not found.';
+        } else if (error.response?.status === 500) {
+          errorMessage = 'Server error. Please try again later.';
+        } else if (error.response?.status === 0 || !error.response) {
+          errorMessage = 'Network error. Please check your connection.';
+        }
+
         const apiError: ApiError = {
-          message:
-            error.response?.data?.message ||
-            error.message ||
-            'An error occurred',
+          message: errorMessage,
           errors: error.response?.data?.errors,
+          status: error.response?.status,
         };
 
         return Promise.reject(apiError);

@@ -16,7 +16,21 @@ import {
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [showPersonalizedAlert, setShowPersonalizedAlert] = useState(true);
+
+  // Check localStorage for alert dismissal state
+  const getAlertDismissedState = () => {
+    if (!user) return false;
+    const dismissed = localStorage.getItem(
+      `personalized_alert_dismissed_${user.id}`
+    );
+    return dismissed === 'true';
+  };
+
+  const [showPersonalizedAlert, setShowPersonalizedAlert] = useState(() => {
+    if (!user) return false;
+    return !getAlertDismissedState();
+  });
+
   const isInitialLoad = useRef(true);
 
   // Set page title
@@ -25,7 +39,8 @@ export const HomePage: React.FC = () => {
   // Reset alert only when user preferences actually change
   useEffect(() => {
     if (user) {
-      setShowPersonalizedAlert(true);
+      const dismissed = getAlertDismissedState();
+      setShowPersonalizedAlert(!dismissed);
     }
   }, [user]);
 
@@ -34,17 +49,39 @@ export const HomePage: React.FC = () => {
     skip: !user,
   });
 
+  // Check if user has meaningful preferences
+  const hasMeaningfulPreferences =
+    userPreferences &&
+    ((userPreferences.preferred_categories &&
+      userPreferences.preferred_categories.length > 0) ||
+      (userPreferences.preferred_sources &&
+        userPreferences.preferred_sources.length > 0) ||
+      (userPreferences.preferred_authors &&
+        userPreferences.preferred_authors.length > 0));
+
   // Reset alert when preferences change (but not on initial load)
   useEffect(() => {
     if (userPreferences && user && !isInitialLoad.current) {
-      // Only reset if we have preferences, user is logged in, and it's not the initial load
+      // Only reset if we have meaningful preferences, user is logged in, and it's not the initial load
       // This will trigger when preferences are actually updated via the ProfilePage
-      setShowPersonalizedAlert(true);
+      if (hasMeaningfulPreferences) {
+        setShowPersonalizedAlert(true);
+        // Clear the dismissed state when preferences are updated
+        localStorage.removeItem(`personalized_alert_dismissed_${user.id}`);
+      }
     }
     if (userPreferences && isInitialLoad.current) {
       isInitialLoad.current = false;
     }
-  }, [userPreferences?.updated_at, user]);
+  }, [userPreferences?.updated_at, user, hasMeaningfulPreferences]);
+
+  // Handle alert dismissal
+  const handleAlertDismiss = () => {
+    setShowPersonalizedAlert(false);
+    if (user) {
+      localStorage.setItem(`personalized_alert_dismissed_${user.id}`, 'true');
+    }
+  };
 
   // Get personalized feed for authenticated users
   const {
@@ -109,17 +146,13 @@ export const HomePage: React.FC = () => {
           Stay informed with the latest news from trusted sources around the
           world
         </Typography>
-        {user && showPersonalizedAlert && (
+        {user && hasMeaningfulPreferences && showPersonalizedAlert && (
           <Alert
             severity='info'
             sx={{ mt: 2 }}
-            onClose={() => setShowPersonalizedAlert(false)}
+            onClose={handleAlertDismiss}
             action={
-              <Button
-                color='inherit'
-                size='small'
-                onClick={() => setShowPersonalizedAlert(false)}
-              >
+              <Button color='inherit' size='small' onClick={handleAlertDismiss}>
                 Got it!
               </Button>
             }

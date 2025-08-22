@@ -28,6 +28,7 @@ export interface PaginatedResponse<T> {
 export interface ApiError {
   message: string;
   errors?: Record<string, string[]>;
+  status?: number;
 }
 
 // Common app error interface

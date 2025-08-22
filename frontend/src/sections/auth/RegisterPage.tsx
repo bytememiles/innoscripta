@@ -52,6 +52,7 @@ const RegisterPage: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   // Set page title
   useDocumentTitle('Create Account');
@@ -60,6 +61,8 @@ const RegisterPage: React.FC = () => {
     register,
     handleSubmit,
     formState: { errors },
+    setError: setFormError,
+    clearErrors,
   } = useForm<RegisterCredentials>({
     resolver: yupResolver(schema),
   });
@@ -68,6 +71,8 @@ const RegisterPage: React.FC = () => {
     try {
       setIsLoading(true);
       setError(null);
+      setFieldErrors({});
+      clearErrors();
 
       await registerUser(data);
 
@@ -81,11 +86,55 @@ const RegisterPage: React.FC = () => {
       // Navigate to intended destination or app
       const from =
         (location.state as any)?.from || AUTH_REDIRECTS.DEFAULT_AUTHENTICATED;
-      navigate(from, { replace: true });
+      navigate(from, {
+        replace: true,
+        state: { fromAuthProcess: true },
+      });
     } catch (error: any) {
-      setError(error.message || 'Registration failed. Please try again.');
+      console.error('Registration error:', error);
+
+      // Handle different types of errors
+      if (error.errors) {
+        // Validation errors from backend
+        setFieldErrors(error.errors);
+
+        // Set form errors for specific fields
+        Object.entries(error.errors).forEach(([field, messages]) => {
+          if (Array.isArray(messages) && messages.length > 0) {
+            setFormError(field as keyof RegisterCredentials, {
+              type: 'server',
+              message: messages[0],
+            });
+          }
+        });
+
+        setError('Please correct the errors below.');
+      } else if (error.message) {
+        // Handle specific error messages
+        if (error.message.includes('email has already been taken')) {
+          setError(
+            'An account with this email already exists. Please use a different email or sign in.'
+          );
+        } else if (error.message.includes('Validation error')) {
+          setError('Please check your input and try again.');
+        } else {
+          setError(error.message);
+        }
+      } else {
+        setError('Registration failed. Please try again.');
+      }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleInputChange = () => {
+    // Clear errors when user starts typing
+    if (error) {
+      setError(null);
+    }
+    if (Object.keys(fieldErrors).length > 0) {
+      setFieldErrors({});
     }
   };
 
@@ -104,9 +153,26 @@ const RegisterPage: React.FC = () => {
         Join us today and stay updated with the latest news.
       </Typography>
 
+      {/* General error alert */}
       {error && (
         <Alert severity='error' sx={{ mb: 2 }}>
           {error}
+        </Alert>
+      )}
+
+      {/* Field-specific error alerts */}
+      {Object.keys(fieldErrors).length > 0 && (
+        <Alert severity='error' sx={{ mb: 2 }}>
+          <Box>
+            {Object.entries(fieldErrors).map(([field, messages]) => (
+              <Box key={field} sx={{ mb: 1 }}>
+                <strong>
+                  {field.charAt(0).toUpperCase() + field.slice(1)}:
+                </strong>{' '}
+                {Array.isArray(messages) ? messages.join(', ') : messages}
+              </Box>
+            ))}
+          </Box>
         </Alert>
       )}
 
@@ -122,6 +188,7 @@ const RegisterPage: React.FC = () => {
         autoFocus
         error={!!errors.name}
         helperText={errors.name?.message}
+        onChange={handleInputChange}
       />
 
       <TextField
@@ -135,6 +202,7 @@ const RegisterPage: React.FC = () => {
         autoComplete='email'
         error={!!errors.email}
         helperText={errors.email?.message}
+        onChange={handleInputChange}
       />
 
       <TextField
@@ -149,6 +217,7 @@ const RegisterPage: React.FC = () => {
         autoComplete='new-password'
         error={!!errors.password}
         helperText={errors.password?.message}
+        onChange={handleInputChange}
       />
 
       <TextField
@@ -163,6 +232,7 @@ const RegisterPage: React.FC = () => {
         autoComplete='new-password'
         error={!!errors.password_confirmation}
         helperText={errors.password_confirmation?.message}
+        onChange={handleInputChange}
       />
 
       <Button

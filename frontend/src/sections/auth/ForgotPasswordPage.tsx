@@ -65,7 +65,26 @@ const ForgotPasswordPage: React.FC = () => {
         })
       );
     } catch (error: any) {
-      setError(error.message || 'Failed to send password reset email');
+      console.error('Password reset error:', error);
+
+      // Handle different types of errors
+      if (error.message) {
+        if (error.message.includes('email not found')) {
+          setError(
+            'No account found with this email address. Please check the email or create a new account.'
+          );
+        } else if (error.message.includes('too many attempts')) {
+          setError(
+            'Too many password reset attempts. Please wait a few minutes before trying again.'
+          );
+        } else if (error.message.includes('Validation error')) {
+          setError('Please check your email address and try again.');
+        } else {
+          setError(error.message);
+        }
+      } else {
+        setError('Failed to send password reset email. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }

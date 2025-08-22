@@ -40,6 +40,7 @@ const LoginPage: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   // Set page title
   useDocumentTitle('Sign In');
@@ -48,6 +49,8 @@ const LoginPage: React.FC = () => {
     register,
     handleSubmit,
     formState: { errors },
+    setError: setFormError,
+    clearErrors,
   } = useForm<LoginCredentials>({
     resolver: yupResolver(schema),
   });
@@ -56,6 +59,8 @@ const LoginPage: React.FC = () => {
     try {
       setIsLoading(true);
       setError(null);
+      setFieldErrors({});
+      clearErrors();
 
       await login(data);
 
@@ -69,11 +74,55 @@ const LoginPage: React.FC = () => {
       // Navigate to intended destination or app
       const from =
         (location.state as any)?.from || AUTH_REDIRECTS.DEFAULT_AUTHENTICATED;
-      navigate(from, { replace: true });
+      navigate(from, {
+        replace: true,
+        state: { fromAuthProcess: true },
+      });
     } catch (error: any) {
-      setError(error.message || 'Login failed. Please try again.');
+      console.error('Login error:', error);
+
+      // Handle different types of errors
+      if (error.errors) {
+        // Validation errors from backend
+        setFieldErrors(error.errors);
+
+        // Set form errors for specific fields
+        Object.entries(error.errors).forEach(([field, messages]) => {
+          if (Array.isArray(messages) && messages.length > 0) {
+            setFormError(field as keyof LoginCredentials, {
+              type: 'server',
+              message: messages[0],
+            });
+          }
+        });
+
+        setError('Please correct the errors below.');
+      } else if (error.message) {
+        // Handle specific error messages
+        if (error.message.includes('Invalid credentials')) {
+          setError(
+            'Invalid email or password. Please check your credentials and try again.'
+          );
+        } else if (error.message.includes('Validation error')) {
+          setError('Please check your input and try again.');
+        } else {
+          setError(error.message);
+        }
+      } else {
+        setError('Login failed. Please try again.');
+      }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleInputChange = () => {
+    // Clear errors when user starts typing
+    if (error) {
+      setError(null);
+    }
+    if (Object.keys(fieldErrors).length > 0) {
+      setFieldErrors({});
     }
   };
 
@@ -92,9 +141,26 @@ const LoginPage: React.FC = () => {
         Welcome back! Please sign in to your account.
       </Typography>
 
+      {/* General error alert */}
       {error && (
         <Alert severity='error' sx={{ mb: 2 }}>
           {error}
+        </Alert>
+      )}
+
+      {/* Field-specific error alerts */}
+      {Object.keys(fieldErrors).length > 0 && (
+        <Alert severity='error' sx={{ mb: 2 }}>
+          <Box>
+            {Object.entries(fieldErrors).map(([field, messages]) => (
+              <Box key={field} sx={{ mb: 1 }}>
+                <strong>
+                  {field.charAt(0).toUpperCase() + field.slice(1)}:
+                </strong>{' '}
+                {Array.isArray(messages) ? messages.join(', ') : messages}
+              </Box>
+            ))}
+          </Box>
         </Alert>
       )}
 
@@ -110,6 +176,7 @@ const LoginPage: React.FC = () => {
         autoFocus
         error={!!errors.email}
         helperText={errors.email?.message}
+        onChange={handleInputChange}
       />
 
       <TextField
@@ -124,6 +191,7 @@ const LoginPage: React.FC = () => {
         autoComplete='current-password'
         error={!!errors.password}
         helperText={errors.password?.message}
+        onChange={handleInputChange}
       />
 
       <Button

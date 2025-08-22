@@ -35,7 +35,21 @@ import type { ArticleFilters } from '../types';
 export const SearchPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
-  const [showPersonalizedAlert, setShowPersonalizedAlert] = useState(true);
+
+  // Check localStorage for alert dismissal state
+  const getAlertDismissedState = () => {
+    if (!user) return false;
+    const dismissed = localStorage.getItem(
+      `personalized_alert_dismissed_${user.id}`
+    );
+    return dismissed === 'true';
+  };
+
+  const [showPersonalizedAlert, setShowPersonalizedAlert] = useState(() => {
+    if (!user) return false;
+    return !getAlertDismissedState();
+  });
+
   const isInitialLoad = useRef(true);
 
   // Set page title
@@ -65,7 +79,8 @@ export const SearchPage: React.FC = () => {
   // Reset alert when personalized feed status changes
   useEffect(() => {
     if (shouldUsePersonalizedFeed) {
-      setShowPersonalizedAlert(true);
+      const dismissed = getAlertDismissedState();
+      setShowPersonalizedAlert(!dismissed);
     }
   }, [shouldUsePersonalizedFeed]);
 
@@ -74,6 +89,16 @@ export const SearchPage: React.FC = () => {
     skip: !user,
   });
 
+  // Check if user has meaningful preferences
+  const hasMeaningfulPreferences =
+    userPreferences &&
+    ((userPreferences.preferred_categories &&
+      userPreferences.preferred_categories.length > 0) ||
+      (userPreferences.preferred_sources &&
+        userPreferences.preferred_sources.length > 0) ||
+      (userPreferences.preferred_authors &&
+        userPreferences.preferred_authors.length > 0));
+
   // Reset alert when preferences change (but not on initial load)
   useEffect(() => {
     if (
@@ -81,13 +106,30 @@ export const SearchPage: React.FC = () => {
       shouldUsePersonalizedFeed &&
       !isInitialLoad.current
     ) {
-      // Only reset if we have preferences, personalized feed is active, and it's not the initial load
-      setShowPersonalizedAlert(true);
+      // Only reset if we have meaningful preferences, personalized feed is active, and it's not the initial load
+      if (hasMeaningfulPreferences && user) {
+        setShowPersonalizedAlert(true);
+        // Clear the dismissed state when preferences are updated
+        localStorage.removeItem(`personalized_alert_dismissed_${user.id}`);
+      }
     }
     if (userPreferences && isInitialLoad.current) {
       isInitialLoad.current = false;
     }
-  }, [userPreferences?.updated_at, shouldUsePersonalizedFeed]);
+  }, [
+    userPreferences?.updated_at,
+    shouldUsePersonalizedFeed,
+    hasMeaningfulPreferences,
+    user,
+  ]);
+
+  // Handle alert dismissal
+  const handleAlertDismiss = () => {
+    setShowPersonalizedAlert(false);
+    if (user) {
+      localStorage.setItem(`personalized_alert_dismissed_${user.id}`, 'true');
+    }
+  };
 
   const {
     data: personalizedResults,
@@ -215,24 +257,26 @@ export const SearchPage: React.FC = () => {
         <Typography variant='body1' color='text.secondary'>
           Find the latest news articles by keyword, category, source, and date
         </Typography>
-        {shouldUsePersonalizedFeed && showPersonalizedAlert && (
-          <Alert
-            severity='info'
-            sx={{ mt: 2 }}
-            onClose={() => setShowPersonalizedAlert(false)}
-            action={
-              <Button
-                color='inherit'
-                size='small'
-                onClick={() => setShowPersonalizedAlert(false)}
-              >
-                Got it!
-              </Button>
-            }
-          >
-            🎯 Showing personalized content based on your preferences
-          </Alert>
-        )}
+        {shouldUsePersonalizedFeed &&
+          hasMeaningfulPreferences &&
+          showPersonalizedAlert && (
+            <Alert
+              severity='info'
+              sx={{ mt: 2 }}
+              onClose={handleAlertDismiss}
+              action={
+                <Button
+                  color='inherit'
+                  size='small'
+                  onClick={handleAlertDismiss}
+                >
+                  Got it!
+                </Button>
+              }
+            >
+              🎯 Showing personalized content based on your preferences
+            </Alert>
+          )}
       </Box>
 
       {/* Search Form */}

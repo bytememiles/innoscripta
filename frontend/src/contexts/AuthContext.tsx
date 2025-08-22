@@ -97,31 +97,56 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     };
 
-    init();
-  }, []);
+    // Only run initialization once
+    if (!isInitialized) {
+      init();
+    }
+  }, [isInitialized]);
 
   const login = async (credentials: LoginCredentials) => {
-    const response = await apiService.post<{
-      data: { user: User; token: string };
-    }>(API_ENDPOINTS.LOGIN, credentials);
-    const { user: userData, token } = response.data;
+    try {
+      const response = await apiService.post<{
+        data: { user: User; token: string };
+      }>(API_ENDPOINTS.LOGIN, credentials);
 
-    setSession(token);
-    localStorage.setItem('user', JSON.stringify(userData));
-    setUser(userData);
-    setIsAuthenticated(true);
+      const { user: userData, token } = response.data;
+
+      // Only set session and update state after successful login
+      setSession(token);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+      setIsAuthenticated(true);
+
+      // Return success - let the LoginPage handle navigation
+      return;
+    } catch (error: any) {
+      // Re-throw the error so the LoginPage can handle it
+      // The API service already transforms errors into a consistent format
+      throw error;
+    }
   };
 
   const register = async (credentials: RegisterCredentials) => {
-    const response = await apiService.post<{
-      data: { user: User; token: string };
-    }>(API_ENDPOINTS.REGISTER, credentials);
-    const { user: userData, token } = response.data;
+    try {
+      const response = await apiService.post<{
+        data: { user: User; token: string };
+      }>(API_ENDPOINTS.REGISTER, credentials);
 
-    setSession(token);
-    localStorage.setItem('user', JSON.stringify(userData));
-    setUser(userData);
-    setIsAuthenticated(true);
+      const { user: userData, token } = response.data;
+
+      // Only set session and update state after successful registration
+      setSession(token);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+      setIsAuthenticated(true);
+
+      // Return success - let the RegisterPage handle navigation
+      return;
+    } catch (error: any) {
+      // Re-throw the error so the RegisterPage can handle it
+      // The API service already transforms errors into a consistent format
+      throw error;
+    }
   };
 
   const logout = () => {

@@ -95,6 +95,7 @@ export default [
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'prefer-const': 'error',
       'no-var': 'error',
+      'no-useless-catch': 'off',
     },
   },
   {
