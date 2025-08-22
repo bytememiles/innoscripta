@@ -195,6 +195,7 @@ class UserPreferenceController extends Controller
      * Get personalized news feed
      * 
      * Retrieve a personalized news feed based on user preferences.
+     * If no articles exist, automatically scrapes news based on preferences.
      * 
      * @authenticated
      * 
@@ -236,8 +237,6 @@ class UserPreferenceController extends Controller
      *     "last_page_url": "http://localhost:8000/api/personalized-feed?page=10",
      *     "links": [],
      *     "next_page_url": "http://localhost:8000/api/personalized-feed?page=2",
-     *     "path": "http://localhost:8000/api/personalized-feed",
-     *     "per_page": 10,
      *     "prev_page_url": null,
      *     "to": 10,
      *     "total": 100
@@ -255,8 +254,6 @@ class UserPreferenceController extends Controller
      *     "last_page_url": "http://localhost:8000/api/personalized-feed?page=10",
      *     "links": [],
      *     "next_page_url": "http://localhost:8000/api/personalized-feed?page=2",
-     *     "path": "http://localhost:8000/api/personalized-feed",
-     *     "per_page": 10,
      *     "prev_page_url": null,
      *     "to": 10,
      *     "total": 100
@@ -307,6 +304,18 @@ class UserPreferenceController extends Controller
             $perPage = $request->get('per_page', 10);
             $articles = $query->orderBy('published_at', 'desc')->paginate($perPage);
 
+            // If no articles exist, trigger default scraping
+            if ($articles->total() === 0 && $request->get('page', 1) == 1) {
+                $this->triggerDefaultScraping();
+                
+                return response()->json([
+                    'success' => true,
+                    'data' => $articles,
+                    'message' => 'No preferences found. No articles available. Scraping default news in the background. Please try again in a few moments.',
+                    'scraping_initiated' => true
+                ]);
+            }
+
             return response()->json([
                 'success' => true,
                 'data' => $articles,
@@ -355,8 +364,6 @@ class UserPreferenceController extends Controller
 
         $perPage = $request->get('per_page', 10);
         
-
-        
         // Get the filtered articles
         $articles = $query->orderBy('published_at', 'desc')->paginate($perPage);
         
@@ -374,9 +381,37 @@ class UserPreferenceController extends Controller
             $articles = $fallbackQuery->orderBy('published_at', 'desc')->paginate($perPage);
         }
 
+        // If still no articles found and this is the first page, trigger scraping
+        if ($articles->total() === 0 && $request->get('page', 1) == 1) {
+            $this->triggerPreferenceBasedScraping($preferences);
+            
+            return response()->json([
+                'success' => true,
+                'data' => $articles,
+                'message' => 'No articles found for your preferences. Scraping news in the background. Please try again in a few moments.',
+                'scraping_initiated' => true
+            ]);
+        }
+
         return response()->json([
             'success' => true,
             'data' => $articles
         ]);
+    }
+
+    /**
+     * Trigger default news scraping
+     */
+    private function triggerDefaultScraping(): void
+    {
+        \App\Jobs\ScrapeNewsJob::dispatch('default');
+    }
+
+    /**
+     * Trigger preference-based news scraping
+     */
+    private function triggerPreferenceBasedScraping(UserPreference $preferences): void
+    {
+        \App\Jobs\ScrapeNewsJob::dispatch('user_preferences', [], $preferences->user_id);
     }
 }

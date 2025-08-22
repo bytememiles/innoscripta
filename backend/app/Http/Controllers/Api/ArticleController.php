@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Article;
+use App\Services\NewsScrapingService;
+use App\Jobs\ScrapeNewsJob;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * @group Articles
@@ -15,10 +18,18 @@ use Illuminate\Support\Facades\Validator;
  */
 class ArticleController extends Controller
 {
+    private NewsScrapingService $scrapingService;
+
+    public function __construct(NewsScrapingService $scrapingService)
+    {
+        $this->scrapingService = $scrapingService;
+    }
+
     /**
      * List articles
      * 
      * Retrieve a paginated list of articles with optional filtering.
+     * If no articles exist, automatically scrapes news based on user preferences or defaults.
      * 
      * @queryParam page integer Page number for pagination. Example: 1
      * @queryParam per_page integer Number of articles per page (max 50). Example: 10
@@ -61,8 +72,6 @@ class ArticleController extends Controller
      *     "last_page_url": "http://localhost:8000/api/articles?page=10",
      *     "links": [],
      *     "next_page_url": "http://localhost:8000/api/articles?page=2",
-     *     "path": "http://localhost:8000/api/articles",
-     *     "per_page": 10,
      *     "prev_page_url": null,
      *     "to": 10,
      *     "total": 100
@@ -132,6 +141,18 @@ class ArticleController extends Controller
         $perPage = $request->get('per_page', 10);
         $articles = $query->orderBy('published_at', 'desc')->paginate($perPage);
 
+        // If no articles found and this is the first page, trigger scraping
+        if ($articles->total() === 0 && $request->get('page', 1) == 1) {
+            $this->triggerInitialScraping($request);
+            
+            return response()->json([
+                'success' => true,
+                'data' => $articles,
+                'message' => 'No articles found. Scraping news in the background. Please try again in a few moments.',
+                'scraping_initiated' => true
+            ]);
+        }
+
         return response()->json([
             'success' => true,
             'data' => $articles
@@ -200,6 +221,7 @@ class ArticleController extends Controller
      * Search articles
      * 
      * Full-text search across article title, description, and content.
+     * Automatically scrapes new articles if needed and merges with existing results.
      * 
      * @queryParam q string required The search query. Example: artificial intelligence
      * @queryParam page integer Page number for pagination. Example: 1
@@ -241,9 +263,7 @@ class ArticleController extends Controller
      *     "last_page": 5,
      *     "last_page_url": "http://localhost:8000/api/articles/search?q=ai&page=5",
      *     "links": [],
-     *     "next_page_url": "http://localhost:8000/api/articles/search?q=ai&page=2",
-     *     "path": "http://localhost:8000/api/articles/search",
-     *     "per_page": 10,
+     *     "next_page_url": "http://localhost:8000/api/articles?page=2",
      *     "prev_page_url": null,
      *     "to": 10,
      *     "total": 50
@@ -279,42 +299,134 @@ class ArticleController extends Controller
         }
 
         $searchTerm = $request->q;
-        $query = Article::with(['source', 'category']);
+        $filters = $request->only(['category', 'source', 'from_date', 'to_date']);
+        
+        // Check cache first
+        $cacheKey = "search_cache_" . md5($searchTerm . json_encode($filters));
+        $cachedResults = Cache::get($cacheKey);
+        
+        if ($cachedResults && !$this->shouldRefreshCache($cachedResults)) {
+            return response()->json([
+                'success' => true,
+                'data' => $cachedResults,
+                'from_cache' => true
+            ]);
+        }
 
-        // Full-text search
-        $query->where(function ($q) use ($searchTerm) {
-            $q->where('title', 'ILIKE', "%{$searchTerm}%")
-              ->orWhere('description', 'ILIKE', "%{$searchTerm}%")
-              ->orWhere('content', 'ILIKE', "%{$searchTerm}%");
-        });
-
-        // Apply filters
-        if ($request->filled('category')) {
-            $query->whereHas('category', function ($q) use ($request) {
-                $q->where('slug', $request->category);
+        try {
+            // Use the scraping service to get fresh results
+            $userId = $request->user()?->id;
+            $scrapedArticles = $this->scrapingService->scrapeForSearch($searchTerm, $filters, $userId);
+            
+            // Get existing articles that match the search
+            $query = Article::with(['source', 'category']);
+            
+            // Apply search query
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('title', 'ILIKE', "%{$searchTerm}%")
+                  ->orWhere('description', 'ILIKE', "%{$searchTerm}%")
+                  ->orWhere('content', 'ILIKE', "%{$searchTerm}%");
             });
-        }
 
-        if ($request->filled('source')) {
-            $query->whereHas('source', function ($q) use ($request) {
-                $q->where('slug', $request->source);
+            // Apply filters
+            if ($request->filled('category')) {
+                $query->whereHas('category', function ($q) use ($request) {
+                    $q->where('slug', $request->category);
+                });
+            }
+
+            if ($request->filled('source')) {
+                $query->whereHas('source', function ($q) use ($request) {
+                    $q->where('slug', $request->source);
+                });
+            }
+
+            if ($request->filled('from_date')) {
+                $query->whereDate('published_at', '>=', $request->from_date);
+            }
+
+            if ($request->filled('to_date')) {
+                $query->whereDate('published_at', '<=', $request->to_date);
+            }
+
+            $perPage = $request->get('per_page', 10);
+            $articles = $query->orderBy('published_at', 'desc')->paginate($perPage);
+            
+            // Cache the results
+            Cache::put($cacheKey, $articles, now()->addMinutes(15));
+            
+            return response()->json([
+                'success' => true,
+                'data' => $articles,
+                'scraped_new_articles' => count($scrapedArticles)
+            ]);
+            
+        } catch (\Exception $e) {
+            // Fallback to database search only
+            $query = Article::with(['source', 'category']);
+            
+            // Apply search query
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('title', 'ILIKE', "%{$searchTerm}%")
+                  ->orWhere('description', 'ILIKE', "%{$searchTerm}%")
+                  ->orWhere('content', 'ILIKE', "%{$searchTerm}%");
             });
+
+            // Apply filters
+            if ($request->filled('category')) {
+                $query->whereHas('category', function ($q) use ($request) {
+                    $q->where('slug', $request->category);
+                });
+            }
+
+            if ($request->filled('source')) {
+                $query->whereHas('source', function ($q) use ($request) {
+                    $q->where('slug', $request->source);
+                });
+            }
+
+            if ($request->filled('from_date')) {
+                $query->whereDate('published_at', '>=', $request->from_date);
+            }
+
+            if ($request->filled('to_date')) {
+                $query->whereDate('published_at', '<=', $request->to_date);
+            }
+
+            $perPage = $request->get('per_page', 10);
+            $articles = $query->orderBy('published_at', 'desc')->paginate($perPage);
+
+            return response()->json([
+                'success' => true,
+                'data' => $articles,
+                'message' => 'Search completed with existing articles. Some features may be limited.',
+                'error' => $e->getMessage()
+            ]);
         }
+    }
 
-        if ($request->filled('from_date')) {
-            $query->whereDate('published_at', '>=', $request->from_date);
+    /**
+     * Trigger initial scraping when no articles exist
+     */
+    private function triggerInitialScraping(Request $request): void
+    {
+        $userId = $request->user()?->id;
+        
+        if ($userId) {
+            // Scrape based on user preferences
+            ScrapeNewsJob::dispatch('user_preferences', [], $userId);
+        } else {
+            // Scrape default news
+            ScrapeNewsJob::dispatch('default');
         }
+    }
 
-        if ($request->filled('to_date')) {
-            $query->whereDate('published_at', '<=', $request->to_date);
-        }
-
-        $perPage = $request->get('per_page', 10);
-        $articles = $query->orderBy('published_at', 'desc')->paginate($perPage);
-
-        return response()->json([
-            'success' => true,
-            'data' => $articles
-        ]);
+    /**
+     * Check if cache should be refreshed
+     */
+    private function shouldRefreshCache($cachedResults): bool
+    {
+        // Refresh if cache is older than 15 minutes
+        return Cache::get('cache_timestamp_' . md5(json_encode($cachedResults)), 0) < now()->subMinutes(15)->timestamp;
     }
 }

@@ -119,6 +119,25 @@ class NewsAPIService
     }
 
     /**
+     * Search articles with specific query
+     */
+    public function searchArticles(string $query, array $parameters = []): array
+    {
+        $defaultParams = [
+            'apiKey' => $this->apiKey,
+            'q' => $query,
+            'language' => 'en',
+            'sortBy' => 'publishedAt',
+            'pageSize' => 100,
+            'page' => 1,
+        ];
+
+        $params = array_merge($defaultParams, $parameters);
+
+        return $this->fetchArticles($params);
+    }
+
+    /**
      * Format articles to standardized structure
      */
     private function formatArticles(array $articles): array

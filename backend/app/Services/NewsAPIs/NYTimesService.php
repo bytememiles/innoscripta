@@ -110,9 +110,9 @@ class NYTimesService
             $multimedia = $article['multimedia'] ?? [];
             $imageUrl = null;
             
-            if (!empty($multimedia)) {
+            if (!empty($multimedia) && is_array($multimedia)) {
                 foreach ($multimedia as $media) {
-                    if ($media['type'] === 'image') {
+                    if (is_array($media) && isset($media['type']) && $media['type'] === 'image' && isset($media['url'])) {
                         $imageUrl = 'https://nytimes.com/' . $media['url'];
                         break;
                     }
@@ -149,15 +149,15 @@ class NYTimesService
     {
         return array_map(function ($article) {
             $imageUrl = null;
-            if (!empty($article['multimedia'])) {
+            if (!empty($article['multimedia']) && is_array($article['multimedia'])) {
                 foreach ($article['multimedia'] as $media) {
-                    if ($media['format'] === 'mediumThreeByTwo440') {
+                    if (is_array($media) && isset($media['format']) && $media['format'] === 'mediumThreeByTwo440' && isset($media['url'])) {
                         $imageUrl = $media['url'];
                         break;
                     }
                 }
                 // Fallback to first image if specific format not found
-                if (!$imageUrl && !empty($article['multimedia'][0]['url'])) {
+                if (!$imageUrl && !empty($article['multimedia'][0]) && is_array($article['multimedia'][0]) && isset($article['multimedia'][0]['url'])) {
                     $imageUrl = $article['multimedia'][0]['url'];
                 }
             }
