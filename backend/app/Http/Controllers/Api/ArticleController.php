@@ -596,6 +596,23 @@ class ArticleController extends Controller
         // Generate unique job ID for tracking
         $jobId = Str::uuid()->toString();
         
+        // Track the job in cache for monitoring
+        $trackedJobs = Cache::get('tracked_jobs', []);
+        $trackedJobs[$jobId] = [
+            'type' => 'filtered_search',
+            'status' => 'queued',
+            'filters' => $filters,
+            'created_at' => now()->toISOString(),
+            'started_at' => null,
+            'completed_at' => null,
+            'failed_at' => null,
+            'error_message' => null,
+            'progress' => 0,
+            'user_id' => $userId,
+            'estimated_duration' => '2-5 minutes'
+        ];
+        Cache::put('tracked_jobs', $trackedJobs, now()->addHours(24)); // Cache for 24 hours
+        
         // Dispatch scraping job for filtered search
         \App\Jobs\ScrapeNewsJob::dispatch('filtered_search', $filters, $userId, $jobId);
     }
@@ -610,11 +627,47 @@ class ArticleController extends Controller
         if ($userId) {
             // Generate unique job ID for tracking
             $jobId = Str::uuid()->toString();
+            
+            // Track the job in cache for monitoring
+            $trackedJobs = Cache::get('tracked_jobs', []);
+            $trackedJobs[$jobId] = [
+                'type' => 'user_preferences',
+                'status' => 'queued',
+                'filters' => [],
+                'created_at' => now()->toISOString(),
+                'started_at' => null,
+                'completed_at' => null,
+                'failed_at' => null,
+                'error_message' => null,
+                'progress' => 0,
+                'user_id' => $userId,
+                'estimated_duration' => '2-5 minutes'
+            ];
+            Cache::put('tracked_jobs', $trackedJobs, now()->addHours(24)); // Cache for 24 hours
+            
             // Scrape based on user preferences
             ScrapeNewsJob::dispatch('user_preferences', [], $userId, $jobId);
         } else {
             // Generate unique job ID for tracking
             $jobId = Str::uuid()->toString();
+            
+            // Track the job in cache for monitoring
+            $trackedJobs = Cache::get('tracked_jobs', []);
+            $trackedJobs[$jobId] = [
+                'type' => 'default',
+                'status' => 'queued',
+                'filters' => [],
+                'created_at' => now()->toISOString(),
+                'started_at' => null,
+                'completed_at' => null,
+                'failed_at' => null,
+                'error_message' => null,
+                'progress' => 0,
+                'user_id' => null,
+                'estimated_duration' => '2-5 minutes'
+            ];
+            Cache::put('tracked_jobs', $trackedJobs, now()->addHours(24)); // Cache for 24 hours
+            
             // Scrape default news
             ScrapeNewsJob::dispatch('default', [], null, $jobId);
         }
@@ -670,15 +723,35 @@ class ArticleController extends Controller
             // Generate unique job ID for tracking
             $jobId = Str::uuid()->toString();
             
+            // Track the job in cache for monitoring
+            $trackedJobs = Cache::get('tracked_jobs', []);
+            $trackedJobs[$jobId] = [
+                'type' => 'filtered_search',
+                'status' => 'queued',
+                'filters' => $filters,
+                'created_at' => now()->toISOString(),
+                'started_at' => null,
+                'completed_at' => null,
+                'failed_at' => null,
+                'error_message' => null,
+                'progress' => 0,
+                'user_id' => $userId,
+                'estimated_duration' => '2-5 minutes'
+            ];
+            Cache::put('tracked_jobs', $trackedJobs, now()->addHours(24)); // Cache for 24 hours
+            
             // Dispatch scraping job with the unique ID
             $job = \App\Jobs\ScrapeNewsJob::dispatch('filtered_search', $filters, $userId, $jobId);
             
             return response()->json([
                 'success' => true,
-                'message' => 'News scraping job has been queued successfully',
-                'job_id' => $jobId,
-                'estimated_duration' => '2-5 minutes',
-                'filters_applied' => $filters
+                'data' => [
+                    'success' => true,
+                    'message' => 'News scraping job has been queued successfully',
+                    'job_id' => $jobId,
+                    'estimated_duration' => '2-5 minutes',
+                    'filters_applied' => $filters
+                ]
             ]);
             
         } catch (\Exception $e) {

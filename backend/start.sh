@@ -1,3 +1,5 @@
+
+
 #!/bin/bash
 
 # News Aggregator Backend Startup Script
@@ -147,10 +149,33 @@ fi
 
 # Start background queue worker for intelligent scraping
 print_status "Starting background queue worker for intelligent news scraping..."
-docker compose exec -d backend php artisan queue:work --timeout=300 --tries=3 --sleep=3
+if docker compose exec -d backend php artisan queue:work --timeout=300 --tries=3 --sleep=3; then
+    print_success "Queue worker started successfully!"
+else
+    print_warning "Failed to start queue worker in background, trying alternative method..."
+    # Alternative: Start in foreground with nohup
+    docker compose exec backend nohup php artisan queue:work --timeout=300 --tries=3 --sleep=3 > /dev/null 2>&1 &
+    if [ $? -eq 0 ]; then
+        print_success "Queue worker started with alternative method!"
+    else
+        print_error "Failed to start queue worker. Jobs will not be processed!"
+        print_warning "You may need to start it manually: docker compose exec -d backend php artisan queue:work --timeout=300 --tries=3 --sleep=3"
+    fi
+fi
 
 # Wait a moment for queue worker to start
 sleep 3
+
+# Verify queue worker is running
+print_status "Verifying queue worker is running..."
+if docker compose exec backend ps aux | grep -q "queue:work"; then
+    print_success "Queue worker is running and processing jobs!"
+else
+    print_warning "Queue worker may not be running. Checking process list..."
+    docker compose exec backend ps aux | grep -E "(queue|artisan)" || true
+    print_warning "If queue worker is not running, start it manually:"
+    print_warning "  docker compose exec -d backend php artisan queue:work --timeout=300 --tries=3 --sleep=3"
+fi
 
 # Test the queue system
 print_status "Testing queue system..."
@@ -195,8 +220,10 @@ print_status "Useful commands:"
 echo "  📊 Check status:   docker compose ps"
 echo "  📝 View logs:      docker compose logs -f backend"
 echo "  🔄 Queue status:   docker exec -it news_aggregator_backend php artisan queue:failed"
-echo "  🔄 Queue status:   docker exec -it news_aggregator_backend php artisan queue:failed"
+echo "  🔄 Queue jobs:     docker exec -it news_aggregator_backend php artisan queue:work --once"
 echo "  🔄 Start worker:   docker exec -d news_aggregator_backend php artisan queue:work --timeout=300 --tries=3 --sleep=3"
+echo "  🔄 Stop worker:    docker exec news_aggregator_backend pkill -f 'queue:work'"
+echo "  🔄 Check workers:  docker exec news_aggregator_backend ps aux | grep queue"
 echo "  🗞️  Scrape news:   docker exec -it news_aggregator_backend php artisan news:scrape-user --default"
 echo "  🛑 Stop services:  docker compose down"
 echo "  🔄 Restart:        ./start.sh"

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use App\Jobs\ScrapeNewsJob;
 
 class QueueController extends Controller
@@ -134,10 +135,11 @@ class QueueController extends Controller
                 ], 404);
             }
             
-            if ($job->status !== 'queued') {
+            // Allow cancellation of jobs in various states, but not completed or failed
+            if (in_array($job->status, ['completed', 'failed'])) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Cannot cancel job that is already running or completed'
+                    'message' => 'Cannot cancel job that is already completed or failed'
                 ], 400);
             }
             
@@ -245,26 +247,74 @@ class QueueController extends Controller
      */
     private function getJobsFromQueue(?string $userId): array
     {
-        // Since we can't directly access individual jobs from Redis queue,
-        // we'll return basic queue information
-        $queueSize = Queue::size('news-scraping');
-        
-        return [
-            [
-                'id' => 'queue-status',
-                'type' => 'queue_info',
-                'status' => 'active',
-                'filters' => [],
-                'created_at' => now(),
-                'started_at' => null,
-                'completed_at' => null,
-                'failed_at' => null,
-                'error_message' => null,
-                'progress' => 0,
-                'queue_size' => $queueSize,
-                'message' => 'Queue is running with ' . $queueSize . ' jobs'
-            ]
-        ];
+        try {
+            $queueSize = Queue::size('news-scraping');
+            
+            // Get tracked jobs from cache
+            $trackedJobs = Cache::get('tracked_jobs', []);
+            
+            // Discover and track existing jobs that aren't tracked
+            $this->discoverUntrackedJobs($userId);
+            
+            // Get updated tracked jobs after discovery
+            $trackedJobs = Cache::get('tracked_jobs', []);
+            $activeJobs = [];
+            
+            // Filter jobs by user if specified and remove cancelled jobs
+            if ($userId) {
+                $trackedJobs = array_filter($trackedJobs, function($job) use ($userId) {
+                    return $job['user_id'] === $userId && $job['status'] !== 'cancelled';
+                });
+            } else {
+                $trackedJobs = array_filter($trackedJobs, function($job) {
+                    return $job['status'] !== 'cancelled';
+                });
+            }
+            
+            // Convert tracked jobs to the expected format
+            foreach ($trackedJobs as $jobId => $jobData) {
+                $activeJobs[] = [
+                    'id' => $jobId,
+                    'type' => $jobData['type'] ?? 'unknown',
+                    'status' => $jobData['status'] ?? 'queued',
+                    'filters' => $jobData['filters'] ?? [],
+                    'created_at' => $jobData['created_at'] ?? now(),
+                    'started_at' => $jobData['started_at'] ?? null,
+                    'completed_at' => $jobData['completed_at'] ?? null,
+                    'failed_at' => $jobData['failed_at'] ?? null,
+                    'error_message' => $jobData['error_message'] ?? null,
+                    'progress' => $jobData['progress'] ?? 0,
+                    'user_id' => $jobData['user_id'] ?? null,
+                    'queue_size' => $queueSize
+                ];
+            }
+            
+            // If no tracked jobs, return queue status
+            if (empty($activeJobs)) {
+                return [
+                    [
+                        'id' => 'queue-status',
+                        'type' => 'queue_info',
+                        'status' => 'active',
+                        'filters' => [],
+                        'created_at' => now(),
+                        'started_at' => null,
+                        'completed_at' => null,
+                        'failed_at' => null,
+                        'error_message' => null,
+                        'progress' => 0,
+                        'queue_size' => $queueSize,
+                        'message' => 'Queue is running with ' . $queueSize . ' jobs'
+                    ]
+                ];
+            }
+            
+            return $activeJobs;
+            
+        } catch (\Exception $e) {
+            Log::error('Failed to get jobs from queue: ' . $e->getMessage());
+            return [];
+        }
     }
 
     /**
@@ -272,21 +322,40 @@ class QueueController extends Controller
      */
     private function getJobFromQueue(string $jobId, ?string $userId): ?object
     {
-        // Since we can't directly access individual jobs from Redis queue,
-        // we'll return a generic response
-        return (object) [
-            'id' => $jobId,
-            'type' => 'unknown',
-            'status' => 'queued',
-            'filters' => [],
-            'created_at' => now(),
-            'started_at' => null,
-            'completed_at' => null,
-            'failed_at' => null,
-            'error_message' => null,
-            'progress' => 0,
-            'message' => 'Job is in the queue'
-        ];
+        try {
+            // Get tracked jobs from cache
+            $trackedJobs = Cache::get('tracked_jobs', []);
+            
+            if (!isset($trackedJobs[$jobId])) {
+                return null;
+            }
+            
+            $jobData = $trackedJobs[$jobId];
+            
+            // Check if user has access to this job
+            if ($userId && $jobData['user_id'] !== $userId) {
+                return null;
+            }
+            
+            return (object) [
+                'id' => $jobId,
+                'type' => $jobData['type'] ?? 'unknown',
+                'status' => $jobData['status'] ?? 'queued',
+                'filters' => $jobData['filters'] ?? [],
+                'created_at' => $jobData['created_at'] ?? now(),
+                'started_at' => $jobData['started_at'] ?? null,
+                'completed_at' => $jobData['completed_at'] ?? null,
+                'failed_at' => $jobData['failed_at'] ?? null,
+                'error_message' => $jobData['error_message'] ?? null,
+                'progress' => $jobData['progress'] ?? 0,
+                'user_id' => $jobData['user_id'] ?? null,
+                'message' => 'Job is in the queue'
+            ];
+            
+        } catch (\Exception $e) {
+            Log::error('Failed to get job from queue: ' . $e->getMessage());
+            return null;
+        }
     }
 
     /**
@@ -294,13 +363,49 @@ class QueueController extends Controller
      */
     private function updateJobStatus(string $jobId, string $status, ?string $userId): void
     {
-        // Since we can't directly update job status in Redis queue,
-        // we'll just log the status change
-        Log::info("Job status update requested", [
-            'job_id' => $jobId,
-            'status' => $status,
-            'user_id' => $userId
-        ]);
+        try {
+            // Get tracked jobs from cache
+            $trackedJobs = Cache::get('tracked_jobs', []);
+            
+            if (isset($trackedJobs[$jobId])) {
+                // Update the job status in cache
+                $trackedJobs[$jobId]['status'] = $status;
+                
+                // Add timestamp for status change
+                switch ($status) {
+                    case 'started':
+                        $trackedJobs[$jobId]['started_at'] = now()->toISOString();
+                        break;
+                    case 'completed':
+                        $trackedJobs[$jobId]['completed_at'] = now()->toISOString();
+                        $trackedJobs[$jobId]['progress'] = 100;
+                        break;
+                    case 'failed':
+                        $trackedJobs[$jobId]['failed_at'] = now()->toISOString();
+                        break;
+                    case 'cancelled':
+                        $trackedJobs[$jobId]['cancelled_at'] = now()->toISOString();
+                        break;
+                }
+                
+                // Update the cache
+                Cache::put('tracked_jobs', $trackedJobs, now()->addHours(24));
+                
+                Log::info("Job status updated in cache", [
+                    'job_id' => $jobId,
+                    'status' => $status,
+                    'user_id' => $userId
+                ]);
+            } else {
+                Log::warning("Job not found in cache for status update", [
+                    'job_id' => $jobId,
+                    'status' => $status,
+                    'user_id' => $userId
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to update job status in cache: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -319,17 +424,83 @@ class QueueController extends Controller
     }
 
     /**
-     * Clean up stuck jobs
+     * Clean up stuck jobs and old cancelled jobs
      */
     private function cleanupStuckJobs(): void
     {
         try {
-            // Since we can't directly access individual jobs from Redis queue,
-            // we'll just log that cleanup was attempted
-            Log::info('Cleanup stuck jobs attempted - Redis queue does not support direct job inspection');
+            // Get tracked jobs from cache
+            $trackedJobs = Cache::get('tracked_jobs', []);
+            $cleanedJobs = [];
+            $cleanedCount = 0;
+            
+            foreach ($trackedJobs as $jobId => $jobData) {
+                // Keep jobs that are not cancelled or are recent
+                if ($jobData['status'] !== 'cancelled' || 
+                    (isset($jobData['cancelled_at']) && 
+                     now()->diffInHours($jobData['cancelled_at']) < 1)) {
+                    $cleanedJobs[$jobId] = $jobData;
+                } else {
+                    $cleanedCount++;
+                }
+            }
+            
+            // Update cache with cleaned jobs
+            if ($cleanedCount > 0) {
+                Cache::put('tracked_jobs', $cleanedJobs, now()->addHours(24));
+                Log::info("Cleaned up {$cleanedCount} old cancelled jobs from cache");
+            }
+            
+            Log::info('Cleanup completed - removed old cancelled jobs and checked for stuck jobs');
         } catch (\Exception $e) {
             // Log error but don't fail the sync
-            Log::error('Failed to cleanup stuck jobs: ' . $e->getMessage());
+            Log::error('Failed to cleanup jobs: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Discover and track existing jobs in the queue that aren't currently tracked.
+     * This is useful for syncing the queue status with the application's state.
+     */
+    private function discoverUntrackedJobs(?string $userId): void
+    {
+        try {
+            // Since we can't directly inspect Redis queue contents in Laravel,
+            // we'll create placeholder entries for untracked jobs based on queue size
+            $trackedJobs = Cache::get('tracked_jobs', []);
+            $trackedCount = count($trackedJobs);
+            $queueSize = Queue::size('news-scraping');
+            
+            // If there are more jobs in queue than tracked, create placeholder entries
+            if ($queueSize > $trackedCount) {
+                $untrackedCount = $queueSize - $trackedCount;
+                
+                for ($i = 0; $i < $untrackedCount; $i++) {
+                    $jobId = 'discovered-' . Str::uuid()->toString();
+                    
+                    // Create a placeholder tracked job
+                    $trackedJobs[$jobId] = [
+                        'type' => 'discovered_job',
+                        'status' => 'queued',
+                        'filters' => [],
+                        'created_at' => now()->subMinutes(rand(1, 30))->toISOString(), // Random time within last 30 min
+                        'started_at' => null,
+                        'completed_at' => null,
+                        'failed_at' => null,
+                        'error_message' => null,
+                        'progress' => 0,
+                        'user_id' => $userId,
+                        'estimated_duration' => '2-5 minutes',
+                        'discovered' => true
+                    ];
+                }
+                
+                // Update the cache
+                Cache::put('tracked_jobs', $trackedJobs, now()->addHours(24));
+                Log::info("Discovered and tracked {$untrackedCount} untracked jobs", ['user_id' => $userId]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to discover untracked jobs: ' . $e->getMessage());
         }
     }
 }
