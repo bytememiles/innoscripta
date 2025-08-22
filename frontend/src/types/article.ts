@@ -57,6 +57,8 @@ export interface ArticleFilters {
   from_date?: string; // Date in Y-m-d format
   to_date?: string; // Date in Y-m-d format
   keyword?: string; // For keyword search in title/description
+  sort_by?: 'published_at' | 'title' | 'relevance'; // Sorting options
+  sort_order?: 'asc' | 'desc'; // Sort direction
 }
 
 // Search related types

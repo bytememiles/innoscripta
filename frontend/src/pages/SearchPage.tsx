@@ -27,6 +27,7 @@ import useLocalStorage from '../hooks/useLocalStorage';
 import {
   useGetArticlesQuery,
   useGetCategoriesQuery,
+  useGetFilteredArticlesQuery,
   useGetPersonalizedFeedQuery,
   useGetSourcesQuery,
   useGetUserPreferencesQuery,
@@ -107,6 +108,7 @@ export const SearchPage: React.FC = () => {
     setIsAlertDismissed(true);
   };
 
+  // Get personalized feed for authenticated users when no filters applied
   const {
     data: personalizedResults,
     isLoading: personalizedLoading,
@@ -116,11 +118,12 @@ export const SearchPage: React.FC = () => {
     { skip: !shouldUsePersonalizedFeed }
   );
 
+  // Get filtered articles for search with comprehensive filters
   const {
-    data: searchResults,
-    isLoading: searchLoading,
-    error: searchError,
-  } = useGetArticlesQuery(
+    data: filteredResults,
+    isLoading: filteredLoading,
+    error: filteredError,
+  } = useGetFilteredArticlesQuery(
     {
       keyword: query,
       category: category || undefined,
@@ -129,20 +132,22 @@ export const SearchPage: React.FC = () => {
       to_date: toDate || undefined,
       page,
       per_page: 12,
+      sort_by: 'relevance', // Default to relevance sorting for search
+      sort_order: 'desc',
     },
     { skip: shouldUsePersonalizedFeed }
   );
 
-  // Use personalized results when available, otherwise use search results
+  // Use personalized results when available, otherwise use filtered results
   const finalResults = shouldUsePersonalizedFeed
     ? personalizedResults
-    : searchResults;
+    : filteredResults;
   const finalLoading = shouldUsePersonalizedFeed
     ? personalizedLoading
-    : searchLoading;
+    : filteredLoading;
   const finalError = shouldUsePersonalizedFeed
     ? personalizedError
-    : searchError;
+    : filteredError;
 
   const { data: categories } = useGetCategoriesQuery();
   const { data: sources } = useGetSourcesQuery();

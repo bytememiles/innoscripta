@@ -17,18 +17,17 @@ export const API_ENDPOINTS = {
   // Articles
   ARTICLES: '/articles',
   ARTICLE_SEARCH: '/articles/search',
-  PERSONALIZED_FEED: '/personalized-feed',
-
-  // Categories
-  CATEGORIES: '/categories',
-  CATEGORY: (id: string | number) => `/categories/${id}`,
-
-  // Sources
-  SOURCES: '/sources',
-  SOURCE: (id: string | number) => `/sources/${id}`,
+  FILTERED_ARTICLES: '/articles/filtered',
 
   // User preferences
   PREFERENCES: '/preferences',
+  PERSONALIZED_FEED: '/personalized-feed',
+
+  // Categories and sources
+  CATEGORIES: '/categories',
+  CATEGORY: (id: string | number) => `/categories/${id}`,
+  SOURCES: '/sources',
+  SOURCE: (id: string | number) => `/sources/${id}`,
 } as const;
 
 // HTTP methods

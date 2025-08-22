@@ -72,6 +72,30 @@ export const newsApi = createApi({
       providesTags: ['Article'],
     }),
 
+    getFilteredArticles: builder.query<
+      PaginatedResponse<Article>,
+      ArticleFilters | void
+    >({
+      query: filters => {
+        const params = new URLSearchParams();
+        if (filters) {
+          Object.entries(filters).forEach(([key, value]) => {
+            if (value !== undefined && value !== null && value !== '') {
+              params.append(key, value.toString());
+            }
+          });
+        }
+        return `${API_ENDPOINTS.FILTERED_ARTICLES}?${params.toString()}`;
+      },
+      transformResponse: (
+        response: ApiResponse<PaginatedResponse<Article>>
+      ) => {
+        console.log('getFilteredArticles response:', response);
+        return response.data;
+      },
+      providesTags: ['Article'],
+    }),
+
     getArticle: builder.query<Article, string>({
       query: id => `${API_ENDPOINTS.ARTICLES}/${id}`,
       transformResponse: (response: ApiResponse<{ article: Article }>) =>
@@ -179,6 +203,7 @@ export const {
   useGetPersonalizedFeedQuery,
   useLazyGetArticlesQuery,
   useLazySearchArticlesQuery,
+  useGetFilteredArticlesQuery,
 
   // Categories
   useGetCategoriesQuery,
