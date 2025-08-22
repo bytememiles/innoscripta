@@ -26,9 +26,13 @@ export interface Article {
 export interface Source {
   id: number;
   name: string;
-  slug: string; // Added slug field based on Postman API
+  slug: string;
+  api_name: string;
+  base_url: string | null;
   description: string | null;
-  url: string; // Changed from base_url to url based on Postman API
+  language: string;
+  country: string | null;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }

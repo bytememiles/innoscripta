@@ -135,7 +135,7 @@ export const newsApi = createApi({
       >
     >({
       query: preferences => ({
-        url: '/preferences',
+        url: API_ENDPOINTS.PREFERENCES,
         method: 'POST',
         body: preferences,
       }),

@@ -114,7 +114,18 @@ const ProfilePage: React.FC = () => {
     if (!editedPreferences) return;
 
     try {
-      await updatePreferences(editedPreferences).unwrap();
+      // Only send the fields that can be updated
+      const updateData = {
+        preferred_categories: editedPreferences.preferred_categories,
+        preferred_sources: editedPreferences.preferred_sources,
+        preferred_authors: editedPreferences.preferred_authors,
+        preferred_language: editedPreferences.preferred_language,
+        preferred_country: editedPreferences.preferred_country,
+        email_notifications: editedPreferences.email_notifications,
+        timezone: editedPreferences.timezone,
+      };
+
+      await updatePreferences(updateData).unwrap();
       setIsEditing(false);
       dispatch(
         addNotification({
@@ -390,10 +401,13 @@ const ProfilePage: React.FC = () => {
                 <FormControl fullWidth disabled={!isEditing}>
                   <InputLabel>Primary Language</InputLabel>
                   <Select
-                    value={preferences.language || 'en'}
+                    value={preferences.preferred_language || 'en'}
                     label='Primary Language'
                     onChange={e =>
-                      handlePreferenceChange('language', e.target.value)
+                      handlePreferenceChange(
+                        'preferred_language',
+                        e.target.value
+                      )
                     }
                   >
                     <MenuItem value='en'>English</MenuItem>
