@@ -139,6 +139,22 @@ export const newsApi = createApi({
       void
     >({
       query: () => API_ENDPOINTS.QUEUE_JOBS,
+      transformResponse: (
+        response: ApiResponse<
+          Array<{
+            id: string;
+            type: string;
+            status: string;
+            filters: any;
+            created_at: string;
+            started_at?: string;
+            completed_at?: string;
+            failed_at?: string;
+            error_message?: string;
+            progress: number;
+          }>
+        >
+      ) => response.data,
       providesTags: ['QueueJob'],
     }),
 
@@ -159,6 +175,20 @@ export const newsApi = createApi({
       string
     >({
       query: jobId => `${API_ENDPOINTS.QUEUE_JOBS}/${jobId}`,
+      transformResponse: (
+        response: ApiResponse<{
+          id: string;
+          type: string;
+          status: string;
+          filters: any;
+          created_at: string;
+          started_at?: string;
+          completed_at?: string;
+          failed_at?: string;
+          error_message?: string;
+          progress: number;
+        }>
+      ) => response.data,
       providesTags: (_result, _error, jobId) => [
         { type: 'QueueJob', id: jobId },
       ],
@@ -260,6 +290,18 @@ export const newsApi = createApi({
       ) => response.data.preferences,
       invalidatesTags: ['UserPreferences', 'Article'],
     }),
+
+    // Queue Management
+    cancelJob: builder.mutation<{ success: boolean; message: string }, string>({
+      query: jobId => ({
+        url: API_ENDPOINTS.QUEUE_JOB(jobId),
+        method: 'DELETE',
+      }),
+      transformResponse: (
+        response: ApiResponse<{ success: boolean; message: string }>
+      ) => response.data,
+      invalidatesTags: ['QueueJob'],
+    }),
   }),
 });
 
@@ -287,4 +329,7 @@ export const {
   // User Preferences
   useGetUserPreferencesQuery,
   useUpdateUserPreferencesMutation,
+
+  // Queue Management
+  useCancelJobMutation,
 } = newsApi;

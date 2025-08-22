@@ -28,6 +28,8 @@ const ArticlePage = Loadable(
 
 const ProfilePage = Loadable(lazy(() => import('../pages/ProfilePage')));
 
+const JobsPage = Loadable(lazy(() => import('../pages/JobsPage')));
+
 // ==============================|| MAIN ROUTING ||============================== //
 
 const MainRoutes = {
@@ -55,6 +57,10 @@ const MainRoutes = {
     {
       path: 'profile',
       element: <ProfilePage />,
+    },
+    {
+      path: 'jobs',
+      element: <JobsPage />,
     },
   ],
 };

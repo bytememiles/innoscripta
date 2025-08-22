@@ -110,12 +110,6 @@ export const HomePage: React.FC = () => {
   const topHeadlines = topHeadlinesData?.data || [];
   const latestArticles = latestArticlesData?.data || [];
 
-  // Debug logging
-  console.log('topHeadlinesData:', topHeadlinesData);
-  console.log('topHeadlines:', topHeadlines);
-  console.log('latestArticlesData:', latestArticlesData);
-  console.log('latestArticles:', latestArticles);
-
   return (
     <Box>
       {/* Header */}

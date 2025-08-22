@@ -1,6 +1,6 @@
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Clear as ClearIcon, Search as SearchIcon } from '@mui/icons-material';
 import WorkIcon from '@mui/icons-material/Work';
 import {
@@ -19,6 +19,8 @@ import {
   Snackbar,
   TextField,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import { format } from 'date-fns';
 
@@ -41,7 +43,10 @@ import type { ArticleFilters, FilteredArticlesResponse } from '../types';
 
 export const SearchPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   // Use localStorage hook for alert dismissal state
   const [_isAlertDismissed, setIsAlertDismissed] = useLocalStorage(
@@ -383,73 +388,136 @@ export const SearchPage: React.FC = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box
+      sx={{
+        p: isMobile ? 2 : 3,
+        pb: isMobile ? 4 : 3, // Extra bottom padding on mobile for better scrolling
+      }}
+    >
       {/* Header */}
       <Box sx={{ mb: 3 }}>
+        {/* Title and Description */}
+        <Box sx={{ mb: 2 }}>
+          <Typography
+            variant={isMobile ? 'h5' : 'h4'}
+            component='h1'
+            gutterBottom
+          >
+            Search Articles
+          </Typography>
+          <Typography
+            variant={isMobile ? 'body2' : 'body1'}
+            color='text.secondary'
+            sx={{ mb: isMobile ? 2 : 0 }}
+          >
+            Find news articles using keywords, filters, and advanced search
+            options
+          </Typography>
+        </Box>
+
+        {/* Job Monitoring Button - Responsive Layout */}
         <Box
           sx={{
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
+            flexDirection: isMobile ? 'column' : 'row',
+            alignItems: isMobile ? 'stretch' : 'center',
+            gap: isMobile ? 2 : 0,
             mb: 2,
           }}
         >
-          <Box>
-            <Typography variant='h4' component='h1' gutterBottom>
-              Search Articles
-            </Typography>
-            <Typography variant='body1' color='text.secondary'>
-              Find news articles using keywords, filters, and advanced search
-              options
-            </Typography>
-          </Box>
-
-          {/* Job Monitoring Button */}
           <Button
             variant='outlined'
             startIcon={<WorkIcon />}
-            onClick={() => setShowJobMonitoring(true)}
-            sx={{ minWidth: 140 }}
+            onClick={() => {
+              if (isMobile) {
+                navigate('/news/jobs');
+              } else {
+                setShowJobMonitoring(true);
+              }
+            }}
+            fullWidth={isMobile}
+            sx={{
+              minWidth: isMobile ? 'auto' : 140,
+              height: isMobile ? 48 : 40,
+            }}
           >
-            Job Monitoring
+            {isMobile ? 'View Job Monitoring' : 'Job Monitoring'}
           </Button>
         </Box>
 
-        {/* Credit Display */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-          <Typography variant='body2' color='text.secondary'>
+        {/* Credit Display - Responsive */}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            alignItems: isMobile ? 'flex-start' : 'center',
+            gap: isMobile ? 1 : 2,
+            mb: 2,
+            p: isMobile ? 2 : 0,
+            bgcolor: isMobile ? 'background.paper' : 'transparent',
+            borderRadius: isMobile ? 1 : 0,
+            border: isMobile ? 1 : 0,
+            borderColor: isMobile ? 'divider' : 'transparent',
+          }}
+        >
+          <Typography
+            variant={isMobile ? 'body2' : 'body2'}
+            color='text.secondary'
+            sx={{ fontWeight: isMobile ? 500 : 400 }}
+          >
             Credits remaining:
           </Typography>
-          <Chip
-            label={`${remainingCredits}/5`}
-            color={
-              remainingCredits <= 1
-                ? 'error'
-                : remainingCredits <= 2
-                  ? 'warning'
-                  : 'success'
-            }
-            variant='outlined'
-            size='small'
-          />
-          {remainingCredits <= 1 && (
-            <Typography variant='caption' color='error'>
-              ⚠️ Low credits - use wisely!
-            </Typography>
-          )}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Chip
+              label={`${remainingCredits}/5`}
+              color={
+                remainingCredits <= 1
+                  ? 'error'
+                  : remainingCredits <= 2
+                    ? 'warning'
+                    : 'success'
+              }
+              variant='outlined'
+              size={isMobile ? 'medium' : 'small'}
+            />
+            {remainingCredits <= 1 && (
+              <Typography
+                variant={isMobile ? 'body2' : 'caption'}
+                color='error'
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.5,
+                  fontSize: isMobile ? '0.875rem' : '0.75rem',
+                }}
+              >
+                ⚠️ Low credits - use wisely!
+              </Typography>
+            )}
+          </Box>
         </Box>
       </Box>
 
-      {/* Job Monitoring Panel */}
-      <JobMonitoringDrawer
-        open={showJobMonitoring}
-        onClose={() => setShowJobMonitoring(false)}
-      />
+      {/* Job Monitoring Panel - Only show on desktop */}
+      {!isMobile && (
+        <JobMonitoringDrawer
+          open={showJobMonitoring}
+          onClose={() => setShowJobMonitoring(false)}
+        />
+      )}
 
       {/* Search Form */}
-      <Card sx={{ mb: 4, p: 3 }}>
+      <Card
+        sx={{
+          mb: 4,
+          p: isMobile ? 2 : 3,
+          '& .MuiCardContent-root': {
+            p: isMobile ? 2 : 3,
+          },
+        }}
+      >
         <Box component='form' onSubmit={handleSearch}>
-          <Grid container spacing={3} alignItems='flex-end'>
+          <Grid container spacing={isMobile ? 2 : 3} alignItems='flex-end'>
             {/* Search Input */}
             <Grid item xs={12} md={6}>
               <TextField
@@ -541,25 +609,35 @@ export const SearchPage: React.FC = () => {
               <Box
                 sx={{
                   display: 'flex',
-                  gap: 2,
-                  alignItems: 'flex-end',
+                  flexDirection: isMobile ? 'column' : 'row',
+                  gap: isMobile ? 1 : 2,
+                  alignItems: isMobile ? 'stretch' : 'flex-end',
                 }}
               >
                 <Button
                   type='submit'
                   variant='contained'
-                  size='large'
+                  size={isMobile ? 'large' : 'large'}
                   startIcon={<SearchIcon />}
-                  sx={{ minWidth: 120, height: 56 }}
+                  fullWidth={isMobile}
+                  sx={{
+                    minWidth: isMobile ? 'auto' : 120,
+                    height: isMobile ? 48 : 56,
+                    order: isMobile ? 1 : 1, // Search button first on mobile
+                  }}
                 >
                   Search
                 </Button>
                 <Button
                   variant='outlined'
-                  size='large'
+                  size={isMobile ? 'large' : 'large'}
                   onClick={clearFilters}
                   startIcon={<ClearIcon />}
-                  sx={{ height: 56 }}
+                  fullWidth={isMobile}
+                  sx={{
+                    height: isMobile ? 48 : 56,
+                    order: isMobile ? 2 : 2, // Clear button second on mobile
+                  }}
                 >
                   Clear Filters
                 </Button>
@@ -575,11 +653,31 @@ export const SearchPage: React.FC = () => {
         formInputs.source ||
         formInputs.fromDate ||
         formInputs.toDate) && (
-        <Box sx={{ mb: 3 }}>
-          <Typography variant='h6' gutterBottom>
+        <Box
+          sx={{
+            mb: 3,
+            p: isMobile ? 2 : 0,
+            bgcolor: isMobile ? 'background.paper' : 'transparent',
+            borderRadius: isMobile ? 1 : 0,
+            border: isMobile ? 1 : 0,
+            borderColor: isMobile ? 'divider' : 'transparent',
+          }}
+        >
+          <Typography
+            variant={isMobile ? 'h6' : 'h6'}
+            gutterBottom
+            sx={{ mb: isMobile ? 2 : 1 }}
+          >
             Active Filters:
           </Typography>
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              gap: isMobile ? 1.5 : 1,
+              flexWrap: 'wrap',
+              justifyContent: isMobile ? 'center' : 'flex-start',
+            }}
+          >
             {formInputs.keyword && (
               <Chip
                 label={`Search: "${formInputs.keyword}"`}

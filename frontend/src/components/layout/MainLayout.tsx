@@ -32,7 +32,7 @@ import {
   useTheme,
 } from '@mui/material';
 
-import { NAVIGATION_ITEMS, ROUTES } from '../../constants';
+import { NAVIGATION_ITEMS, ROUTE_NAMES, ROUTES } from '../../constants';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme as useCustomTheme } from '../../theme/ThemeProvider';
 import { CreditIcon } from '../ui/CreditIcon';
@@ -82,6 +82,11 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       text: NAVIGATION_ITEMS[1].text,
       icon: <SearchIcon />,
       path: ROUTES.SEARCH,
+    },
+    {
+      text: ROUTE_NAMES.JOBS,
+      icon: <WorkIcon />,
+      path: ROUTES.JOBS,
     },
     {
       text: NAVIGATION_ITEMS[2].text,
@@ -159,7 +164,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           {/* Job Monitoring Button */}
           <IconButton
             color='inherit'
-            onClick={() => navigate(ROUTES.SEARCH)}
+            onClick={() => navigate(ROUTES.JOBS)}
             sx={{ ml: 1 }}
             title='Job Monitoring'
           >
@@ -185,13 +190,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             onClose={handleUserMenuClose}
             onClick={handleUserMenuClose}
           >
-            <MenuItem onClick={() => navigate('/profile')}>
-              <ListItemIcon>
-                <PersonIcon fontSize='small' />
-              </ListItemIcon>
-              Profile
-            </MenuItem>
-            <MenuItem onClick={() => navigate('/settings')}>
+            <MenuItem onClick={() => navigate(ROUTES.PROFILE)}>
               <ListItemIcon>
                 <SettingsIcon fontSize='small' />
               </ListItemIcon>
@@ -248,11 +247,12 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
       {/* Main Content */}
       <Box
+        id='main-content-container'
         component='main'
         sx={{
           flexGrow: 1,
           p: 3,
-          width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
+          width: { xs: '100%', md: `calc(100% - ${DRAWER_WIDTH}px)` },
           minHeight: '100vh',
           bgcolor: 'background.default',
         }}

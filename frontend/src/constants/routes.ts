@@ -11,6 +11,7 @@ export const ROUTES = {
   HOME: '/news',
   SEARCH: '/news/search',
   PROFILE: '/news/profile',
+  JOBS: '/news/jobs',
   ARTICLE: '/news/article',
 
   // Auth routes
@@ -27,6 +28,7 @@ export const ROUTE_NAMES = {
   HOME: 'Home',
   SEARCH: 'Search',
   PROFILE: 'Profile',
+  JOBS: 'Job Monitoring',
   LOGIN: 'Login',
   REGISTER: 'Register',
   FORGOT_PASSWORD: 'Forgot Password',

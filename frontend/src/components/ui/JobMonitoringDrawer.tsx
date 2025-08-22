@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Cancel as CancelIcon,
   CheckCircle as CheckIcon,
@@ -7,6 +8,7 @@ import {
   PlayArrow as PlayIcon,
   Refresh as RefreshIcon,
   Schedule as ScheduleIcon,
+  Visibility as VisibilityIcon,
 } from '@mui/icons-material';
 import {
   Box,
@@ -27,7 +29,10 @@ import {
   Typography,
 } from '@mui/material';
 
-import { useGetQueueJobsQuery } from '../../store/api/newsApi';
+import {
+  useCancelJobMutation,
+  useGetQueueJobsQuery,
+} from '../../store/api/newsApi';
 
 interface Job {
   id: string;
@@ -42,11 +47,6 @@ interface Job {
   progress: number;
 }
 
-interface JobsResponse {
-  success: boolean;
-  data: Job[];
-}
-
 interface JobMonitoringDrawerProps {
   open: boolean;
   onClose: () => void;
@@ -57,15 +57,13 @@ export const JobMonitoringDrawer: React.FC<JobMonitoringDrawerProps> = ({
   onClose,
 }) => {
   const [autoRefresh, setAutoRefresh] = useState(false);
+  const navigate = useNavigate();
 
   const { data: jobsResponse, refetch, isLoading } = useGetQueueJobsQuery();
+  const [cancelJob] = useCancelJobMutation();
 
-  // Ensure jobs is always an array and extract from response
-  const jobs: Job[] = Array.isArray(jobsResponse)
-    ? jobsResponse
-    : jobsResponse && typeof jobsResponse === 'object' && 'data' in jobsResponse
-      ? (jobsResponse as JobsResponse).data
-      : [];
+  // Ensure jobs is always an array
+  const jobs: Job[] = Array.isArray(jobsResponse) ? jobsResponse : [];
 
   // Auto-refresh every 5 seconds when open
   useEffect(() => {
@@ -150,6 +148,41 @@ export const JobMonitoringDrawer: React.FC<JobMonitoringDrawerProps> = ({
     return parts.length > 0 ? parts.join(' • ') : 'General scraping';
   };
 
+  // Handle job cancellation
+  const handleCancelJob = async (jobId: string) => {
+    try {
+      await cancelJob(jobId);
+      // Refetch jobs to update the list
+      refetch();
+    } catch (error) {
+      console.error('Failed to cancel job:', error);
+    }
+  };
+
+  // Handle viewing job details and redirect to search with filters
+  const handleViewJob = (job: Job) => {
+    if (job.filters && Object.keys(job.filters).length > 0) {
+      // Build search params from job filters
+      const searchParams = new URLSearchParams();
+
+      if (job.filters.keyword) searchParams.set('keyword', job.filters.keyword);
+      if (job.filters.category)
+        searchParams.set('category', job.filters.category);
+      if (job.filters.source) searchParams.set('source', job.filters.source);
+      if (job.filters.from_date)
+        searchParams.set('from_date', job.filters.from_date);
+      if (job.filters.to_date) searchParams.set('to_date', job.filters.to_date);
+
+      // Navigate to search page with filters
+      navigate(`/news/search?${searchParams.toString()}`);
+      onClose(); // Close the drawer
+    } else {
+      // If no filters, just go to search page
+      navigate('/news/search');
+      onClose(); // Close the drawer
+    }
+  };
+
   const activeJobs = jobs.filter(job =>
     ['queued', 'started', 'in_progress'].includes(job.status)
   );
@@ -221,8 +254,9 @@ export const JobMonitoringDrawer: React.FC<JobMonitoringDrawerProps> = ({
                     <TableCell>Type</TableCell>
                     <TableCell>Filters</TableCell>
                     <TableCell>Progress</TableCell>
-                    <TableCell>Created</TableCell>
                     <TableCell>Started</TableCell>
+                    <TableCell>Completed</TableCell>
+                    <TableCell>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -262,13 +296,39 @@ export const JobMonitoringDrawer: React.FC<JobMonitoringDrawerProps> = ({
                       </TableCell>
                       <TableCell>
                         <Typography variant='caption'>
-                          {formatDate(job.created_at)}
+                          {job.started_at ? formatDate(job.started_at) : '-'}
                         </Typography>
                       </TableCell>
                       <TableCell>
                         <Typography variant='caption'>
-                          {job.started_at ? formatDate(job.started_at) : '-'}
+                          {job.completed_at
+                            ? formatDate(job.completed_at)
+                            : '-'}
                         </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          {job.status === 'queued' && (
+                            <Tooltip title='Cancel job'>
+                              <IconButton
+                                size='small'
+                                color='error'
+                                onClick={() => handleCancelJob(job.id)}
+                              >
+                                <CancelIcon />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                          <Tooltip title='View details and search with filters'>
+                            <IconButton
+                              size='small'
+                              color='primary'
+                              onClick={() => handleViewJob(job)}
+                            >
+                              <VisibilityIcon />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -291,9 +351,10 @@ export const JobMonitoringDrawer: React.FC<JobMonitoringDrawerProps> = ({
                     <TableCell>Status</TableCell>
                     <TableCell>Type</TableCell>
                     <TableCell>Filters</TableCell>
-                    <TableCell>Created</TableCell>
+                    <TableCell>Started</TableCell>
                     <TableCell>Completed</TableCell>
                     <TableCell>Error</TableCell>
+                    <TableCell>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -319,7 +380,7 @@ export const JobMonitoringDrawer: React.FC<JobMonitoringDrawerProps> = ({
                       </TableCell>
                       <TableCell>
                         <Typography variant='caption'>
-                          {formatDate(job.created_at)}
+                          {job.started_at ? formatDate(job.started_at) : '-'}
                         </Typography>
                       </TableCell>
                       <TableCell>
@@ -345,6 +406,17 @@ export const JobMonitoringDrawer: React.FC<JobMonitoringDrawerProps> = ({
                             </Typography>
                           </Tooltip>
                         )}
+                      </TableCell>
+                      <TableCell>
+                        <Tooltip title='View details and search with filters'>
+                          <IconButton
+                            size='small'
+                            color='primary'
+                            onClick={() => handleViewJob(job)}
+                          >
+                            <VisibilityIcon />
+                          </IconButton>
+                        </Tooltip>
                       </TableCell>
                     </TableRow>
                   ))}
