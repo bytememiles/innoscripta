@@ -38,8 +38,18 @@ class UserPreferenceController extends Controller
      *   }
      * }
      * 
-     * @response 404 {
-     *   "success": false,
+     * @response 200 {
+     *   "success": true,
+     *   "data": {
+     *     "preferences": {
+     *       "user_id": 1,
+     *       "preferred_categories": [],
+     *       "preferred_sources": [],
+     *       "preferred_authors": [],
+     *       "email_notifications": false,
+     *       "timezone": "UTC"
+     *     }
+     *   },
      *   "message": "No preferences found. Please set your preferences first."
      * }
      */
@@ -48,10 +58,21 @@ class UserPreferenceController extends Controller
         $preferences = UserPreference::where('user_id', $request->user()->id)->first();
 
         if (!$preferences) {
+            // Return empty preferences instead of 404 for better UX
             return response()->json([
-                'success' => false,
+                'success' => true,
+                'data' => [
+                    'preferences' => [
+                        'user_id' => $request->user()->id,
+                        'preferred_categories' => [],
+                        'preferred_sources' => [],
+                        'preferred_authors' => [],
+                        'email_notifications' => false,
+                        'timezone' => 'UTC'
+                    ]
+                ],
                 'message' => 'No preferences found. Please set your preferences first.'
-            ], 404);
+            ]);
         }
 
         return response()->json([
@@ -223,9 +244,24 @@ class UserPreferenceController extends Controller
      *   }
      * }
      * 
-     * @response 404 {
-     *   "success": false,
-     *   "message": "No preferences found. Please set your preferences first to get a personalized feed."
+     * @response 200 {
+     *   "success": true,
+     *   "data": {
+     *     "current_page": 1,
+     *     "data": [...],
+     *     "first_page_url": "http://localhost:8000/api/personalized-feed?page=1",
+     *     "from": 1,
+     *     "last_page": 10,
+     *     "last_page_url": "http://localhost:8000/api/personalized-feed?page=10",
+     *     "links": [],
+     *     "next_page_url": "http://localhost:8000/api/personalized-feed?page=2",
+     *     "path": "http://localhost:8000/api/personalized-feed",
+     *     "per_page": 10,
+     *     "prev_page_url": null,
+     *     "to": 10,
+     *     "total": 100
+     *   },
+     *   "message": "No preferences found. Showing general articles. Set your preferences for a personalized feed."
      * }
      * 
      * @response 422 {
@@ -256,10 +292,26 @@ class UserPreferenceController extends Controller
         $preferences = UserPreference::where('user_id', $request->user()->id)->first();
 
         if (!$preferences) {
+            // If no preferences exist, return general articles instead of 404
+            $query = Article::with(['source', 'category']);
+            
+            // Apply date filters
+            if ($request->filled('from_date')) {
+                $query->whereDate('published_at', '>=', $request->from_date);
+            }
+
+            if ($request->filled('to_date')) {
+                $query->whereDate('published_at', '<=', $request->to_date);
+            }
+
+            $perPage = $request->get('per_page', 10);
+            $articles = $query->orderBy('published_at', 'desc')->paginate($perPage);
+
             return response()->json([
-                'success' => false,
-                'message' => 'No preferences found. Please set your preferences first to get a personalized feed.'
-            ], 404);
+                'success' => true,
+                'data' => $articles,
+                'message' => 'No preferences found. Showing general articles. Set your preferences for a personalized feed.'
+            ]);
         }
 
         $query = Article::with(['source', 'category']);
@@ -275,6 +327,7 @@ class UserPreferenceController extends Controller
         }
 
         if (!empty($preferences->preferred_sources)) {
+            // Filter by source slug (now properly set in the sources table)
             $query->whereHas('source', function ($q) use ($preferences) {
                 $q->whereIn('slug', $preferences->preferred_sources);
             });
@@ -301,7 +354,25 @@ class UserPreferenceController extends Controller
         }
 
         $perPage = $request->get('per_page', 10);
+        
+
+        
+        // Get the filtered articles
         $articles = $query->orderBy('published_at', 'desc')->paginate($perPage);
+        
+        // If no articles found with strict filtering, try a broader approach
+        if ($articles->total() === 0 && $hasPreferences) {
+            // Fallback: get articles from preferred categories without strict source filtering
+            $fallbackQuery = Article::with(['source', 'category']);
+            
+            if (!empty($preferences->preferred_categories)) {
+                $fallbackQuery->whereHas('category', function ($q) use ($preferences) {
+                    $q->whereIn('slug', $preferences->preferred_categories);
+                });
+            }
+            
+            $articles = $fallbackQuery->orderBy('published_at', 'desc')->paginate($perPage);
+        }
 
         return response()->json([
             'success' => true,
