@@ -19,7 +19,7 @@ A comprehensive, intelligent news aggregation system built with Laravel that col
 
 ### 3. **Performance Optimization**
 - **Smart Caching Strategy**: Redis-based caching with different TTLs for different data types
-- **Database Optimization**: Full-text search, optimized indexes, and efficient queries
+- **Database Optimization**: Full-text search, optimized indexes, and efficient queries with unlimited text fields
 - **Queue Management**: Background job processing with retry mechanisms
 - **Result Merging**: Intelligent combination of existing and new articles
 
@@ -28,7 +28,14 @@ A comprehensive, intelligent news aggregation system built with Laravel that col
 - **User Authentication**: Laravel Sanctum with personalized preferences
 - **Advanced Search & Filtering**: Full-text search with date, category, and source filters
 - **RESTful API**: Clean, documented endpoints for frontend consumption
-- **PostgreSQL Database**: Robust data storage with UUID primary keys
+- **PostgreSQL Database**: Robust data storage with UUID primary keys and optimized field types
+
+### 5. **Recent Improvements & Fixes** ✅
+- **Database Field Optimization**: Fixed text truncation issues with unlimited field lengths
+- **Enhanced Error Handling**: Comprehensive error logging and graceful fallbacks
+- **Schema Validation**: Proactive database health checks with `db:validate-schema`
+- **Improved Seeding**: Better conflict resolution and duplicate prevention
+- **Authentication Clarity**: Clear error messages for protected endpoints
 
 ## 🏗️ Tech Stack
 
@@ -83,13 +90,13 @@ erDiagram
     
     ARTICLES {
         uuid id PK
-        string title
+        text title
         text description
         longtext content
         string url UK
         string url_to_image
         timestamp published_at
-        string author
+        text author
         uuid source_id FK
         uuid category_id FK
         string language
@@ -124,6 +131,7 @@ erDiagram
 
 ### Key Database Features:
 - **UUID Primary Keys**: All tables use UUID for better security and distribution
+- **Optimized Field Types**: Text fields for titles and authors to handle unlimited content length
 - **Full-Text Search**: Articles table has full-text indexes on title, description, and content
 - **Optimized Indexes**: Strategic indexes on published_at, source_id, and category_id
 - **JSON Fields**: Flexible metadata storage and user preferences
@@ -299,6 +307,15 @@ backend/
 # Generate API documentation
 ./generate-docs.sh
 
+# Configure API keys (interactive helper)
+./configure-api-keys.sh
+
+# Validate database schema (NEW)
+docker compose exec backend php artisan db:validate-schema
+
+# Reset sources if needed (NEW)
+docker compose exec backend php artisan sources:reset
+
 # Check status
 docker compose ps
 
@@ -356,6 +373,12 @@ docker exec -it news_aggregator_backend php artisan migrate:fresh --seed
 
 # Seed sources and categories
 docker exec -it news_aggregator_backend php artisan news:seed-sources
+
+# Validate database schema (NEW)
+docker exec -it news_aggregator_backend php artisan db:validate-schema
+
+# Reset and reseed sources (fixes duplicate key issues)
+docker exec -it news_aggregator_backend php artisan sources:reset
 ```
 
 ## 🐛 Debugging & Troubleshooting
@@ -459,7 +482,58 @@ docker exec -it news_aggregator_backend php artisan queue:clear
 docker exec -it news_aggregator_backend php artisan queue:restart
 ```
 
-#### 5. **API Response Issues**
+#### 5. **Duplicate Key Violations (Sources Seeding)**
+```bash
+# Reset and reseed sources table
+docker compose exec backend php artisan sources:reset
+
+# Or reset entire database
+docker compose exec backend php artisan migrate:fresh --seed
+
+# Check existing sources
+docker compose exec backend php artisan tinker --execute="App\Models\Source::all(['name', 'slug', 'api_name'])->each(function(\$s) { echo \$s->name . ' - ' . \$s->slug . PHP_EOL; });"
+```
+
+#### 6. **Seeding Process Issues (NEW)**
+```bash
+# Check if sources already exist
+docker compose exec backend php artisan tinker --execute="echo 'Sources count: ' . App\Models\Source::count();"
+
+# Validate database schema before seeding
+docker compose exec backend php artisan db:validate-schema
+
+# Force fresh seeding (WARNING: This will clear all data)
+docker compose exec backend php artisan migrate:fresh --seed
+
+# Check seeding status
+docker compose exec backend php artisan db:seed --force
+```
+
+#### 7. **API Service Configuration Issues**
+```bash
+# Check if API services are configured
+docker compose exec backend php artisan tinker --execute="echo 'NewsAPI: ' . (app('App\Services\NewsAPIs\NewsAPIService')->isConfigured() ? 'Yes' : 'No') . PHP_EOL; echo 'NewsData: ' . (app('App\Services\NewsAPIs\NewsDataService')->isConfigured() ? 'Yes' : 'No') . PHP_EOL; echo 'NYT: ' . (app('App\Services\NewsAPIs\NYTimesService')->isConfigured() ? 'Yes' : 'No') . PHP_EOL;"
+
+# Configure API keys interactively
+./configure-api-keys.sh
+
+# Test individual API services
+docker compose exec backend php artisan news:scrape-user --default
+```
+
+#### 8. **Database Schema Issues (NEW)**
+```bash
+# Validate database schema for potential issues
+docker compose exec backend php artisan db:validate-schema
+
+# Check for field length issues
+docker compose exec backend php artisan tinker --execute="DB::select('SELECT column_name, data_type, character_maximum_length FROM information_schema.columns WHERE table_name = \'articles\' AND column_name IN (\'title\', \'author\')');"
+
+# Fix field length issues (if needed)
+docker compose exec backend php artisan migrate
+```
+
+#### 9. **API Response Issues**
 ```bash
 # Test with verbose output
 curl -v -X GET "http://localhost:8000/api/articles/search?q=technology" -H "Accept: application/json"
@@ -470,6 +544,36 @@ docker exec -it news_aggregator_backend php artisan route:list | grep articles
 # Test authentication
 curl -X POST "http://localhost:8000/api/login" -H "Content-Type: application/json" -d '{"email":"test@example.com","password":"password"}'
 ```
+
+## 🔧 Recent Fixes & Improvements
+
+### Database Field Length Issues (FIXED ✅)
+- **Problem**: Article titles and author names were truncated due to 255 character limits
+- **Solution**: Migrated `title` and `author` fields from `varchar(255)` to `text` type
+- **Migration**: `2025_08_22_000000_fix_articles_table_field_lengths.php`
+- **Result**: No more "String data, right truncated" errors
+
+### Enhanced Error Handling (IMPROVED ✅)
+- **Problem**: 500 errors without proper error messages or logging
+- **Solution**: Added comprehensive try-catch blocks with detailed logging
+- **Result**: Better debugging information and graceful error handling
+
+### Database Schema Validation (NEW ✅)
+- **New Command**: `php artisan db:validate-schema`
+- **Purpose**: Proactively identify database issues before they cause runtime errors
+- **Features**: Checks field lengths, duplicate keys, and data integrity
+
+### Sources Seeding Improvements (FIXED ✅)
+- **Problem**: Duplicate key violations during seeding
+- **Solution**: Enhanced seeder with better conflict resolution and duplicate prevention
+- **New Command**: `php artisan sources:reset` for clean slate seeding
+- **Prevention**: Seeder now checks if sources exist before attempting to seed
+- **Transaction Safety**: Uses database transactions for better data integrity
+
+### API Authentication Clarity (IMPROVED ✅)
+- **Problem**: Unclear authentication requirements for protected endpoints
+- **Solution**: Better error messages and documentation
+- **Result**: Clear 401 responses instead of confusing 500 errors
 
 ### Cache Management
 ```bash
@@ -627,6 +731,9 @@ php artisan news:scrape-user --user-id=<uuid> --force
 ```bash
 # Seed initial sources and categories
 php artisan news:seed-sources
+
+# Reset and reseed sources (fixes duplicate key issues)
+php artisan sources:reset
 
 # Original scraping commands
 php artisan news:scrape --limit=100
@@ -894,42 +1001,4 @@ docker exec -it news_aggregator_backend php artisan scribe:generate --force
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'Add amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
-
-### Development Setup for Contributors
-
-```bash
-# Clone and setup
-git clone <repository-url>
-cd innoscripta/backend
-cp .env.example .env
-
-# Install dependencies
-composer install
-
-# Start development environment
-./start.sh
-
-# Run tests before committing
-php artisan test
-```
-
-## 📄 License
-
-This project is open-sourced software licensed under the [MIT license](LICENSE).
-
-## 🆘 Support
-
-For technical support:
-
-1. **Check Logs**: Review `storage/logs/laravel.log`
-2. **Check Documentation**: This README and `NEWS_SCRAPING_SYSTEM.md`
-3. **GitHub Issues**: Create detailed issue reports
-4. **Email Support**: Contact the development team
-
----
-
-**🎯 This system provides a robust, intelligent, and secure solution for news aggregation with advanced user personalization and abuse prevention.**
+2. Create a feature branch: `

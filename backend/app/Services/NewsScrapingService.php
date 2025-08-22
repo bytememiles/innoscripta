@@ -166,18 +166,34 @@ class NewsScrapingService
         
         switch ($source->api_name) {
             case 'newsapi':
-                $articles = $this->newsAPIService->fetchTopHeadlines([
-                    'category' => implode(',', $preferences->preferred_categories ?? []),
-                    'pageSize' => 50
-                ]);
+                if ($this->newsAPIService->isConfigured()) {
+                    $articles = $this->newsAPIService->fetchTopHeadlines([
+                        'category' => implode(',', $preferences->preferred_categories ?? []),
+                        'pageSize' => 50
+                    ]);
+                } else {
+                    Log::warning("NewsAPI service not configured. Skipping source: {$source->name}");
+                }
                 break;
                 
             case 'newsdata':
-                $articles = $this->newsDataService->fetchLatestNews($preferences->preferred_categories ?? []);
+                if ($this->newsDataService->isConfigured()) {
+                    $articles = $this->newsDataService->fetchLatestNews($preferences->preferred_categories ?? []);
+                } else {
+                    Log::warning("NewsData service not configured. Skipping source: {$source->name}");
+                }
                 break;
                 
             case 'nyt':
-                $articles = $this->nyTimesService->fetchTopStories();
+                if ($this->nyTimesService->isConfigured()) {
+                    $articles = $this->nyTimesService->fetchTopStories();
+                } else {
+                    Log::warning("NY Times service not configured. Skipping source: {$source->name}");
+                }
+                break;
+                
+            default:
+                Log::warning("Unknown API source: {$source->api_name}");
                 break;
         }
         
@@ -232,18 +248,34 @@ class NewsScrapingService
         
         switch ($source->api_name) {
             case 'newsapi':
-                $articles = $this->newsAPIService->fetchTopHeadlines([
-                    'category' => $category->slug,
-                    'pageSize' => 50
-                ]);
+                if ($this->newsAPIService->isConfigured()) {
+                    $articles = $this->newsAPIService->fetchTopHeadlines([
+                        'category' => $category->slug,
+                        'pageSize' => 50
+                    ]);
+                } else {
+                    Log::warning("NewsAPI service not configured. Skipping category: {$category->name}");
+                }
                 break;
                 
             case 'newsdata':
-                $articles = $this->newsDataService->fetchLatestNews([$category->slug]);
+                if ($this->newsDataService->isConfigured()) {
+                    $articles = $this->newsDataService->fetchLatestNews([$category->slug]);
+                } else {
+                    Log::warning("NewsData service not configured. Skipping category: {$category->name}");
+                }
                 break;
                 
             case 'nyt':
-                $articles = $this->nyTimesService->fetchTopStories($category->slug);
+                if ($this->nyTimesService->isConfigured()) {
+                    $articles = $this->nyTimesService->fetchTopStories($category->slug);
+                } else {
+                    Log::warning("NY Times service not configured. Skipping category: {$category->slug}");
+                }
+                break;
+                
+            default:
+                Log::warning("Unknown API source: {$source->api_name}");
                 break;
         }
         
@@ -283,15 +315,31 @@ class NewsScrapingService
         
         switch ($source->api_name) {
             case 'newsapi':
-                $articles = $this->newsAPIService->searchArticles($query, $filters);
+                if ($this->newsAPIService->isConfigured()) {
+                    $articles = $this->newsAPIService->searchArticles($query, $filters);
+                } else {
+                    Log::warning("NewsAPI service not configured. Skipping search query: {$query}");
+                }
                 break;
                 
             case 'newsdata':
-                $articles = $this->newsDataService->searchArticles($query, $filters);
+                if ($this->newsDataService->isConfigured()) {
+                    $articles = $this->newsDataService->searchArticles($query, $filters);
+                } else {
+                    Log::warning("NewsData service not configured. Skipping search query: {$query}");
+                }
                 break;
                 
             case 'nyt':
-                $articles = $this->nyTimesService->searchArticles($query, $filters);
+                if ($this->nyTimesService->isConfigured()) {
+                    $articles = $this->nyTimesService->searchArticles($query, $filters);
+                } else {
+                    Log::warning("NY Times service not configured. Skipping search query: {$query}");
+                }
+                break;
+                
+            default:
+                Log::warning("Unknown API source: {$source->api_name}");
                 break;
         }
         

@@ -60,13 +60,13 @@ return new class extends Migration
         // Recreate articles table with UUID
         Schema::create('articles', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('title');
+            $table->text('title'); // Changed from string() to text() to handle long titles
             $table->text('description')->nullable();
             $table->longText('content')->nullable();
             $table->string('url')->unique();
             $table->string('url_to_image')->nullable();
             $table->timestamp('published_at');
-            $table->string('author')->nullable();
+            $table->text('author')->nullable(); // Changed from string() to text() to handle long author names
             $table->uuid('source_id');
             $table->uuid('category_id')->nullable();
             $table->string('language')->default('en');

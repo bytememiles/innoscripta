@@ -8,6 +8,7 @@ use App\Models\Article;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 /**
  * @group User Preferences
@@ -271,27 +272,89 @@ class UserPreferenceController extends Controller
      */
     public function personalizedFeed(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'page' => 'integer|min:1',
-            'per_page' => 'integer|min:1|max:50',
-            'from_date' => 'date_format:Y-m-d',
-            'to_date' => 'date_format:Y-m-d|after_or_equal:from_date',
-        ]);
+        try {
+            $validator = Validator::make($request->all(), [
+                'page' => 'integer|min:1',
+                'per_page' => 'integer|min:1|max:50',
+                'from_date' => 'date_format:Y-m-d',
+                'to_date' => 'date_format:Y-m-d|after_or_equal:from_date',
+            ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation error',
-                'errors' => $validator->errors()
-            ], 422);
-        }
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation error',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
 
-        $preferences = UserPreference::where('user_id', $request->user()->id)->first();
+            $preferences = UserPreference::where('user_id', $request->user()->id)->first();
 
-        if (!$preferences) {
-            // If no preferences exist, return general articles instead of 404
+            if (!$preferences) {
+                // If no preferences exist, return general articles instead of 404
+                $query = Article::with(['source', 'category']);
+                
+                // Apply date filters
+                if ($request->filled('from_date')) {
+                    $query->whereDate('published_at', '>=', $request->from_date);
+                }
+
+                if ($request->filled('to_date')) {
+                    $query->whereDate('published_at', '<=', $request->to_date);
+                }
+
+                $perPage = $request->get('per_page', 10);
+                $articles = $query->orderBy('published_at', 'desc')->paginate($perPage);
+
+                // If no articles exist, trigger default scraping
+                if ($articles->total() === 0 && $request->get('page', 1) == 1) {
+                    $this->triggerDefaultScraping();
+                    
+                    return response()->json([
+                        'success' => true,
+                        'data' => $articles,
+                        'message' => 'No preferences found. No articles available. Scraping default news in the background. Please try again in a few moments.',
+                        'scraping_initiated' => true
+                    ]);
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'data' => $articles,
+                    'message' => 'No preferences found. Showing general articles. Set your preferences for a personalized feed.'
+                ]);
+            }
+
             $query = Article::with(['source', 'category']);
-            
+
+            // Apply preferences filters
+            $hasPreferences = false;
+
+            if (!empty($preferences->preferred_categories)) {
+                $query->whereHas('category', function ($q) use ($preferences) {
+                    $q->whereIn('slug', $preferences->preferred_categories);
+                });
+                $hasPreferences = true;
+            }
+
+            if (!empty($preferences->preferred_sources)) {
+                // Filter by source slug (now properly set in the sources table)
+                $query->whereHas('source', function ($q) use ($preferences) {
+                    $q->whereIn('slug', $preferences->preferred_sources);
+                });
+                $hasPreferences = true;
+            }
+
+            if (!empty($preferences->preferred_authors)) {
+                $query->whereIn('author', $preferences->preferred_authors);
+                $hasPreferences = true;
+            }
+
+            // If no preferences are set, return general articles
+            if (!$hasPreferences) {
+                $query = Article::with(['source', 'category']);
+            }
+
             // Apply date filters
             if ($request->filled('from_date')) {
                 $query->whereDate('published_at', '>=', $request->from_date);
@@ -302,101 +365,57 @@ class UserPreferenceController extends Controller
             }
 
             $perPage = $request->get('per_page', 10);
+            
+            // Get the filtered articles
             $articles = $query->orderBy('published_at', 'desc')->paginate($perPage);
+            
+            // If no articles found with strict filtering, try a broader approach
+            if ($articles->total() === 0 && $hasPreferences) {
+                // Fallback: get articles from preferred categories without strict source filtering
+                $fallbackQuery = Article::with(['source', 'category']);
+                
+                if (!empty($preferences->preferred_categories)) {
+                    $fallbackQuery->whereHas('category', function ($q) use ($preferences) {
+                        $q->whereIn('slug', $preferences->preferred_categories);
+                    });
+                }
+                
+                $articles = $fallbackQuery->orderBy('published_at', 'desc')->paginate($perPage);
+            }
 
-            // If no articles exist, trigger default scraping
+            // If still no articles found and this is the first page, trigger scraping
             if ($articles->total() === 0 && $request->get('page', 1) == 1) {
-                $this->triggerDefaultScraping();
+                $this->triggerPreferenceBasedScraping($preferences);
                 
                 return response()->json([
                     'success' => true,
                     'data' => $articles,
-                    'message' => 'No preferences found. No articles available. Scraping default news in the background. Please try again in a few moments.',
+                    'message' => 'No articles found for your preferences. Scraping news in the background. Please try again in a few moments.',
                     'scraping_initiated' => true
                 ]);
             }
 
             return response()->json([
                 'success' => true,
-                'data' => $articles,
-                'message' => 'No preferences found. Showing general articles. Set your preferences for a personalized feed.'
+                'data' => $articles
             ]);
-        }
 
-        $query = Article::with(['source', 'category']);
+        } catch (\Exception $e) {
+            Log::error('Personalized feed error', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'request' => $request->all(),
+                'user_id' => $request->user()?->id
+            ]);
 
-        // Apply preferences filters
-        $hasPreferences = false;
-
-        if (!empty($preferences->preferred_categories)) {
-            $query->whereHas('category', function ($q) use ($preferences) {
-                $q->whereIn('slug', $preferences->preferred_categories);
-            });
-            $hasPreferences = true;
-        }
-
-        if (!empty($preferences->preferred_sources)) {
-            // Filter by source slug (now properly set in the sources table)
-            $query->whereHas('source', function ($q) use ($preferences) {
-                $q->whereIn('slug', $preferences->preferred_sources);
-            });
-            $hasPreferences = true;
-        }
-
-        if (!empty($preferences->preferred_authors)) {
-            $query->whereIn('author', $preferences->preferred_authors);
-            $hasPreferences = true;
-        }
-
-        // If no preferences are set, return general articles
-        if (!$hasPreferences) {
-            $query = Article::with(['source', 'category']);
-        }
-
-        // Apply date filters
-        if ($request->filled('from_date')) {
-            $query->whereDate('published_at', '>=', $request->from_date);
-        }
-
-        if ($request->filled('to_date')) {
-            $query->whereDate('published_at', '<=', $request->to_date);
-        }
-
-        $perPage = $request->get('per_page', 10);
-        
-        // Get the filtered articles
-        $articles = $query->orderBy('published_at', 'desc')->paginate($perPage);
-        
-        // If no articles found with strict filtering, try a broader approach
-        if ($articles->total() === 0 && $hasPreferences) {
-            // Fallback: get articles from preferred categories without strict source filtering
-            $fallbackQuery = Article::with(['source', 'category']);
-            
-            if (!empty($preferences->preferred_categories)) {
-                $fallbackQuery->whereHas('category', function ($q) use ($preferences) {
-                    $q->whereIn('slug', $preferences->preferred_categories);
-                });
-            }
-            
-            $articles = $fallbackQuery->orderBy('published_at', 'desc')->paginate($perPage);
-        }
-
-        // If still no articles found and this is the first page, trigger scraping
-        if ($articles->total() === 0 && $request->get('page', 1) == 1) {
-            $this->triggerPreferenceBasedScraping($preferences);
-            
             return response()->json([
-                'success' => true,
-                'data' => $articles,
-                'message' => 'No articles found for your preferences. Scraping news in the background. Please try again in a few moments.',
-                'scraping_initiated' => true
-            ]);
+                'success' => false,
+                'message' => 'An error occurred while fetching your personalized feed. Please try again later.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error'
+            ], 500);
         }
-
-        return response()->json([
-            'success' => true,
-            'data' => $articles
-        ]);
     }
 
     /**

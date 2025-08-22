@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use App\Models\Source;
 
 class SourceSeeder extends Seeder
@@ -13,6 +14,13 @@ class SourceSeeder extends Seeder
      */
     public function run(): void
     {
+        // Check if sources already exist to prevent duplicate seeding
+        if (Source::count() > 0) {
+            $this->command->info('Sources already exist. Skipping seeding to prevent duplicates.');
+            $this->command->info('Use "php artisan sources:reset" if you need to reseed sources.');
+            return;
+        }
+
         $sources = [
             [
                 'name' => 'NewsAPI',
@@ -70,19 +78,49 @@ class SourceSeeder extends Seeder
             ],
         ];
 
-        foreach ($sources as $source) {
-            Source::updateOrCreate(
-                ['api_name' => $source['api_name']],
-                [
-                    'name' => $source['name'],
-                    'slug' => $source['slug'],
-                    'description' => $source['description'],
-                    'base_url' => $source['base_url'],
-                    'language' => $source['language'],
-                    'country' => $source['country'],
-                    'is_active' => true,
-                ]
-            );
+        $this->command->info('Seeding sources...');
+        
+        // Use database transaction for better data integrity
+        DB::beginTransaction();
+        
+        try {
+            foreach ($sources as $source) {
+                $existingSource = Source::where('slug', $source['slug'])->first();
+                
+                if ($existingSource) {
+                    $this->command->info("Updating existing source: {$source['name']} ({$source['slug']})");
+                    $existingSource->update([
+                        'name' => $source['name'],
+                        'api_name' => $source['api_name'],
+                        'description' => $source['description'],
+                        'base_url' => $source['base_url'],
+                        'language' => $source['language'],
+                        'country' => $source['country'],
+                        'is_active' => true,
+                    ]);
+                } else {
+                    $this->command->info("Creating new source: {$source['name']} ({$source['slug']})");
+                    Source::create([
+                        'name' => $source['name'],
+                        'slug' => $source['slug'],
+                        'api_name' => $source['api_name'],
+                        'description' => $source['description'],
+                        'base_url' => $source['base_url'],
+                        'language' => $source['language'],
+                        'country' => $source['country'],
+                        'is_active' => true,
+                    ]);
+                }
+            }
+            
+            DB::commit();
+            $this->command->info('Sources seeding completed successfully!');
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $this->command->error("Error seeding sources: " . $e->getMessage());
+            $this->command->error("Rolling back changes...");
+            throw $e; // Re-throw to stop the seeding process
         }
     }
 }

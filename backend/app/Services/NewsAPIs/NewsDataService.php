@@ -8,12 +8,25 @@ use Carbon\Carbon;
 
 class NewsDataService
 {
-    private string $apiKey;
+    private ?string $apiKey;
     private string $baseUrl = 'https://newsdata.io/api/1';
 
     public function __construct()
     {
         $this->apiKey = config('services.newsdata.key', env('NEWSDATA_API_KEY'));
+        
+        // Log warning if API key is not set (but don't fail during build)
+        if (empty($this->apiKey)) {
+            Log::warning('NewsData API key not configured. NewsData functionality will be limited.');
+        }
+    }
+
+    /**
+     * Check if the service is properly configured
+     */
+    public function isConfigured(): bool
+    {
+        return !empty($this->apiKey);
     }
 
     /**
@@ -21,6 +34,11 @@ class NewsDataService
      */
     public function fetchArticles(array $parameters = []): array
     {
+        if (!$this->isConfigured()) {
+            Log::warning('NewsData service not configured. Skipping article fetch.');
+            return [];
+        }
+
         $defaultParams = [
             'apikey' => $this->apiKey,
             'language' => 'en',
@@ -58,6 +76,11 @@ class NewsDataService
      */
     public function fetchLatestNews(array $categories = []): array
     {
+        if (!$this->isConfigured()) {
+            Log::warning('NewsData service not configured. Skipping latest news fetch.');
+            return [];
+        }
+
         $params = [
             'apikey' => $this->apiKey,
             'language' => 'en',
@@ -76,6 +99,11 @@ class NewsDataService
      */
     public function searchArticles(string $keyword, array $parameters = []): array
     {
+        if (!$this->isConfigured()) {
+            Log::warning('NewsData service not configured. Skipping article search.');
+            return [];
+        }
+
         $defaultParams = [
             'apikey' => $this->apiKey,
             'q' => $keyword,

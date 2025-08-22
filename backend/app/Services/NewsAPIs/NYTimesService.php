@@ -8,12 +8,25 @@ use Carbon\Carbon;
 
 class NYTimesService
 {
-    private string $apiKey;
+    private ?string $apiKey;
     private string $baseUrl = 'https://api.nytimes.com/svc';
 
     public function __construct()
     {
         $this->apiKey = config('services.nyt.key', env('NYT_API_KEY'));
+        
+        // Log warning if API key is not set (but don't fail during build)
+        if (empty($this->apiKey)) {
+            Log::warning('NY Times API key not configured. NY Times functionality will be limited.');
+        }
+    }
+
+    /**
+     * Check if the service is properly configured
+     */
+    public function isConfigured(): bool
+    {
+        return !empty($this->apiKey);
     }
 
     /**
@@ -21,6 +34,11 @@ class NYTimesService
      */
     public function fetchArticles(array $parameters = []): array
     {
+        if (!$this->isConfigured()) {
+            Log::warning('NY Times service not configured. Skipping article fetch.');
+            return [];
+        }
+
         $defaultParams = [
             'api-key' => $this->apiKey,
             'sort' => 'newest',
@@ -58,6 +76,11 @@ class NYTimesService
      */
     public function fetchTopStories(string $section = 'home'): array
     {
+        if (!$this->isConfigured()) {
+            Log::warning('NY Times service not configured. Skipping top stories fetch.');
+            return [];
+        }
+
         try {
             $response = Http::timeout(30)->get($this->baseUrl . "/topstories/v2/{$section}.json", [
                 'api-key' => $this->apiKey,
@@ -89,6 +112,11 @@ class NYTimesService
      */
     public function searchArticles(string $query, array $parameters = []): array
     {
+        if (!$this->isConfigured()) {
+            Log::warning('NY Times service not configured. Skipping article search.');
+            return [];
+        }
+
         $defaultParams = [
             'q' => $query,
             'api-key' => $this->apiKey,

@@ -85,16 +85,41 @@ docker compose exec backend php artisan route:clear
 
 # Run database migrations
 print_status "Running database migrations..."
-docker compose exec backend php artisan migrate --force
+if docker compose exec backend php artisan migrate --force; then
+    print_success "Database migrations completed successfully!"
+else
+    print_error "Database migrations failed!"
+    print_info "This might be due to existing data conflicts."
+    print_info "You can try: docker compose exec backend php artisan migrate:fresh --seed"
+    exit 1
+fi
+
+# Seed the database with initial data
+print_status "Seeding database with initial data (sources, categories, user preferences)..."
+if docker compose exec backend php artisan db:seed --force; then
+    print_success "Database seeding completed successfully!"
+else
+    print_warning "Database seeding encountered issues (this might be normal if data already exists)"
+    print_info "If you're experiencing duplicate key errors, you can reset sources with:"
+    print_info "  docker compose exec backend php artisan sources:reset"
+fi
+
+# Validate database schema for potential issues
+print_status "Validating database schema..."
+if docker compose exec backend php artisan db:validate-schema; then
+    print_success "Database schema validation passed!"
+else
+    print_warning "Database schema validation found issues that should be addressed"
+    print_info "Run 'docker compose exec backend php artisan db:validate-schema' for details"
+fi
 
 # Create queue tables for background job processing
 print_status "Setting up queue system for intelligent news scraping..."
 docker compose exec backend php artisan queue:table 2>/dev/null || print_warning "Queue tables already exist"
 docker compose exec backend php artisan migrate --force
 
-# Seed initial data (sources and categories)
-print_status "Seeding initial data..."
-docker compose exec backend php artisan news:seed-sources || print_warning "Seeding failed - this might be normal if data already exists"
+# Note: Sources and categories are already seeded by the main db:seed command above
+print_status "Sources and categories seeding completed via main seeder"
 
 # Test Redis connection
 print_status "Testing Redis connection..."
@@ -107,22 +132,33 @@ fi
 # Initialize with default news using intelligent scraping system
 print_status "Initializing intelligent news scraping system..."
 print_status "Scraping initial news articles (this may take a few minutes)..."
-if docker compose exec backend php artisan news:scrape-user --default 2>/dev/null; then
-    print_success "Initial news scraping completed successfully!"
+
+# Check if API keys are configured
+if docker compose exec backend php -r "echo env('NEWSAPI_KEY') . env('NEWSDATA_API_KEY') . env('NYT_API_KEY');" | grep -q "your_newsapi_key_here\|your_newsdata_key_here\|your_nyt_key_here"; then
+    print_warning "API keys not configured. Skipping initial news scraping."
+    print_warning "Please update your .env file with valid API keys and run: docker exec -it news_aggregator_backend php artisan news:scrape-user --default"
 else
-    print_warning "Initial news scraping failed or no new articles found - this is normal if articles already exist"
+    if docker compose exec backend php artisan news:scrape-user --default 2>/dev/null; then
+        print_success "Initial news scraping completed successfully!"
+    else
+        print_warning "Initial news scraping failed or no new articles found - this is normal if articles already exist"
+    fi
 fi
 
 # Start background queue worker for intelligent scraping
 print_status "Starting background queue worker for intelligent news scraping..."
 docker compose exec -d backend php artisan queue:work --timeout=300 --tries=3
 
-# Test the intelligent scraping system
-print_status "Testing intelligent news scraping system..."
-if docker compose exec backend php artisan news:scrape-user --default --queue 2>/dev/null; then
-    print_success "Intelligent scraping system is working correctly!"
+# Test the intelligent scraping system (only if API keys are configured)
+if docker compose exec backend php -r "echo env('NEWSAPI_KEY') . env('NEWSDATA_API_KEY') . env('NYT_API_KEY');" | grep -q "your_newsapi_key_here\|your_newsdata_key_here\|your_nyt_key_here"; then
+    print_warning "API keys not configured. Skipping intelligent scraping system test."
 else
-    print_warning "Queue-based scraping test completed"
+    print_status "Testing intelligent news scraping system..."
+    if docker compose exec backend php artisan news:scrape-user --default --queue 2>/dev/null; then
+        print_success "Intelligent scraping system is working correctly!"
+    else
+        print_warning "Queue-based scraping test completed"
+    fi
 fi
 
 # Display status
@@ -151,11 +187,24 @@ echo "  🔄 Queue status:   docker exec -it news_aggregator_backend php artisan
 echo "  🗞️  Scrape news:   docker exec -it news_aggregator_backend php artisan news:scrape-user --default"
 echo "  🛑 Stop services:  docker compose down"
 echo "  🔄 Restart:        ./start.sh"
+echo "  🔍 Validate DB:    docker compose exec backend php artisan db:validate-schema"
+echo "  🔄 Reset sources:  docker compose exec backend php artisan sources:reset"
 echo ""
 print_status "Test your API:"
 echo "  curl http://localhost:8000/api/articles"
 echo "  curl http://localhost:8000/api/categories"
 echo ""
+
+# Check API key configuration and provide guidance
+if docker compose exec backend php -r "echo env('NEWSAPI_KEY') . env('NEWSDATA_API_KEY') . env('NYT_API_KEY');" | grep -q "your_newsapi_key_here\|your_newsdata_key_here\|your_nyt_key_here"; then
+    echo ""
+    print_warning "⚠️  IMPORTANT: API keys not configured!"
+    echo "  To enable news scraping functionality, please:"
+    echo "  1. Edit your .env file with valid API keys"
+    echo "  2. Restart the services: ./start.sh"
+    echo "  3. Or manually scrape: docker exec -it news_aggregator_backend php artisan news:scrape-user --default"
+    echo ""
+fi
 
 # Optional: Show container status
 print_status "Container status:"

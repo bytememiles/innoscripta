@@ -8,12 +8,25 @@ use Carbon\Carbon;
 
 class NewsAPIService
 {
-    private string $apiKey;
+    private ?string $apiKey;
     private string $baseUrl = 'https://newsapi.org/v2';
 
     public function __construct()
     {
         $this->apiKey = config('services.newsapi.key', env('NEWSAPI_KEY'));
+        
+        // Log warning if API key is not set (but don't fail during build)
+        if (empty($this->apiKey)) {
+            Log::warning('NewsAPI key not configured. NewsAPI functionality will be limited.');
+        }
+    }
+
+    /**
+     * Check if the service is properly configured
+     */
+    public function isConfigured(): bool
+    {
+        return !empty($this->apiKey);
     }
 
     /**
@@ -21,6 +34,11 @@ class NewsAPIService
      */
     public function fetchArticles(array $parameters = []): array
     {
+        if (!$this->isConfigured()) {
+            Log::warning('NewsAPI service not configured. Skipping article fetch.');
+            return [];
+        }
+
         $defaultParams = [
             'apiKey' => $this->apiKey,
             'language' => 'en',
@@ -60,6 +78,11 @@ class NewsAPIService
      */
     public function fetchTopHeadlines(array $parameters = []): array
     {
+        if (!$this->isConfigured()) {
+            Log::warning('NewsAPI service not configured. Skipping top headlines fetch.');
+            return [];
+        }
+
         $defaultParams = [
             'apiKey' => $this->apiKey,
             'country' => 'us',
@@ -98,6 +121,11 @@ class NewsAPIService
      */
     public function fetchSources(): array
     {
+        if (!$this->isConfigured()) {
+            Log::warning('NewsAPI service not configured. Skipping sources fetch.');
+            return [];
+        }
+
         try {
             $response = Http::timeout(30)->get($this->baseUrl . '/sources', [
                 'apiKey' => $this->apiKey,
@@ -123,6 +151,11 @@ class NewsAPIService
      */
     public function searchArticles(string $query, array $parameters = []): array
     {
+        if (!$this->isConfigured()) {
+            Log::warning('NewsAPI service not configured. Skipping article search.');
+            return [];
+        }
+
         $defaultParams = [
             'apiKey' => $this->apiKey,
             'q' => $query,
