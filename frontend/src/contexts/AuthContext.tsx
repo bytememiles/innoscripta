@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
+import { API_ENDPOINTS } from '../constants';
 // project imports
 import { apiService } from '../services/api';
 import type { LoginCredentials, RegisterCredentials, User } from '../types';
@@ -64,7 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
           try {
             const response = await apiService.get<{ data: { user: User } }>(
-              '/user'
+              API_ENDPOINTS.USER
             );
             setUser(response.data.user);
             setIsAuthenticated(true);
@@ -102,7 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const login = async (credentials: LoginCredentials) => {
     const response = await apiService.post<{
       data: { user: User; token: string };
-    }>('/login', credentials);
+    }>(API_ENDPOINTS.LOGIN, credentials);
     const { user: userData, token } = response.data;
 
     setSession(token);
@@ -114,7 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const register = async (credentials: RegisterCredentials) => {
     const response = await apiService.post<{
       data: { user: User; token: string };
-    }>('/register', credentials);
+    }>(API_ENDPOINTS.REGISTER, credentials);
     const { user: userData, token } = response.data;
 
     setSession(token);
@@ -124,7 +125,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const logout = () => {
-    apiService.post('/logout').catch(() => {
+    apiService.post(API_ENDPOINTS.LOGOUT).catch(() => {
       // Ignore logout errors
     });
 

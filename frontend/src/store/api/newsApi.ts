@@ -1,5 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
+import { API_BASE_URL, API_ENDPOINTS } from '../../constants';
 import type {
   ApiResponse,
   Article,
@@ -9,9 +10,6 @@ import type {
   Source,
   UserPreferences,
 } from '../../types';
-
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 export const newsApi = createApi({
   reducerPath: 'newsApi',
@@ -43,7 +41,7 @@ export const newsApi = createApi({
             }
           });
         }
-        return `/articles?${params.toString()}`;
+        return `${API_ENDPOINTS.ARTICLES}?${params.toString()}`;
       },
       transformResponse: (
         response: ApiResponse<PaginatedResponse<Article>>
@@ -55,7 +53,7 @@ export const newsApi = createApi({
     }),
 
     getArticle: builder.query<Article, number>({
-      query: id => `/articles/${id}`,
+      query: id => `${API_ENDPOINTS.ARTICLES}/${id}`,
       transformResponse: (response: ApiResponse<{ article: Article }>) =>
         response.data.article,
       providesTags: (_result, _error, id) => [{ type: 'Article', id }],
@@ -73,7 +71,7 @@ export const newsApi = createApi({
             params.append(key, value.toString());
           }
         });
-        return `/articles/search?${params.toString()}`;
+        return `${API_ENDPOINTS.ARTICLE_SEARCH}?${params.toString()}`;
       },
       providesTags: ['Article'],
     }),
@@ -88,42 +86,42 @@ export const newsApi = createApi({
         params.append('per_page', perPage.toString());
         if (fromDate) params.append('from_date', fromDate);
         if (toDate) params.append('to_date', toDate);
-        return `/personalized-feed?${params.toString()}`;
+        return `${API_ENDPOINTS.PERSONALIZED_FEED}?${params.toString()}`;
       },
       providesTags: ['Article'],
     }),
 
     // Categories
     getCategories: builder.query<Category[], void>({
-      query: () => '/categories',
+      query: () => API_ENDPOINTS.CATEGORIES,
       transformResponse: (response: ApiResponse<{ categories: Category[] }>) =>
         response.data.categories,
       providesTags: ['Category'],
     }),
 
     getCategory: builder.query<Category, number>({
-      query: id => `/categories/${id}`,
+      query: id => API_ENDPOINTS.CATEGORY(id),
       transformResponse: (response: ApiResponse<Category>) => response.data,
       providesTags: (_result, _error, id) => [{ type: 'Category', id }],
     }),
 
     // Sources
     getSources: builder.query<Source[], void>({
-      query: () => '/sources',
+      query: () => API_ENDPOINTS.SOURCES,
       transformResponse: (response: ApiResponse<{ sources: Source[] }>) =>
         response.data.sources,
       providesTags: ['Source'],
     }),
 
     getSource: builder.query<Source, number>({
-      query: id => `/sources/${id}`,
+      query: id => API_ENDPOINTS.SOURCE(id),
       transformResponse: (response: ApiResponse<Source>) => response.data,
       providesTags: (_result, _error, id) => [{ type: 'Source', id }],
     }),
 
     // User Preferences
     getUserPreferences: builder.query<UserPreferences, void>({
-      query: () => '/preferences',
+      query: () => API_ENDPOINTS.PREFERENCES,
       transformResponse: (
         response: ApiResponse<{ preferences: UserPreferences }>
       ) => response.data.preferences,

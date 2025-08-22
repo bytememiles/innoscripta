@@ -4,6 +4,7 @@ import { Outlet } from 'react-router-dom';
 import { AuthLayout } from '../components/layout/AuthLayout';
 import GuestGuard from '../components/route-guard/GuestGuard';
 import Loadable from '../components/ui/Loadable';
+import { ROUTES } from '../constants';
 
 // ==============================|| LAZY LOADED AUTH COMPONENTS ||============================== //
 
@@ -20,7 +21,7 @@ const ForgotPasswordPage = Loadable(
 // ==============================|| AUTH ROUTING ||============================== //
 
 const AuthRoutes = {
-  path: '/auth',
+  path: ROUTES.AUTH,
   element: (
     <GuestGuard>
       <AuthLayout>

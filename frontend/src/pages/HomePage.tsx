@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import { format } from 'date-fns';
 
+import { ROUTES } from '../constants';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useGetArticlesQuery } from '../store/api/newsApi';
 import type { Article } from '../types';
@@ -33,7 +34,7 @@ const ArticleCard: React.FC<{ article: Article }> = ({ article }) => {
           boxShadow: 4,
         },
       }}
-      onClick={() => navigate(`/article/${article.id}`)}
+      onClick={() => navigate(`${ROUTES.ARTICLE_DETAIL(article.id)}`)}
     >
       {article.url_to_image && (
         <CardMedia
@@ -186,7 +187,7 @@ export const HomePage: React.FC = () => {
           <Typography variant='h4' component='h2'>
             Top Headlines
           </Typography>
-          <Button variant='outlined' onClick={() => navigate('/search')}>
+          <Button variant='outlined' onClick={() => navigate(ROUTES.SEARCH)}>
             View All
           </Button>
         </Box>
@@ -239,10 +240,8 @@ export const HomePage: React.FC = () => {
             mb: 3,
           }}
         >
-          <Typography variant='h4' component='h2'>
-            Latest Articles
-          </Typography>
-          <Button variant='outlined' onClick={() => navigate('/search')}>
+          <Typography variant='h2'>Latest Articles</Typography>
+          <Button variant='outlined' onClick={() => navigate(ROUTES.SEARCH)}>
             View All
           </Button>
         </Box>

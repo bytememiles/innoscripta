@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
+import { ROUTES } from '../constants';
 import { NotFoundPage } from '../pages/NotFoundPage';
 
 import AuthRoutes from './AuthRoutes';
@@ -9,8 +10,8 @@ import MainRoutes from './MainRoutes';
 
 const router = createBrowserRouter([
   {
-    path: '/',
-    element: <Navigate to='/app' replace />,
+    path: ROUTES.ROOT,
+    element: <Navigate to={ROUTES.APP} replace />,
   },
   AuthRoutes,
   MainRoutes,

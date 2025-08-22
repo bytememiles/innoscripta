@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import * as yup from 'yup';
 
+import { API_ENDPOINTS, ROUTES } from '../../constants';
 import { useAppDispatch } from '../../hooks/redux';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { apiService } from '../../services/api';
@@ -52,7 +53,9 @@ const ForgotPasswordPage: React.FC = () => {
       setIsLoading(true);
       setError(null);
 
-      await apiService.post('/forgot-password', { email: data.email });
+      await apiService.post(API_ENDPOINTS.FORGOT_PASSWORD, {
+        email: data.email,
+      });
 
       setIsSubmitted(true);
       dispatch(
@@ -92,7 +95,7 @@ const ForgotPasswordPage: React.FC = () => {
           Try Again
         </Button>
 
-        <Link component={RouterLink} to='/auth/login'>
+        <Link component={RouterLink} to={ROUTES.LOGIN}>
           <Button variant='text'>Back to Sign In</Button>
         </Link>
       </Box>
@@ -149,7 +152,7 @@ const ForgotPasswordPage: React.FC = () => {
       <Box sx={{ textAlign: 'center', mt: 2 }}>
         <Typography variant='body2' color='text.secondary'>
           Remember your password?{' '}
-          <Link component={RouterLink} to='/auth/login' variant='body2'>
+          <Link component={RouterLink} to={ROUTES.LOGIN} variant='body2'>
             Back to Sign In
           </Link>
         </Typography>

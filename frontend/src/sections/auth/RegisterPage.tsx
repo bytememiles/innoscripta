@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import * as yup from 'yup';
 
+import { AUTH_REDIRECTS, ROUTES } from '../../constants';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAppDispatch } from '../../hooks/redux';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
@@ -78,7 +79,8 @@ const RegisterPage: React.FC = () => {
       );
 
       // Navigate to intended destination or app
-      const from = (location.state as any)?.from || '/app';
+      const from =
+        (location.state as any)?.from || AUTH_REDIRECTS.DEFAULT_AUTHENTICATED;
       navigate(from, { replace: true });
     } catch (error: any) {
       setError(error.message || 'Registration failed. Please try again.');
@@ -177,7 +179,7 @@ const RegisterPage: React.FC = () => {
       <Box sx={{ textAlign: 'center', mt: 2 }}>
         <Typography variant='body2' color='text.secondary'>
           Already have an account?{' '}
-          <Link component={RouterLink} to='/auth/login' variant='body2'>
+          <Link component={RouterLink} to={ROUTES.LOGIN} variant='body2'>
             Sign in here
           </Link>
         </Typography>

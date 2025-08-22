@@ -31,6 +31,7 @@ import {
   useTheme,
 } from '@mui/material';
 
+import { NAVIGATION_ITEMS, ROUTES } from '../../constants';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme as useCustomTheme } from '../../theme/ThemeProvider';
 import { Logo } from '../ui/Logo';
@@ -69,13 +70,21 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const handleLogout = async () => {
     handleUserMenuClose();
     logout();
-    navigate('/auth/login');
+    navigate(ROUTES.LOGIN);
   };
 
   const navigationItems = [
-    { text: 'Home', icon: <HomeIcon />, path: '/app' },
-    { text: 'Search', icon: <SearchIcon />, path: '/app/search' },
-    { text: 'Profile', icon: <PersonIcon />, path: '/app/profile' },
+    { text: NAVIGATION_ITEMS[0].text, icon: <HomeIcon />, path: ROUTES.HOME },
+    {
+      text: NAVIGATION_ITEMS[1].text,
+      icon: <SearchIcon />,
+      path: ROUTES.SEARCH,
+    },
+    {
+      text: NAVIGATION_ITEMS[2].text,
+      icon: <PersonIcon />,
+      path: ROUTES.PROFILE,
+    },
   ];
 
   const drawer = (

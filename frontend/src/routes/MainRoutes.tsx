@@ -4,6 +4,7 @@ import { Outlet } from 'react-router-dom';
 import { MainLayout } from '../components/layout/MainLayout';
 import AuthGuard from '../components/route-guard/AuthGuard';
 import Loadable from '../components/ui/Loadable';
+import { ROUTES } from '../constants';
 
 // ==============================|| LAZY LOADED MAIN COMPONENTS ||============================== //
 
@@ -42,7 +43,7 @@ const ProfilePage = Loadable(
 // ==============================|| MAIN ROUTING ||============================== //
 
 const MainRoutes = {
-  path: '/app',
+  path: ROUTES.APP,
   element: (
     <AuthGuard>
       <MainLayout>

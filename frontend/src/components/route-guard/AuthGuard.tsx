@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Box, CircularProgress } from '@mui/material';
 
+import { ROUTES } from '../../constants';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface GuardProps {
@@ -18,7 +19,7 @@ const AuthGuard: React.FC<GuardProps> = ({ children }) => {
 
   useEffect(() => {
     if (isInitialized && !isAuthenticated) {
-      navigate('/auth/login', {
+      navigate(ROUTES.LOGIN, {
         state: {
           from: location.pathname + location.search,
         },

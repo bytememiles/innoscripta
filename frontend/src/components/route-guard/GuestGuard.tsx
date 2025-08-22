@@ -2,6 +2,7 @@ import type React from 'react';
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+import { AUTH_REDIRECTS, ROUTES } from '../../constants';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface GuardProps {
@@ -18,7 +19,8 @@ const GuestGuard: React.FC<GuardProps> = ({ children }) => {
   useEffect(() => {
     if (isInitialized && isAuthenticated) {
       // Navigate to intended destination or app
-      const from = (location.state as any)?.from || '/app';
+      const from =
+        (location.state as any)?.from || AUTH_REDIRECTS.DEFAULT_AUTHENTICATED;
       navigate(from, {
         state: { from: null },
         replace: true,
