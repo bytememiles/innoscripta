@@ -12,29 +12,62 @@ import {
 
 import { ArticleCard, ArticleCardSkeleton } from '../components/ui';
 import { ROUTES } from '../constants';
+import { useAuth } from '../contexts/AuthContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
-import { useGetArticlesQuery } from '../store/api/newsApi';
+import {
+  useGetArticlesQuery,
+  useGetPersonalizedFeedQuery,
+} from '../store/api/newsApi';
 import type { Article } from '../types';
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   // Set page title
   useDocumentTitle('Home');
 
-  // Get recent articles for top headlines section
+  // Get personalized feed for authenticated users
   const {
-    data: topHeadlinesData,
-    isLoading: headlinesLoading,
-    error: headlinesError,
-  } = useGetArticlesQuery({ per_page: 6 });
+    data: personalizedTopHeadlines,
+    isLoading: personalizedHeadlinesLoading,
+    error: personalizedHeadlinesError,
+  } = useGetPersonalizedFeedQuery({ perPage: 6 }, { skip: !user });
 
-  // Get more recent articles for latest section
   const {
-    data: latestArticlesData,
-    isLoading: latestLoading,
-    error: latestError,
-  } = useGetArticlesQuery({ per_page: 12, page: 1 });
+    data: personalizedLatestArticles,
+    isLoading: personalizedLatestLoading,
+    error: personalizedLatestError,
+  } = useGetPersonalizedFeedQuery({ perPage: 12, page: 1 }, { skip: !user });
+
+  // Get general articles for non-authenticated users
+  const {
+    data: generalTopHeadlines,
+    isLoading: generalHeadlinesLoading,
+    error: generalHeadlinesError,
+  } = useGetArticlesQuery({ per_page: 6 }, { skip: !!user });
+
+  const {
+    data: generalLatestArticles,
+    isLoading: generalLatestLoading,
+    error: generalLatestError,
+  } = useGetArticlesQuery({ per_page: 12, page: 1 }, { skip: !!user });
+
+  // Use personalized data if available, otherwise fall back to general data
+  const topHeadlinesData = user
+    ? personalizedTopHeadlines
+    : generalTopHeadlines;
+  const latestArticlesData = user
+    ? personalizedLatestArticles
+    : generalLatestArticles;
+  const headlinesLoading = user
+    ? personalizedHeadlinesLoading
+    : generalHeadlinesLoading;
+  const latestLoading = user ? personalizedLatestLoading : generalLatestLoading;
+  const headlinesError = user
+    ? personalizedHeadlinesError
+    : generalHeadlinesError;
+  const latestError = user ? personalizedLatestError : generalLatestError;
 
   // Extract articles from paginated response
   const topHeadlines = topHeadlinesData?.data || [];
@@ -57,6 +90,11 @@ export const HomePage: React.FC = () => {
           Stay informed with the latest news from trusted sources around the
           world
         </Typography>
+        {user && (
+          <Alert severity='info' sx={{ mt: 2 }}>
+            🎯 Showing personalized content based on your preferences
+          </Alert>
+        )}
       </Box>
 
       {/* Top Headlines */}

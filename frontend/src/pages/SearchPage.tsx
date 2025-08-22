@@ -24,16 +24,19 @@ import { format } from 'date-fns';
 
 import { ArticleCard, ArticleCardSkeleton } from '../components/ui';
 import { ROUTES } from '../constants';
+import { useAuth } from '../contexts/AuthContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import {
   useGetArticlesQuery,
   useGetCategoriesQuery,
+  useGetPersonalizedFeedQuery,
   useGetSourcesQuery,
 } from '../store/api/newsApi';
 import type { Article, ArticleFilters, Category, Source } from '../types';
 
 export const SearchPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { user } = useAuth();
 
   // Set page title
   useDocumentTitle('Search Articles');
@@ -53,20 +56,48 @@ export const SearchPage: React.FC = () => {
   const [selectedFromDate, setSelectedFromDate] = useState(fromDate);
   const [selectedToDate, setSelectedToDate] = useState(toDate);
 
-  // API queries
+  // API queries - use personalized feed for authenticated users when no specific filters are applied
+  const hasSpecificFilters = Boolean(
+    query || category || source || fromDate || toDate
+  );
+  const shouldUsePersonalizedFeed = Boolean(user && !hasSpecificFilters);
+
+  const {
+    data: personalizedResults,
+    isLoading: personalizedLoading,
+    error: personalizedError,
+  } = useGetPersonalizedFeedQuery(
+    { perPage: 12, page },
+    { skip: !shouldUsePersonalizedFeed }
+  );
+
   const {
     data: searchResults,
     isLoading: searchLoading,
     error: searchError,
-  } = useGetArticlesQuery({
-    keyword: query,
-    category: category || undefined,
-    source: source || undefined,
-    from_date: fromDate || undefined,
-    to_date: toDate || undefined,
-    page,
-    per_page: 12,
-  });
+  } = useGetArticlesQuery(
+    {
+      keyword: query,
+      category: category || undefined,
+      source: source || undefined,
+      from_date: fromDate || undefined,
+      to_date: toDate || undefined,
+      page,
+      per_page: 12,
+    },
+    { skip: shouldUsePersonalizedFeed }
+  );
+
+  // Use personalized results when available, otherwise use search results
+  const finalResults = shouldUsePersonalizedFeed
+    ? personalizedResults
+    : searchResults;
+  const finalLoading = shouldUsePersonalizedFeed
+    ? personalizedLoading
+    : searchLoading;
+  const finalError = shouldUsePersonalizedFeed
+    ? personalizedError
+    : searchError;
 
   const { data: categories } = useGetCategoriesQuery();
   const { data: sources } = useGetSourcesQuery();
@@ -143,9 +174,9 @@ export const SearchPage: React.FC = () => {
     updateSearchParams({ page: newPage });
   };
 
-  const articles = searchResults?.data || [];
-  const totalPages = searchResults?.last_page || 1;
-  const totalResults = searchResults?.total || 0;
+  const articles = finalResults?.data || [];
+  const totalPages = finalResults?.last_page || 1;
+  const totalResults = finalResults?.total || 0;
 
   return (
     <Box sx={{ p: 3 }}>
@@ -157,6 +188,11 @@ export const SearchPage: React.FC = () => {
         <Typography variant='body1' color='text.secondary'>
           Find the latest news articles by keyword, category, source, and date
         </Typography>
+        {shouldUsePersonalizedFeed && (
+          <Alert severity='info' sx={{ mt: 2 }}>
+            🎯 Showing personalized content based on your preferences
+          </Alert>
+        )}
       </Box>
 
       {/* Search Form */}
@@ -342,7 +378,7 @@ export const SearchPage: React.FC = () => {
       )}
 
       {/* Results Summary */}
-      {!searchLoading && (
+      {!finalLoading && (
         <Box sx={{ mb: 3 }}>
           <Typography variant='body1' color='text.secondary'>
             {totalResults > 0
@@ -353,7 +389,7 @@ export const SearchPage: React.FC = () => {
       )}
 
       {/* Error Display */}
-      {searchError && (
+      {finalError && (
         <Alert severity='error' sx={{ mb: 3 }}>
           Failed to load search results. Please try again.
         </Alert>
@@ -361,7 +397,7 @@ export const SearchPage: React.FC = () => {
 
       {/* Articles Grid */}
       <Grid container spacing={3}>
-        {searchLoading
+        {finalLoading
           ? Array.from({ length: 12 }).map((_, index) => (
               <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
                 <ArticleCardSkeleton />
@@ -388,7 +424,7 @@ export const SearchPage: React.FC = () => {
       )}
 
       {/* No Results Message */}
-      {!searchLoading && articles.length === 0 && !searchError && (
+      {!finalLoading && articles.length === 0 && !finalError && (
         <Box sx={{ textAlign: 'center', py: 8 }}>
           <Typography variant='h5' color='text.secondary' gutterBottom>
             No articles found

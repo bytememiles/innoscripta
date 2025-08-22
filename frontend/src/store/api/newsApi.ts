@@ -73,6 +73,8 @@ export const newsApi = createApi({
         });
         return `${API_ENDPOINTS.ARTICLE_SEARCH}?${params.toString()}`;
       },
+      transformResponse: (response: ApiResponse<PaginatedResponse<Article>>) =>
+        response.data,
       providesTags: ['Article'],
     }),
 
@@ -88,6 +90,8 @@ export const newsApi = createApi({
         if (toDate) params.append('to_date', toDate);
         return `${API_ENDPOINTS.PERSONALIZED_FEED}?${params.toString()}`;
       },
+      transformResponse: (response: ApiResponse<PaginatedResponse<Article>>) =>
+        response.data,
       providesTags: ['Article'],
     }),
 
