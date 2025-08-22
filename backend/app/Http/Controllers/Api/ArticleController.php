@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 /**
  * @group Articles
@@ -541,22 +542,28 @@ class ArticleController extends Controller
                     ELSE 4
                 END
             ")->orderBy('published_at', 'desc');
+        } elseif ($sortBy === 'relevance' && !$request->filled('keyword')) {
+            // If relevance is requested but no keyword, fall back to published_at
+            $query->orderBy('published_at', 'desc');
         } else {
+            // Validate sort_by field exists in articles table
+            $allowedSortFields = ['published_at', 'title', 'created_at', 'updated_at'];
+            if (!in_array($sortBy, $allowedSortFields)) {
+                $sortBy = 'published_at'; // Default fallback
+            }
             $query->orderBy($sortBy, $sortOrder);
         }
 
         $perPage = $request->get('per_page', 10);
         $articles = $query->paginate($perPage);
 
-        // If no articles found and this is the first page, trigger scraping
+        // If no articles found and this is the first page, suggest manual scraping
         if ($articles->total() === 0 && $request->get('page', 1) == 1) {
-            $this->triggerFilteredScraping($request);
-            
             return response()->json([
                 'success' => true,
                 'data' => $articles,
-                'message' => 'No articles found with current filters. Scraping news in the background. Please try again in a few moments.',
-                'scraping_initiated' => true,
+                'message' => 'No articles found with current filters. You can initiate news scraping to find relevant content.',
+                'scraping_available' => true,
                 'filters_applied' => $this->getAppliedFilters($request)
             ]);
         }
@@ -586,8 +593,11 @@ class ArticleController extends Controller
         $userId = $request->user()?->id;
         $filters = $request->only(['keyword', 'category', 'source', 'from_date', 'to_date']);
         
+        // Generate unique job ID for tracking
+        $jobId = Str::uuid()->toString();
+        
         // Dispatch scraping job for filtered search
-        \App\Jobs\ScrapeNewsJob::dispatch('filtered_search', $filters, $userId);
+        \App\Jobs\ScrapeNewsJob::dispatch('filtered_search', $filters, $userId, $jobId);
     }
 
     /**
@@ -598,11 +608,15 @@ class ArticleController extends Controller
         $userId = $request->user()?->id;
         
         if ($userId) {
+            // Generate unique job ID for tracking
+            $jobId = Str::uuid()->toString();
             // Scrape based on user preferences
-            ScrapeNewsJob::dispatch('user_preferences', [], $userId);
+            ScrapeNewsJob::dispatch('user_preferences', [], $userId, $jobId);
         } else {
+            // Generate unique job ID for tracking
+            $jobId = Str::uuid()->toString();
             // Scrape default news
-            ScrapeNewsJob::dispatch('default');
+            ScrapeNewsJob::dispatch('default', [], null, $jobId);
         }
     }
 
@@ -613,5 +627,66 @@ class ArticleController extends Controller
     {
         // Refresh if cache is older than 15 minutes
         return Cache::get('cache_timestamp_' . md5(json_encode($cachedResults)), 0) < now()->subMinutes(15)->timestamp;
+    }
+
+    /**
+     * Manually initiate news scraping based on filters
+     * 
+     * @queryParam keyword string Search keyword. Example: artificial intelligence
+     * @queryParam category string Filter by category slug. Example: technology
+     * @queryParam source string Filter by source slug. Example: newsapi
+     * @queryParam from_date string Filter articles from this date (Y-m-d format). Example: 2024-01-01
+     * @queryParam to_date string Filter articles to this date (Y-m-d format). Example: 2024-01-31
+     * 
+     * @response 200 {
+     *   "success": true,
+     *   "message": "News scraping job has been queued successfully",
+     *   "job_id": "job-uuid-here",
+     *   "estimated_duration": "2-5 minutes"
+     * }
+     */
+    public function initiateScraping(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'keyword' => 'string|max:255',
+            'category' => 'string|exists:categories,slug',
+            'source' => 'string|exists:sources,slug',
+            'from_date' => 'date_format:Y-m-d',
+            'to_date' => 'date_format:Y-m-d|after_or_equal:from_date',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $userId = $request->user()?->id;
+            $filters = $request->only(['keyword', 'category', 'source', 'from_date', 'to_date']);
+            
+            // Generate unique job ID for tracking
+            $jobId = Str::uuid()->toString();
+            
+            // Dispatch scraping job with the unique ID
+            $job = \App\Jobs\ScrapeNewsJob::dispatch('filtered_search', $filters, $userId, $jobId);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'News scraping job has been queued successfully',
+                'job_id' => $jobId,
+                'estimated_duration' => '2-5 minutes',
+                'filters_applied' => $filters
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to initiate scraping job',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error'
+            ], 500);
+        }
     }
 }

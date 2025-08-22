@@ -7,6 +7,7 @@ use App\Services\NewsScrapingService;
 use App\Models\User;
 use App\Models\UserPreference;
 use App\Jobs\ScrapeNewsJob;
+use Illuminate\Support\Str;
 
 class ScrapeNewsForUserCommand extends Command
 {
@@ -79,7 +80,8 @@ class ScrapeNewsForUserCommand extends Command
         $this->info("Scraping news for user: {$user->name} ({$user->email})");
 
         if ($useQueue) {
-            ScrapeNewsJob::dispatch('user_preferences', [], $user->id);
+            $jobId = Str::uuid()->toString();
+            ScrapeNewsJob::dispatch('user_preferences', [], $user->id, $jobId);
             $this->info('News scraping job queued successfully.');
             return 0;
         }
@@ -117,7 +119,8 @@ class ScrapeNewsForUserCommand extends Command
         $this->info('Scraping default news for all users...');
 
         if ($useQueue) {
-            ScrapeNewsJob::dispatch('default');
+            $jobId = Str::uuid()->toString();
+            ScrapeNewsJob::dispatch('default', [], null, $jobId);
             $this->info('Default news scraping job queued successfully.');
             return 0;
         }

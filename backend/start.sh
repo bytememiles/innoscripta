@@ -113,10 +113,10 @@ else
     print_info "Run 'docker compose exec backend php artisan db:validate-schema' for details"
 fi
 
-# Create queue tables for background job processing
+# Set up queue system for intelligent news scraping
 print_status "Setting up queue system for intelligent news scraping..."
-docker compose exec backend php artisan queue:table 2>/dev/null || print_warning "Queue tables already exist"
-docker compose exec backend php artisan migrate --force
+# Note: We use our custom scraping_jobs table, not Laravel's default jobs table
+# The queue system will work with our custom job tracking
 
 # Note: Sources and categories are already seeded by the main db:seed command above
 print_status "Sources and categories seeding completed via main seeder"

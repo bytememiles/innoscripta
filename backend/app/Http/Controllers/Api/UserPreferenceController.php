@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * @group User Preferences
@@ -411,7 +412,8 @@ class UserPreferenceController extends Controller
      */
     private function triggerDefaultScraping(): void
     {
-        \App\Jobs\ScrapeNewsJob::dispatch('default');
+        $jobId = Str::uuid()->toString();
+        \App\Jobs\ScrapeNewsJob::dispatch('default', [], null, $jobId);
     }
 
     /**
@@ -419,6 +421,7 @@ class UserPreferenceController extends Controller
      */
     private function triggerPreferenceBasedScraping(UserPreference $preferences): void
     {
-        \App\Jobs\ScrapeNewsJob::dispatch('user_preferences', [], $preferences->user_id);
+        $jobId = Str::uuid()->toString();
+        \App\Jobs\ScrapeNewsJob::dispatch('user_preferences', [], $preferences->user_id, $jobId);
     }
 }

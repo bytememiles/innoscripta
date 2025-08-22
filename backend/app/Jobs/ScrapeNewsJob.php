@@ -2,7 +2,6 @@
 
 namespace App\Jobs;
 
-use App\Services\NewsScrapingService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -11,26 +10,34 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Str;
+use App\Services\NewsScrapingService;
+use App\Models\ScrapingJob;
 
 class ScrapeNewsJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public $timeout = 300; // 5 minutes timeout
-    public $tries = 3; // Retry 3 times if failed
+    public $timeout = 300; // 5 minutes
+    public $tries = 1;
     
     private string $type;
-    private array $parameters;
-    private ?int $userId;
+    private array $filters;
+    private ?string $userId;
+    private string $jobId;
 
     /**
      * Create a new job instance.
      */
-    public function __construct(string $type, array $parameters = [], ?int $userId = null)
+    public function __construct(string $type, array $filters = [], ?string $userId = null, ?string $jobId = null)
     {
         $this->type = $type;
-        $this->parameters = $parameters;
+        $this->filters = $filters;
         $this->userId = $userId;
+        $this->jobId = $jobId ?? Str::uuid()->toString();
+        
+        // Initialize job in database
+        $this->initializeJobInDatabase();
     }
 
     /**
@@ -39,147 +46,104 @@ class ScrapeNewsJob implements ShouldQueue
     public function handle(): void
     {
         try {
+            // Update job status to started
+            $this->updateJobStatus('started');
+            
             $scrapingService = new NewsScrapingService();
             
             switch ($this->type) {
-                case 'user_preferences':
-                    $this->scrapeForUser($scrapingService);
-                    break;
-                    
-                case 'search_query':
-                    $this->scrapeForSearch($scrapingService);
-                    break;
-                    
-                case 'category':
-                    $this->scrapeForCategory($scrapingService);
-                    break;
-                    
                 case 'default':
-                    $this->scrapeDefault($scrapingService);
+                    $this->updateJobProgress(25);
+                    $scrapingService->scrapeForUser(0);
+                    break;
+                    
+                case 'user_preferences':
+                    $this->updateJobProgress(25);
+                    $scrapingService->scrapeForUser($this->userId);
+                    break;
+                    
+                case 'filtered_search':
+                    $this->updateJobProgress(25);
+                    $scrapingService->scrapeForSearch($this->filters['keyword'] ?? '', $this->filters, $this->userId);
                     break;
                     
                 default:
-                    Log::error("Unknown scraping type: {$this->type}");
-                    break;
+                    throw new \Exception("Unknown scraping type: {$this->type}");
             }
             
-            Log::info("News scraping job completed successfully", [
-                'type' => $this->type,
-                'user_id' => $this->userId
-            ]);
+            // Update job status to completed
+            $this->updateJobStatus('completed');
             
         } catch (\Exception $e) {
-            Log::error("News scraping job failed", [
+            Log::error('ScrapeNewsJob failed', [
                 'type' => $this->type,
+                'filters' => $this->filters,
                 'user_id' => $this->userId,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'job_id' => $this->jobId,
+                'error' => $e->getMessage()
             ]);
             
-            throw $e; // Re-throw to trigger retry mechanism
+            // Update job status to failed
+            $this->updateJobStatus('failed', $e->getMessage());
+            
+            throw $e;
         }
     }
 
     /**
-     * Scrape news for user preferences
+     * Initialize job in database
      */
-    private function scrapeForUser(NewsScrapingService $scrapingService): void
+    private function initializeJobInDatabase(): void
     {
-        if (!$this->userId) {
-            throw new \Exception('User ID is required for user preference scraping');
-        }
-        
-        $articles = $scrapingService->scrapeForUser($this->userId, true);
-        
-        // Cache the results for the user
-        $cacheKey = "user_articles_{$this->userId}";
-        Cache::put($cacheKey, $articles, now()->addHours(2));
-        
-        Log::info("Scraped articles for user", [
-            'user_id' => $this->userId,
-            'articles_count' => count($articles)
-        ]);
-    }
-
-    /**
-     * Scrape news for search query
-     */
-    private function scrapeForSearch(NewsScrapingService $scrapingService): void
-    {
-        if (!isset($this->parameters['query'])) {
-            throw new \Exception('Search query is required');
-        }
-        
-        $query = $this->parameters['query'];
-        $filters = $this->parameters['filters'] ?? [];
-        
-        $articles = $scrapingService->scrapeForSearch($query, $filters, $this->userId);
-        
-        // Cache the search results
-        $cacheKey = "search_results_" . md5($query . json_encode($filters));
-        Cache::put($cacheKey, $articles, now()->addHours(1));
-        
-        Log::info("Scraped articles for search", [
-            'query' => $query,
-            'filters' => $filters,
-            'articles_count' => count($articles),
-            'user_id' => $this->userId
-        ]);
-    }
-
-    /**
-     * Scrape news for specific category
-     */
-    private function scrapeForCategory(NewsScrapingService $scrapingService): void
-    {
-        if (!isset($this->parameters['category_slug'])) {
-            throw new \Exception('Category slug is required');
-        }
-        
-        $categorySlug = $this->parameters['category_slug'];
-        
-        // This would need to be implemented in the scraping service
-        // For now, we'll use the existing command structure
-        Artisan::call('news:scrape', [
-            '--source' => 'all',
-            '--limit' => 100
-        ]);
-        
-        Log::info("Scraped articles for category", [
-            'category_slug' => $categorySlug,
-            'user_id' => $this->userId
-        ]);
-    }
-
-    /**
-     * Scrape default news
-     */
-    private function scrapeDefault(NewsScrapingService $scrapingService): void
-    {
-        $articles = $scrapingService->scrapeForUser(0, true); // 0 indicates default scraping
-        
-        // Cache the default results
-        $cacheKey = "default_articles";
-        Cache::put($cacheKey, $articles, now()->addHours(4));
-        
-        Log::info("Scraped default articles", [
-            'articles_count' => count($articles)
-        ]);
-    }
-
-    /**
-     * Handle a job failure.
-     */
-    public function failed(\Throwable $exception): void
-    {
-        Log::error("News scraping job failed permanently", [
+        ScrapingJob::create([
+            'id' => $this->jobId,
             'type' => $this->type,
+            'status' => 'queued',
+            'filters' => $this->filters,
             'user_id' => $this->userId,
-            'parameters' => $this->parameters,
-            'error' => $exception->getMessage()
+            'progress' => 0
         ]);
+    }
+
+    /**
+     * Update job status in database
+     */
+    private function updateJobStatus(string $status, ?string $errorMessage = null): void
+    {
+        $job = ScrapingJob::find($this->jobId);
         
-        // You could send a notification to admins here
-        // or implement any other failure handling logic
+        if (!$job) {
+            return;
+        }
+        
+        $updateData = ['status' => $status];
+        
+        switch ($status) {
+            case 'started':
+                $updateData['started_at'] = now();
+                break;
+            case 'completed':
+                $updateData['completed_at'] = now();
+                $updateData['progress'] = 100;
+                break;
+            case 'failed':
+                $updateData['failed_at'] = now();
+                $updateData['error_message'] = $errorMessage;
+                break;
+        }
+        
+        $job->update($updateData);
+    }
+
+    /**
+     * Update job progress in database
+     */
+    private function updateJobProgress(int $progress): void
+    {
+        $job = ScrapingJob::find($this->jobId);
+        
+        if ($job) {
+            $job->update(['progress' => $progress]);
+        }
     }
 }
