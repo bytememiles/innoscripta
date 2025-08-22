@@ -52,7 +52,7 @@ export const newsApi = createApi({
       providesTags: ['Article'],
     }),
 
-    getArticle: builder.query<Article, number>({
+    getArticle: builder.query<Article, string>({
       query: id => `${API_ENDPOINTS.ARTICLES}/${id}`,
       transformResponse: (response: ApiResponse<{ article: Article }>) =>
         response.data.article,
@@ -103,7 +103,7 @@ export const newsApi = createApi({
       providesTags: ['Category'],
     }),
 
-    getCategory: builder.query<Category, number>({
+    getCategory: builder.query<Category, string>({
       query: id => API_ENDPOINTS.CATEGORY(id),
       transformResponse: (response: ApiResponse<Category>) => response.data,
       providesTags: (_result, _error, id) => [{ type: 'Category', id }],
@@ -117,7 +117,7 @@ export const newsApi = createApi({
       providesTags: ['Source'],
     }),
 
-    getSource: builder.query<Source, number>({
+    getSource: builder.query<Source, string>({
       query: id => API_ENDPOINTS.SOURCE(id),
       transformResponse: (response: ApiResponse<Source>) => response.data,
       providesTags: (_result, _error, id) => [{ type: 'Source', id }],

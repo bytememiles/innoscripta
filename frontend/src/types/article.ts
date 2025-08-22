@@ -2,7 +2,7 @@
 
 // Core article interface
 export interface Article {
-  id: number;
+  id: string;
   title: string;
   description: string | null;
   content: string | null;
@@ -10,8 +10,8 @@ export interface Article {
   url_to_image: string | null;
   published_at: string;
   author: string | null;
-  source_id: number;
-  category_id: number | null;
+  source_id: string;
+  category_id: string | null;
   language: string;
   country: string | null;
   external_id: string | null;
@@ -24,7 +24,7 @@ export interface Article {
 
 // Source types
 export interface Source {
-  id: number;
+  id: string;
   name: string;
   slug: string;
   api_name: string;
@@ -39,7 +39,7 @@ export interface Source {
 
 // Category types
 export interface Category {
-  id: number;
+  id: string;
   name: string;
   slug: string;
   description: string | null;

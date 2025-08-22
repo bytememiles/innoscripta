@@ -50,8 +50,8 @@ export const ArticlePage: React.FC = () => {
     data: article,
     isLoading,
     error,
-  } = useGetArticleQuery(Number(id), {
-    skip: !id || isNaN(Number(id)),
+  } = useGetArticleQuery(id!, {
+    skip: !id,
   });
 
   // Function to truncate content

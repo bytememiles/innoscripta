@@ -1,7 +1,7 @@
 // ==============================|| USER TYPES ||============================== //
 
 export interface User {
-  id: number;
+  id: string;
   name: string;
   email: string;
   email_verified_at?: string;
@@ -10,8 +10,8 @@ export interface User {
 }
 
 export interface UserPreferences {
-  id: number;
-  user_id: number;
+  id: string;
+  user_id: string;
   preferred_categories: string[] | null; // Changed to string array (slugs)
   preferred_sources: string[] | null; // Changed to string array (slugs)
   preferred_authors: string[] | null;
