@@ -7,28 +7,14 @@ import Loadable from '../components/ui/Loadable';
 
 // ==============================|| LAZY LOADED AUTH COMPONENTS ||============================== //
 
-const LoginPage = Loadable(
-  lazy(() =>
-    import('../sections/auth').then(module => ({
-      default: module.LoginPage,
-    }))
-  )
-);
+const LoginPage = Loadable(lazy(() => import('../sections/auth/LoginPage')));
 
 const RegisterPage = Loadable(
-  lazy(() =>
-    import('../sections/auth').then(module => ({
-      default: module.RegisterPage,
-    }))
-  )
+  lazy(() => import('../sections/auth/RegisterPage'))
 );
 
 const ForgotPasswordPage = Loadable(
-  lazy(() =>
-    import('../sections/auth').then(module => ({
-      default: module.ForgotPasswordPage,
-    }))
-  )
+  lazy(() => import('../sections/auth/ForgotPasswordPage'))
 );
 
 // ==============================|| AUTH ROUTING ||============================== //

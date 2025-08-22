@@ -10,7 +10,7 @@ const API_BASE_URL =
   import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 class ApiService {
-  private client: AxiosInstance;
+  public client: AxiosInstance; // Make client public for AuthContext access
 
   constructor() {
     this.client = axios.create({
@@ -104,7 +104,12 @@ class ApiService {
 
   // Set auth token
   setAuthToken(token: string): void {
+    console.log('🔑 ApiService: Setting auth token:', !!token);
     localStorage.setItem('auth_token', token);
+
+    // Verify storage
+    const storedToken = localStorage.getItem('auth_token');
+    console.log('🔑 ApiService: Token storage verification:', !!storedToken);
   }
 
   // Remove auth token

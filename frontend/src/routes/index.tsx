@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 import { NotFoundPage } from '../pages/NotFoundPage';
 
@@ -8,6 +8,10 @@ import MainRoutes from './MainRoutes';
 // ==============================|| ROUTER CONFIGURATION ||============================== //
 
 const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Navigate to='/dashboard' replace />,
+  },
   AuthRoutes,
   MainRoutes,
   {

@@ -154,6 +154,12 @@ export const HomePage: React.FC = () => {
   const topHeadlines = topHeadlinesData?.data || [];
   const latestArticles = latestArticlesData?.data || [];
 
+  // Debug logging
+  console.log('topHeadlinesData:', topHeadlinesData);
+  console.log('topHeadlines:', topHeadlines);
+  console.log('latestArticlesData:', latestArticlesData);
+  console.log('latestArticles:', latestArticles);
+
   return (
     <Box>
       {/* Header */}
@@ -191,6 +197,12 @@ export const HomePage: React.FC = () => {
           </Alert>
         )}
 
+        {!headlinesLoading && !Array.isArray(topHeadlines) && (
+          <Alert severity='warning' sx={{ mb: 2 }}>
+            Unexpected data format for top headlines. Please refresh the page.
+          </Alert>
+        )}
+
         <Box
           sx={{
             display: 'grid',
@@ -208,7 +220,8 @@ export const HomePage: React.FC = () => {
                   <ArticleCardSkeleton />
                 </Box>
               ))
-            : topHeadlines?.map(article => (
+            : Array.isArray(topHeadlines) &&
+              topHeadlines.map(article => (
                 <Box key={article.id}>
                   <ArticleCard article={article} />
                 </Box>
@@ -240,6 +253,12 @@ export const HomePage: React.FC = () => {
           </Alert>
         )}
 
+        {!latestLoading && !Array.isArray(latestArticles) && (
+          <Alert severity='warning' sx={{ mb: 2 }}>
+            Unexpected data format for latest articles. Please refresh the page.
+          </Alert>
+        )}
+
         <Box
           sx={{
             display: 'grid',
@@ -258,7 +277,8 @@ export const HomePage: React.FC = () => {
                   <ArticleCardSkeleton />
                 </Box>
               ))
-            : latestArticles?.map(article => (
+            : Array.isArray(latestArticles) &&
+              latestArticles.map(article => (
                 <Box key={article.id}>
                   <ArticleCard article={article} />
                 </Box>

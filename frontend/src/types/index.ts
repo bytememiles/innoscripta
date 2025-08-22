@@ -33,7 +33,6 @@ export type {
 // Redux related types
 export type {
   AsyncThunkConfig,
-  AuthState,
   LegacySearchFilters,
   Notification,
   ReduxAction,

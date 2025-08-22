@@ -1,4 +1,5 @@
 import type React from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -13,9 +14,9 @@ import {
 } from '@mui/material';
 import * as yup from 'yup';
 
-import { useAppDispatch, useAppSelector } from '../../hooks/redux';
+import { useAuth } from '../../contexts/AuthContext';
+import { useAppDispatch } from '../../hooks/redux';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { clearError, registerAsync } from '../../store/slices/authSlice';
 import { addNotification } from '../../store/slices/uiSlice';
 import type { RegisterCredentials } from '../../types';
 
@@ -42,11 +43,14 @@ const schema = yup.object().shape({
     .required('Please confirm your password'),
 });
 
-export const RegisterPage: React.FC = () => {
+const RegisterPage: React.FC = () => {
+  const { register: registerUser } = useAuth();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { isLoading, error } = useAppSelector(state => state.auth);
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Set page title
   useDocumentTitle('Create Account');
@@ -61,23 +65,25 @@ export const RegisterPage: React.FC = () => {
 
   const onSubmit = async (data: RegisterCredentials) => {
     try {
-      dispatch(clearError());
-      const result = await dispatch(registerAsync(data));
+      setIsLoading(true);
+      setError(null);
 
-      if (registerAsync.fulfilled.match(result)) {
-        dispatch(
-          addNotification({
-            type: 'success',
-            message: 'Welcome! Your account has been created successfully.',
-          })
-        );
+      await registerUser(data);
 
-        // Navigate to intended destination or home
-        const from = (location.state as any)?.from || '/';
-        navigate(from, { replace: true });
-      }
-    } catch (error) {
-      // Error is handled by the reducer
+      dispatch(
+        addNotification({
+          type: 'success',
+          message: 'Welcome! Your account has been created successfully.',
+        })
+      );
+
+      // Navigate to intended destination or dashboard
+      const from = (location.state as any)?.from || '/dashboard';
+      navigate(from, { replace: true });
+    } catch (error: any) {
+      setError(error.message || 'Registration failed. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -179,3 +185,5 @@ export const RegisterPage: React.FC = () => {
     </Box>
   );
 };
+
+export default RegisterPage;

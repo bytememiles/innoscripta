@@ -1,4 +1,5 @@
 import type React from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -13,9 +14,9 @@ import {
 } from '@mui/material';
 import * as yup from 'yup';
 
-import { useAppDispatch, useAppSelector } from '../../hooks/redux';
+import { useAuth } from '../../contexts/AuthContext';
+import { useAppDispatch } from '../../hooks/redux';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { clearError, loginAsync } from '../../store/slices/authSlice';
 import { addNotification } from '../../store/slices/uiSlice';
 import type { LoginCredentials } from '../../types';
 
@@ -30,11 +31,14 @@ const schema = yup.object().shape({
     .required('Password is required'),
 });
 
-export const LoginPage: React.FC = () => {
+const LoginPage: React.FC = () => {
+  const { login } = useAuth();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { isLoading, error } = useAppSelector(state => state.auth);
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Set page title
   useDocumentTitle('Sign In');
@@ -49,23 +53,25 @@ export const LoginPage: React.FC = () => {
 
   const onSubmit = async (data: LoginCredentials) => {
     try {
-      dispatch(clearError());
-      const result = await dispatch(loginAsync(data));
+      setIsLoading(true);
+      setError(null);
 
-      if (loginAsync.fulfilled.match(result)) {
-        dispatch(
-          addNotification({
-            type: 'success',
-            message: 'Welcome back! Login successful.',
-          })
-        );
+      await login(data);
 
-        // Navigate to intended destination or home
-        const from = (location.state as any)?.from || '/';
-        navigate(from, { replace: true });
-      }
-    } catch (error) {
-      // Error is handled by the reducer
+      dispatch(
+        addNotification({
+          type: 'success',
+          message: 'Welcome back! Login successful.',
+        })
+      );
+
+      // Navigate to intended destination or dashboard
+      const from = (location.state as any)?.from || '/dashboard';
+      navigate(from, { replace: true });
+    } catch (error: any) {
+      setError(error.message || 'Login failed. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -146,3 +152,5 @@ export const LoginPage: React.FC = () => {
     </Box>
   );
 };
+
+export default LoginPage;

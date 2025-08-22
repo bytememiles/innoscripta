@@ -42,7 +42,7 @@ const ProfilePage = Loadable(
 // ==============================|| MAIN ROUTING ||============================== //
 
 const MainRoutes = {
-  path: '/',
+  path: '/dashboard',
   element: (
     <AuthGuard>
       <MainLayout>
@@ -52,7 +52,7 @@ const MainRoutes = {
   ),
   children: [
     {
-      path: '/',
+      path: '',
       element: <HomePage />,
     },
     {

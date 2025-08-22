@@ -16,7 +16,7 @@ import * as yup from 'yup';
 
 import { useAppDispatch } from '../../hooks/redux';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { authService } from '../../services/authService';
+import { apiService } from '../../services/api';
 import { addNotification } from '../../store/slices/uiSlice';
 
 const schema = yup.object().shape({
@@ -30,7 +30,7 @@ interface FormData {
   email: string;
 }
 
-export const ForgotPasswordPage: React.FC = () => {
+const ForgotPasswordPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -52,7 +52,7 @@ export const ForgotPasswordPage: React.FC = () => {
       setIsLoading(true);
       setError(null);
 
-      await authService.forgotPassword(data.email);
+      await apiService.post('/forgot-password', { email: data.email });
 
       setIsSubmitted(true);
       dispatch(
@@ -157,3 +157,5 @@ export const ForgotPasswordPage: React.FC = () => {
     </Box>
   );
 };
+
+export default ForgotPasswordPage;

@@ -1,12 +1,10 @@
 import { configureStore } from '@reduxjs/toolkit';
 
 import { newsApi } from './api/newsApi';
-import { authSlice } from './slices/authSlice';
 import { uiSlice } from './slices/uiSlice';
 
 export const store = configureStore({
   reducer: {
-    auth: authSlice.reducer,
     ui: uiSlice.reducer,
     [newsApi.reducerPath]: newsApi.reducer,
   },

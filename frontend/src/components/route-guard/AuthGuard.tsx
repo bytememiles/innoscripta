@@ -3,8 +3,7 @@ import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Box, CircularProgress } from '@mui/material';
 
-import { useAppDispatch, useAppSelector } from '../../hooks/redux';
-import { getCurrentUserAsync } from '../../store/slices/authSlice';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface GuardProps {
   children: React.ReactNode;
@@ -13,34 +12,12 @@ interface GuardProps {
 // ==============================|| AUTH GUARD ||============================== //
 
 const AuthGuard: React.FC<GuardProps> = ({ children }) => {
-  const dispatch = useAppDispatch();
-  const { isAuthenticated, isLoading, user, token } = useAppSelector(
-    state => state.auth
-  );
+  const { isAuthenticated, isInitialized } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    const initAuth = async () => {
-      // If we have a token but no user, try to get current user
-      if (token && !user && !isLoading) {
-        try {
-          await dispatch(getCurrentUserAsync()).unwrap();
-        } catch (error) {
-          // Token is invalid, will redirect to login below
-          console.error('Failed to get current user:', error);
-        }
-      }
-    };
-
-    initAuth();
-  }, [dispatch, token, user, isLoading]);
-
-  useEffect(() => {
-    // Don't redirect while loading
-    if (isLoading) return;
-
-    if (!isAuthenticated) {
+    if (isInitialized && !isAuthenticated) {
       navigate('/login', {
         state: {
           from: location.pathname + location.search,
@@ -48,10 +25,16 @@ const AuthGuard: React.FC<GuardProps> = ({ children }) => {
         replace: true,
       });
     }
-  }, [isAuthenticated, isLoading, navigate, location]);
+  }, [
+    isAuthenticated,
+    isInitialized,
+    navigate,
+    location.pathname,
+    location.search,
+  ]);
 
-  // Show loading while checking authentication
-  if (isLoading) {
+  // Show loading while initializing authentication
+  if (!isInitialized) {
     return (
       <Box
         sx={{

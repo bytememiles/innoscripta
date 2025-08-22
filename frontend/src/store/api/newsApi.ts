@@ -45,6 +45,12 @@ export const newsApi = createApi({
         }
         return `/articles?${params.toString()}`;
       },
+      transformResponse: (
+        response: ApiResponse<PaginatedResponse<Article>>
+      ) => {
+        console.log('getArticles response:', response);
+        return response.data;
+      },
       providesTags: ['Article'],
     }),
 

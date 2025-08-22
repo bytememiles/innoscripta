@@ -1,7 +1,6 @@
 // ==============================|| REDUX STATE TYPES ||============================== //
 
 import type { ArticleFilters } from './article';
-import type { User } from './user';
 
 // Theme types
 export type ThemeMode = 'light' | 'dark';
@@ -20,14 +19,7 @@ export interface Notification {
   autoHide?: boolean;
 }
 
-// Auth slice state
-export interface AuthState {
-  user: User | null;
-  token: string | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  error: string | null;
-}
+// Auth slice state - REMOVED: Now using AuthContext
 
 // UI slice state
 export interface UiState {
@@ -56,7 +48,6 @@ export interface RTKQueryState {
 
 // Root state interface (will be extended when store types are imported)
 export interface RootState {
-  auth: AuthState;
   ui: UiState;
   newsApi: RTKQueryState;
 }

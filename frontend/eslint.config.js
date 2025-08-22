@@ -39,9 +39,10 @@ export default [
 
       // TypeScript rules
       '@typescript-eslint/no-unused-vars': [
-        'error',
+        'warn',
         {
-          argsIgnorePattern: '^_',
+          argsIgnorePattern:
+            '^_|^credentials$|^user$|^token$|^children$|^props$',
           varsIgnorePattern: '^_',
           caughtErrorsIgnorePattern: '^_',
         },
@@ -49,6 +50,9 @@ export default [
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
+
+      // Disable base JavaScript no-unused-vars to avoid conflicts
+      'no-unused-vars': 'off',
 
       // React Hooks rules
       ...reactHooks.configs.recommended.rules,

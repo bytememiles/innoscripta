@@ -31,8 +31,7 @@ import {
   useTheme,
 } from '@mui/material';
 
-import { useAppDispatch, useAppSelector } from '../../hooks/redux';
-import { logoutAsync } from '../../store/slices/authSlice';
+import { useAuth } from '../../contexts/AuthContext';
 import { useTheme as useCustomTheme } from '../../theme/ThemeProvider';
 import { Logo } from '../ui/Logo';
 
@@ -46,9 +45,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
-  const dispatch = useAppDispatch();
   const { mode, toggleTheme } = useCustomTheme();
-  const { user } = useAppSelector(state => state.auth);
+  const { user, logout } = useAuth();
 
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -70,7 +68,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   const handleLogout = async () => {
     handleUserMenuClose();
-    await dispatch(logoutAsync());
+    logout();
     navigate('/login');
   };
 
