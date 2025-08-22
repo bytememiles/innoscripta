@@ -406,6 +406,191 @@ class ArticleController extends Controller
     }
 
     /**
+     * Get filtered articles for search page
+     * 
+     * Retrieve articles with comprehensive filtering options for the search page.
+     * This endpoint is designed specifically for search functionality with filters.
+     * 
+     * @queryParam page integer Page number for pagination. Example: 1
+     * @queryParam per_page integer Number of articles per page (max 50). Example: 10
+     * @queryParam keyword string Search keyword in title, description, and content. Example: artificial intelligence
+     * @queryParam category string Filter by category slug. Example: technology
+     * @queryParam source string Filter by source slug. Example: newsapi
+     * @queryParam from_date string Filter articles from this date (Y-m-d format). Example: 2024-01-01
+     * @queryParam to_date string Filter articles to this date (Y-m-d format). Example: 2024-01-31
+     * @queryParam sort_by string Sort order (published_at, title, relevance). Example: published_at
+     * @queryParam sort_order string Sort direction (asc, desc). Example: desc
+     * 
+     * @response 200 {
+     *   "success": true,
+     *   "data": {
+     *     "current_page": 1,
+     *     "data": [
+     *       {
+     *         "id": 1,
+     *         "title": "Breaking News: AI Revolution",
+     *         "description": "Latest developments in artificial intelligence...",
+     *         "content": "Full article content here...",
+     *         "url": "https://example.com/article/1",
+     *         "url_to_image": "https://example.com/image.jpg",
+     *         "published_at": "2024-01-15T10:30:00.000000Z",
+     *         "source": {
+     *           "id": 1,
+     *           "name": "NewsAPI",
+     *           "slug": "newsapi"
+     *         },
+     *         "category": {
+     *           "id": 1,
+     *           "name": "Technology",
+     *           "slug": "technology"
+     *         },
+     *         "created_at": "2024-01-15T10:30:00.000000Z",
+     *         "updated_at": "2024-01-15T10:30:00.000000Z"
+     *       }
+     *     ],
+     *     "first_page_url": "http://localhost:8000/api/articles/filtered?page=1",
+     *     "from": 1,
+     *     "last_page": 10,
+     *     "last_page_url": "http://localhost:8000/api/articles/filtered?page=10",
+     *     "links": [],
+     *     "next_page_url": "http://localhost:8000/api/articles/filtered?page=2",
+     *     "prev_page_url": null,
+     *     "to": 10,
+     *     "total": 100
+     *   },
+     *   "filters_applied": {
+     *     "keyword": "artificial intelligence",
+     *     "category": "technology",
+     *     "source": "newsapi",
+     *     "from_date": "2024-01-01",
+     *     "to_date": "2024-01-31",
+     *     "sort_by": "published_at",
+     *     "sort_order": "desc"
+     *   }
+     * }
+     */
+    public function filteredArticles(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'page' => 'integer|min:1',
+            'per_page' => 'integer|min:1|max:50',
+            'keyword' => 'string|max:255',
+            'category' => 'string|exists:categories,slug',
+            'source' => 'string|exists:sources,slug',
+            'from_date' => 'date_format:Y-m-d',
+            'to_date' => 'date_format:Y-m-d|after_or_equal:from_date',
+            'sort_by' => 'string|in:published_at,title,relevance',
+            'sort_order' => 'string|in:asc,desc',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $query = Article::with(['source', 'category']);
+
+        // Apply keyword search
+        if ($request->filled('keyword')) {
+            $keyword = $request->keyword;
+            $query->where(function ($q) use ($keyword) {
+                $q->where('title', 'ILIKE', "%{$keyword}%")
+                  ->orWhere('description', 'ILIKE', "%{$keyword}%")
+                  ->orWhere('content', 'ILIKE', "%{$keyword}%");
+            });
+        }
+
+        // Apply category filter
+        if ($request->filled('category')) {
+            $query->whereHas('category', function ($q) use ($request) {
+                $q->where('slug', $request->category);
+            });
+        }
+
+        // Apply source filter
+        if ($request->filled('source')) {
+            $query->whereHas('source', function ($q) use ($request) {
+                $q->where('slug', $request->source);
+            });
+        }
+
+        // Apply date filters
+        if ($request->filled('from_date')) {
+            $query->whereDate('published_at', '>=', $request->from_date);
+        }
+
+        if ($request->filled('to_date')) {
+            $query->whereDate('published_at', '<=', $request->to_date);
+        }
+
+        // Apply sorting
+        $sortBy = $request->get('sort_by', 'published_at');
+        $sortOrder = $request->get('sort_order', 'desc');
+
+        if ($sortBy === 'relevance' && $request->filled('keyword')) {
+            // Relevance sorting based on keyword matches
+            $keyword = $request->keyword;
+            $query->orderByRaw("
+                CASE 
+                    WHEN title ILIKE '%{$keyword}%' THEN 1
+                    WHEN description ILIKE '%{$keyword}%' THEN 2
+                    WHEN content ILIKE '%{$keyword}%' THEN 3
+                    ELSE 4
+                END
+            ")->orderBy('published_at', 'desc');
+        } else {
+            $query->orderBy($sortBy, $sortOrder);
+        }
+
+        $perPage = $request->get('per_page', 10);
+        $articles = $query->paginate($perPage);
+
+        // If no articles found and this is the first page, trigger scraping
+        if ($articles->total() === 0 && $request->get('page', 1) == 1) {
+            $this->triggerFilteredScraping($request);
+            
+            return response()->json([
+                'success' => true,
+                'data' => $articles,
+                'message' => 'No articles found with current filters. Scraping news in the background. Please try again in a few moments.',
+                'scraping_initiated' => true,
+                'filters_applied' => $this->getAppliedFilters($request)
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $articles,
+            'filters_applied' => $this->getAppliedFilters($request)
+        ]);
+    }
+
+    /**
+     * Get applied filters for response
+     */
+    private function getAppliedFilters(Request $request): array
+    {
+        return $request->only([
+            'keyword', 'category', 'source', 'from_date', 'to_date', 'sort_by', 'sort_order'
+        ]);
+    }
+
+    /**
+     * Trigger filtered news scraping
+     */
+    private function triggerFilteredScraping(Request $request): void
+    {
+        $userId = $request->user()?->id;
+        $filters = $request->only(['keyword', 'category', 'source', 'from_date', 'to_date']);
+        
+        // Dispatch scraping job for filtered search
+        \App\Jobs\ScrapeNewsJob::dispatch('filtered_search', $filters, $userId);
+    }
+
+    /**
      * Trigger initial scraping when no articles exist
      */
     private function triggerInitialScraping(Request $request): void

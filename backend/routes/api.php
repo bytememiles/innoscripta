@@ -37,6 +37,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // Public Routes
 Route::get('/articles', [ArticleController::class, 'index']);
+Route::get('/articles/filtered', [ArticleController::class, 'filteredArticles']);
 Route::get('/articles/search', [ArticleController::class, 'search']);
 Route::get('/articles/{id}', [ArticleController::class, 'show']);
 

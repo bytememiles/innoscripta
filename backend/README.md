@@ -625,6 +625,167 @@ GET  /api/personalized-feed     # Personalized feed with auto-scraping
 - **Input Validation**: Comprehensive parameter sanitization
 - **Background Processing**: Non-blocking scraping operations
 
+## 🎯 **Enhanced News Retrieval System**
+
+### **Overview**
+The system now provides **two distinct approaches** for retrieving news data:
+
+1. **🏠 Home Page**: Personalized feed based on user preferences
+2. **🔍 Search Page**: Comprehensive filtering with search options
+
+### **Home Page - User Preferences (Personalized Feed)**
+
+#### **Endpoint**: `GET /api/personalized-feed`
+- **Purpose**: Retrieve news based on user's saved preferences
+- **Authentication**: Required (user must be logged in)
+- **Features**:
+  - Automatically applies user's preferred categories, sources, and authors
+  - Falls back to general articles if no preferences set
+  - Triggers preference-based scraping when no articles found
+  - Includes date filtering options
+  - Returns `preferences_applied` in response
+
+#### **Use Cases**:
+- **Authenticated users**: See news tailored to their interests
+- **New users**: Get general news until preferences are set
+- **Home page**: Display personalized top headlines and latest articles
+
+#### **Example Response**:
+```json
+{
+  "success": true,
+  "data": { /* paginated articles */ },
+  "preferences_applied": {
+    "categories": ["technology", "science"],
+    "sources": ["newsapi", "nyt"],
+    "authors": ["John Doe"]
+  }
+}
+```
+
+### **Search Page - Filtered Articles**
+
+#### **Endpoint**: `GET /api/articles/filtered`
+- **Purpose**: Comprehensive search with multiple filter options
+- **Authentication**: Optional (public endpoint)
+- **Features**:
+  - **Keyword search**: Search in title, description, and content
+  - **Category filter**: Filter by news category
+  - **Source filter**: Filter by news source
+  - **Date range**: Filter by publication date
+  - **Sorting options**: By date, title, or relevance
+  - **Smart scraping**: Automatically scrapes new articles based on filters
+
+#### **Filter Parameters**:
+- `keyword`: Search term for title/description/content
+- `category`: Category slug (e.g., "technology")
+- `source`: Source slug (e.g., "newsapi")
+- `from_date`: Start date (Y-m-d format)
+- `to_date`: End date (Y-m-d format)
+- `sort_by`: `published_at`, `title`, or `relevance`
+- `sort_order`: `asc` or `desc`
+- `page`: Page number for pagination
+- `per_page`: Articles per page (max 50)
+
+#### **Use Cases**:
+- **Search functionality**: Find specific articles by keyword
+- **Category browsing**: Explore news by topic
+- **Source filtering**: Read from preferred news sources
+- **Date-based search**: Find news from specific time periods
+- **Advanced filtering**: Combine multiple filters for precise results
+
+#### **Example Response**:
+```json
+{
+  "success": true,
+  "data": { /* paginated articles */ },
+  "filters_applied": {
+    "keyword": "artificial intelligence",
+    "category": "technology",
+    "source": "newsapi",
+    "from_date": "2024-01-01",
+    "to_date": "2024-01-31",
+    "sort_by": "relevance",
+    "sort_order": "desc"
+  }
+}
+```
+
+### **Key Differences**
+
+| Feature | Home Page | Search Page |
+|---------|-----------|-------------|
+| **Data Source** | User preferences | Search filters |
+| **Authentication** | Required | Optional |
+| **Personalization** | Automatic | Manual |
+| **Scraping Trigger** | Preference-based | Filter-based |
+| **Use Case** | Daily browsing | Specific search |
+| **Response** | `preferences_applied` | `filters_applied` |
+
+### **Smart Scraping Integration**
+
+Both endpoints automatically trigger news scraping when:
+- **No articles found** for the current criteria
+- **First page request** (to avoid unnecessary scraping)
+- **Background processing** via Laravel queues
+
+#### **Scraping Types**:
+1. **Preference-based**: Uses user's saved preferences
+2. **Filter-based**: Uses search filters and keywords
+3. **Default**: General news when no preferences exist
+
+### **Frontend Integration**
+
+#### **HomePage.tsx**:
+```typescript
+// Uses personalized feed for authenticated users
+const { data: personalizedFeed } = useGetPersonalizedFeedQuery(
+  { perPage: 6 }, 
+  { skip: !user }
+);
+```
+
+#### **SearchPage.tsx**:
+```typescript
+// Uses filtered articles for search functionality
+const { data: filteredResults } = useGetFilteredArticlesQuery({
+  keyword: query,
+  category: selectedCategory,
+  source: selectedSource,
+  from_date: selectedFromDate,
+  to_date: selectedToDate,
+  sort_by: 'relevance',
+  sort_order: 'desc'
+});
+```
+
+### **Benefits of This Approach**
+
+1. **🎯 Clear Separation**: Home page focuses on preferences, search page on filters
+2. **🚀 Performance**: Each endpoint optimized for its specific use case
+3. **🔄 Smart Scraping**: Automatic content refresh based on context
+4. **📱 Better UX**: Users get relevant content where they expect it
+5. **🔒 Security**: Rate limiting and abuse prevention on search endpoints
+6. **📊 Analytics**: Track user behavior separately for preferences vs. search
+
+### **API Usage Examples**
+
+#### **Get Personalized Feed (Home Page)**:
+```bash
+curl -H "Authorization: Bearer {token}" \
+  "http://localhost:8000/api/personalized-feed?page=1&per_page=12"
+```
+
+#### **Get Filtered Articles (Search Page)**:
+```bash
+curl "http://localhost:8000/api/articles/filtered?keyword=AI&category=technology&sort_by=relevance"
+```
+
+This enhanced system provides a **seamless user experience** where:
+- **Home page** shows personalized content based on user preferences
+- **Search page** offers powerful filtering for finding specific content
+- **Both** automatically refresh content through intelligent scraping
+
 ## ⚙️ Manual Setup (Without Docker)
 
 ### Requirements

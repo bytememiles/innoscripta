@@ -193,9 +193,10 @@ class UserPreferenceController extends Controller
     }
 
     /**
-     * Get personalized news feed
+     * Get personalized news feed for home page
      * 
-     * Retrieve a personalized news feed based on user preferences.
+     * Retrieve a personalized news feed based on user preferences for the home page.
+     * This endpoint is designed specifically for home page personalization.
      * If no articles exist, automatically scrapes news based on preferences.
      * 
      * @authenticated
@@ -241,32 +242,11 @@ class UserPreferenceController extends Controller
      *     "prev_page_url": null,
      *     "to": 10,
      *     "total": 100
-     *   }
-     * }
-     * 
-     * @response 200 {
-     *   "success": true,
-     *   "data": {
-     *     "current_page": 1,
-     *     "data": [...],
-     *     "first_page_url": "http://localhost:8000/api/personalized-feed?page=1",
-     *     "from": 1,
-     *     "last_page": 10,
-     *     "last_page_url": "http://localhost:8000/api/personalized-feed?page=10",
-     *     "links": [],
-     *     "next_page_url": "http://localhost:8000/api/personalized-feed?page=2",
-     *     "prev_page_url": null,
-     *     "to": 10,
-     *     "total": 100
      *   },
-     *   "message": "No preferences found. Showing general articles. Set your preferences for a personalized feed."
-     * }
-     * 
-     * @response 422 {
-     *   "success": false,
-     *   "message": "Validation error",
-     *   "errors": {
-     *     "per_page": ["The per page must not be greater than 50."]
+     *   "preferences_applied": {
+     *     "categories": ["technology", "science"],
+     *     "sources": ["newsapi", "nyt"],
+     *     "authors": ["John Doe"]
      *   }
      * }
      */
@@ -314,14 +294,16 @@ class UserPreferenceController extends Controller
                         'success' => true,
                         'data' => $articles,
                         'message' => 'No preferences found. No articles available. Scraping default news in the background. Please try again in a few moments.',
-                        'scraping_initiated' => true
+                        'scraping_initiated' => true,
+                        'preferences_applied' => null
                     ]);
                 }
 
                 return response()->json([
                     'success' => true,
                     'data' => $articles,
-                    'message' => 'No preferences found. Showing general articles. Set your preferences for a personalized feed.'
+                    'message' => 'No preferences found. Showing general articles. Set your preferences for a personalized feed.',
+                    'preferences_applied' => null
                 ]);
             }
 
@@ -329,12 +311,14 @@ class UserPreferenceController extends Controller
 
             // Apply preferences filters
             $hasPreferences = false;
+            $appliedPreferences = [];
 
             if (!empty($preferences->preferred_categories)) {
                 $query->whereHas('category', function ($q) use ($preferences) {
                     $q->whereIn('slug', $preferences->preferred_categories);
                 });
                 $hasPreferences = true;
+                $appliedPreferences['categories'] = $preferences->preferred_categories;
             }
 
             if (!empty($preferences->preferred_sources)) {
@@ -343,11 +327,13 @@ class UserPreferenceController extends Controller
                     $q->whereIn('slug', $preferences->preferred_sources);
                 });
                 $hasPreferences = true;
+                $appliedPreferences['sources'] = $preferences->preferred_sources;
             }
 
             if (!empty($preferences->preferred_authors)) {
                 $query->whereIn('author', $preferences->preferred_authors);
                 $hasPreferences = true;
+                $appliedPreferences['authors'] = $preferences->preferred_authors;
             }
 
             // If no preferences are set, return general articles
@@ -391,13 +377,15 @@ class UserPreferenceController extends Controller
                     'success' => true,
                     'data' => $articles,
                     'message' => 'No articles found for your preferences. Scraping news in the background. Please try again in a few moments.',
-                    'scraping_initiated' => true
+                    'scraping_initiated' => true,
+                    'preferences_applied' => $appliedPreferences
                 ]);
             }
 
             return response()->json([
                 'success' => true,
-                'data' => $articles
+                'data' => $articles,
+                'preferences_applied' => $appliedPreferences
             ]);
 
         } catch (\Exception $e) {
