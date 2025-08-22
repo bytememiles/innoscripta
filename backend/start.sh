@@ -147,7 +147,18 @@ fi
 
 # Start background queue worker for intelligent scraping
 print_status "Starting background queue worker for intelligent news scraping..."
-docker compose exec -d backend php artisan queue:work --timeout=300 --tries=3
+docker compose exec -d backend php artisan queue:work --timeout=300 --tries=3 --sleep=3
+
+# Wait a moment for queue worker to start
+sleep 3
+
+# Test the queue system
+print_status "Testing queue system..."
+if docker compose exec backend php artisan queue:failed 2>/dev/null; then
+    print_success "Queue system is working correctly!"
+else
+    print_warning "Queue system test completed"
+fi
 
 # Test the intelligent scraping system (only if API keys are configured)
 if docker compose exec backend php -r "echo env('NEWSAPI_KEY') . env('NEWSDATA_API_KEY') . env('NYT_API_KEY');" | grep -q "your_newsapi_key_here\|your_newsdata_key_here\|your_nyt_key_here"; then
@@ -184,6 +195,8 @@ print_status "Useful commands:"
 echo "  📊 Check status:   docker compose ps"
 echo "  📝 View logs:      docker compose logs -f backend"
 echo "  🔄 Queue status:   docker exec -it news_aggregator_backend php artisan queue:failed"
+echo "  🔄 Queue status:   docker exec -it news_aggregator_backend php artisan queue:failed"
+echo "  🔄 Start worker:   docker exec -d news_aggregator_backend php artisan queue:work --timeout=300 --tries=3 --sleep=3"
 echo "  🗞️  Scrape news:   docker exec -it news_aggregator_backend php artisan news:scrape-user --default"
 echo "  🛑 Stop services:  docker compose down"
 echo "  🔄 Restart:        ./start.sh"

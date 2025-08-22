@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Str;
 use App\Services\NewsScrapingService;
-use App\Models\ScrapingJob;
 
 class ScrapeNewsJob implements ShouldQueue
 {
@@ -36,8 +35,9 @@ class ScrapeNewsJob implements ShouldQueue
         $this->userId = $userId;
         $this->jobId = $jobId ?? Str::uuid()->toString();
         
-        // Initialize job in database
-        $this->initializeJobInDatabase();
+        // Set job metadata for tracking
+        $this->onQueue('news-scraping');
+        $this->delay(now()->addSeconds(1)); // Small delay to ensure job is properly queued
     }
 
     /**
@@ -46,24 +46,28 @@ class ScrapeNewsJob implements ShouldQueue
     public function handle(): void
     {
         try {
-            // Update job status to started
-            $this->updateJobStatus('started');
+            Log::info('ScrapeNewsJob started', [
+                'type' => $this->type,
+                'filters' => $this->filters,
+                'user_id' => $this->userId,
+                'job_id' => $this->jobId
+            ]);
             
             $scrapingService = new NewsScrapingService();
             
             switch ($this->type) {
                 case 'default':
-                    $this->updateJobProgress(25);
+                    Log::info('Starting default news scraping');
                     $scrapingService->scrapeForUser(0);
                     break;
                     
                 case 'user_preferences':
-                    $this->updateJobProgress(25);
+                    Log::info('Starting user preferences scraping', ['user_id' => $this->userId]);
                     $scrapingService->scrapeForUser($this->userId);
                     break;
                     
                 case 'filtered_search':
-                    $this->updateJobProgress(25);
+                    Log::info('Starting filtered search scraping', ['filters' => $this->filters]);
                     $scrapingService->scrapeForSearch($this->filters['keyword'] ?? '', $this->filters, $this->userId);
                     break;
                     
@@ -71,8 +75,12 @@ class ScrapeNewsJob implements ShouldQueue
                     throw new \Exception("Unknown scraping type: {$this->type}");
             }
             
-            // Update job status to completed
-            $this->updateJobStatus('completed');
+            Log::info('ScrapeNewsJob completed successfully', [
+                'type' => $this->type,
+                'filters' => $this->filters,
+                'user_id' => $this->userId,
+                'job_id' => $this->jobId
+            ]);
             
         } catch (\Exception $e) {
             Log::error('ScrapeNewsJob failed', [
@@ -83,67 +91,53 @@ class ScrapeNewsJob implements ShouldQueue
                 'error' => $e->getMessage()
             ]);
             
-            // Update job status to failed
-            $this->updateJobStatus('failed', $e->getMessage());
-            
             throw $e;
         }
     }
 
     /**
-     * Initialize job in database
+     * Handle a job failure.
      */
-    private function initializeJobInDatabase(): void
+    public function failed(\Throwable $exception): void
     {
-        ScrapingJob::create([
-            'id' => $this->jobId,
+        Log::error('ScrapeNewsJob failed permanently', [
             'type' => $this->type,
-            'status' => 'queued',
             'filters' => $this->filters,
             'user_id' => $this->userId,
-            'progress' => 0
+            'job_id' => $this->jobId,
+            'error' => $exception->getMessage()
         ]);
     }
 
     /**
-     * Update job status in database
+     * Get the job identifier
      */
-    private function updateJobStatus(string $status, ?string $errorMessage = null): void
+    public function getJobId(): string
     {
-        $job = ScrapingJob::find($this->jobId);
-        
-        if (!$job) {
-            return;
-        }
-        
-        $updateData = ['status' => $status];
-        
-        switch ($status) {
-            case 'started':
-                $updateData['started_at'] = now();
-                break;
-            case 'completed':
-                $updateData['completed_at'] = now();
-                $updateData['progress'] = 100;
-                break;
-            case 'failed':
-                $updateData['failed_at'] = now();
-                $updateData['error_message'] = $errorMessage;
-                break;
-        }
-        
-        $job->update($updateData);
+        return $this->jobId;
     }
 
     /**
-     * Update job progress in database
+     * Get the job type
      */
-    private function updateJobProgress(int $progress): void
+    public function getType(): string
     {
-        $job = ScrapingJob::find($this->jobId);
-        
-        if ($job) {
-            $job->update(['progress' => $progress]);
-        }
+        return $this->type;
+    }
+
+    /**
+     * Get the job filters
+     */
+    public function getFilters(): array
+    {
+        return $this->filters;
+    }
+
+    /**
+     * Get the user ID
+     */
+    public function getUserId(): ?string
+    {
+        return $this->userId;
     }
 }

@@ -52,4 +52,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/queue/jobs', [QueueController::class, 'getJobs']);
     Route::get('/queue/jobs/{jobId}', [QueueController::class, 'getJobStatus']);
     Route::delete('/queue/jobs/{jobId}', [QueueController::class, 'cancelJob']);
+    Route::post('/queue/sync-status', [QueueController::class, 'syncQueueStatus']);
+    Route::post('/queue/jobs/{jobId}/retry', [QueueController::class, 'retryJob']);
 });
