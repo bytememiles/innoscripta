@@ -14,6 +14,7 @@ export type {
   Article,
   ArticleFilters,
   Category,
+  FilteredArticlesResponse,
   SearchFilters,
   Source,
 } from './article';
@@ -25,6 +26,7 @@ export type {
   ApiResponse,
   AppError,
   AsyncState,
+  FilteredArticlesApiResponse,
   HttpMethod,
   LoadingState,
   PaginatedResponse,

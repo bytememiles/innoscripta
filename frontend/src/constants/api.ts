@@ -28,6 +28,10 @@ export const API_ENDPOINTS = {
   CATEGORY: (id: string | number) => `/categories/${id}`,
   SOURCES: '/sources',
   SOURCE: (id: string | number) => `/sources/${id}`,
+
+  // Queue management
+  QUEUE_JOBS: '/queue/jobs',
+  QUEUE_JOB: (id: string) => `/queue/jobs/${id}`,
 } as const;
 
 // HTTP methods

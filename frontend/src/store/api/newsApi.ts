@@ -6,6 +6,8 @@ import type {
   Article,
   ArticleFilters,
   Category,
+  FilteredArticlesApiResponse,
+  FilteredArticlesResponse,
   PaginatedResponse,
   Source,
   UserPreferences,
@@ -45,7 +47,7 @@ const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
 export const newsApi = createApi({
   reducerPath: 'newsApi',
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['Article', 'Category', 'Source', 'UserPreferences'],
+  tagTypes: ['Article', 'Category', 'Source', 'UserPreferences', 'QueueJob'],
   endpoints: builder => ({
     // Articles
     getArticles: builder.query<
@@ -73,7 +75,7 @@ export const newsApi = createApi({
     }),
 
     getFilteredArticles: builder.query<
-      PaginatedResponse<Article>,
+      FilteredArticlesResponse,
       ArticleFilters | void
     >({
       query: filters => {
@@ -87,13 +89,79 @@ export const newsApi = createApi({
         }
         return `${API_ENDPOINTS.FILTERED_ARTICLES}?${params.toString()}`;
       },
+
       transformResponse: (
-        response: ApiResponse<PaginatedResponse<Article>>
+        response: FilteredArticlesApiResponse<Article, ArticleFilters>
       ) => {
-        console.log('getFilteredArticles response:', response);
-        return response.data;
+        // The API response has scraping_available and filters_applied at root level
+        // Return the full response data including these fields
+        return {
+          ...response.data,
+          scraping_available: response.scraping_available,
+          filters_applied: response.filters_applied,
+        };
       },
       providesTags: ['Article'],
+    }),
+
+    // Initiate scraping
+    initiateScraping: builder.mutation<
+      {
+        success: boolean;
+        message: string;
+        job_id: string;
+        estimated_duration: string;
+      },
+      ArticleFilters
+    >({
+      query: filters => ({
+        url: `${API_ENDPOINTS.ARTICLES}/initiate-scraping`,
+        method: 'POST',
+        body: filters,
+      }),
+      invalidatesTags: ['Article'],
+    }),
+
+    // Get queue jobs
+    getQueueJobs: builder.query<
+      Array<{
+        id: string;
+        type: string;
+        status: string;
+        filters: any;
+        created_at: string;
+        started_at?: string;
+        completed_at?: string;
+        failed_at?: string;
+        error_message?: string;
+        progress: number;
+      }>,
+      void
+    >({
+      query: () => API_ENDPOINTS.QUEUE_JOBS,
+      providesTags: ['QueueJob'],
+    }),
+
+    // Get specific job status
+    getJobStatus: builder.query<
+      {
+        id: string;
+        type: string;
+        status: string;
+        filters: any;
+        created_at: string;
+        started_at?: string;
+        completed_at?: string;
+        failed_at?: string;
+        error_message?: string;
+        progress: number;
+      },
+      string
+    >({
+      query: jobId => `${API_ENDPOINTS.QUEUE_JOBS}/${jobId}`,
+      providesTags: (_result, _error, jobId) => [
+        { type: 'QueueJob', id: jobId },
+      ],
     }),
 
     getArticle: builder.query<Article, string>({
@@ -204,6 +272,9 @@ export const {
   useLazyGetArticlesQuery,
   useLazySearchArticlesQuery,
   useGetFilteredArticlesQuery,
+  useInitiateScrapingMutation,
+  useGetQueueJobsQuery,
+  useGetJobStatusQuery,
 
   // Categories
   useGetCategoriesQuery,

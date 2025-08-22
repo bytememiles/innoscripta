@@ -65,3 +65,22 @@ export interface ArticleFilters {
 export interface SearchFilters extends Omit<ArticleFilters, 'keyword'> {
   // Additional search-specific filters can be added here
 }
+
+// Filtered articles response (extends pagination with scraping info)
+export interface FilteredArticlesResponse {
+  data: Article[];
+  current_page: number;
+  last_page: number;
+  per_page: number;
+  total: number;
+  from: number | null;
+  to: number | null;
+  first_page_url: string;
+  last_page_url: string;
+  next_page_url: string | null;
+  prev_page_url: string | null;
+  path: string;
+  links: any[];
+  scraping_available?: boolean;
+  filters_applied?: ArticleFilters;
+}

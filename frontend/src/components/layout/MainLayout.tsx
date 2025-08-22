@@ -10,6 +10,7 @@ import {
   Person as PersonIcon,
   Search as SearchIcon,
   Settings as SettingsIcon,
+  Work as WorkIcon,
 } from '@mui/icons-material';
 import {
   AppBar,
@@ -34,7 +35,9 @@ import {
 import { NAVIGATION_ITEMS, ROUTES } from '../../constants';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme as useCustomTheme } from '../../theme/ThemeProvider';
+import { CreditIcon } from '../ui/CreditIcon';
 import { Logo } from '../ui/Logo';
+import { NotificationIcon } from '../ui/NotificationIcon';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -153,8 +156,24 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               ?.text || 'News Aggregator'}
           </Typography>
 
+          {/* Job Monitoring Button */}
+          <IconButton
+            color='inherit'
+            onClick={() => navigate(ROUTES.SEARCH)}
+            sx={{ ml: 1 }}
+            title='Job Monitoring'
+          >
+            <WorkIcon />
+          </IconButton>
+
+          {/* Notification Icon */}
+          <NotificationIcon notifications={[]} />
+
+          {/* Credit Icon */}
+          <CreditIcon userId={user?.id} />
+
           {/* User Menu */}
-          <IconButton onClick={handleUserMenuOpen} sx={{ p: 0 }}>
+          <IconButton onClick={handleUserMenuOpen} sx={{ p: 0, ml: 3 }}>
             <Avatar sx={{ bgcolor: 'secondary.main' }}>
               {user?.name?.charAt(0).toUpperCase() || 'U'}
             </Avatar>

@@ -60,3 +60,12 @@ export interface ApiEndpoint {
   method: HttpMethod;
   requiresAuth?: boolean;
 }
+
+// Filtered articles API response (non-standard response structure)
+export interface FilteredArticlesApiResponse<T = any, F = any> {
+  success: boolean;
+  data: PaginatedResponse<T>;
+  message?: string;
+  scraping_available?: boolean;
+  filters_applied?: F;
+}

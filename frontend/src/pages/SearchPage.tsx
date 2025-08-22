@@ -2,6 +2,7 @@ import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Clear as ClearIcon, Search as SearchIcon } from '@mui/icons-material';
+import WorkIcon from '@mui/icons-material/Work';
 import {
   Alert,
   Box,
@@ -15,34 +16,45 @@ import {
   MenuItem,
   Pagination,
   Select,
+  Snackbar,
   TextField,
   Typography,
 } from '@mui/material';
 import { format } from 'date-fns';
 
 import { ArticleCard, ArticleCardSkeleton } from '../components/ui';
+import { JobMonitoringDrawer } from '../components/ui/JobMonitoringDrawer';
+import { ScrapingConfirmationModal } from '../components/ui/ScrapingConfirmationModal';
 import { useAuth } from '../contexts/AuthContext';
+import { useCredits } from '../hooks/useCredits';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import useLocalStorage from '../hooks/useLocalStorage';
 import {
-  useGetArticlesQuery,
   useGetCategoriesQuery,
   useGetFilteredArticlesQuery,
   useGetPersonalizedFeedQuery,
   useGetSourcesQuery,
   useGetUserPreferencesQuery,
+  useInitiateScrapingMutation,
 } from '../store/api/newsApi';
-import type { ArticleFilters } from '../types';
+import type { ArticleFilters, FilteredArticlesResponse } from '../types';
 
 export const SearchPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
 
   // Use localStorage hook for alert dismissal state
-  const [isAlertDismissed, setIsAlertDismissed] = useLocalStorage(
+  const [_isAlertDismissed, setIsAlertDismissed] = useLocalStorage(
     `personalized_alert_dismissed_${user?.id || 'anonymous'}`,
     false
   );
+
+  // Use credits hook for credit management
+  const {
+    deductCredit,
+    hasCredits,
+    remaining: remainingCredits,
+  } = useCredits(user?.id);
 
   const isInitialLoad = useRef(true);
 
@@ -57,12 +69,42 @@ export const SearchPage: React.FC = () => {
   const toDate = searchParams.get('to_date') || '';
   const page = parseInt(searchParams.get('page') || '1');
 
-  // Local state for form inputs
-  const [searchInput, setSearchInput] = useState(query);
-  const [selectedCategory, setSelectedCategory] = useState(category);
-  const [selectedSource, setSelectedSource] = useState(source);
-  const [selectedFromDate, setSelectedFromDate] = useState(fromDate);
-  const [selectedToDate, setSelectedToDate] = useState(toDate);
+  // State for form inputs (separate from search params)
+  const [formInputs, setFormInputs] = useState({
+    keyword: query || '',
+    category: category || '',
+    source: source || '',
+    fromDate: fromDate || '',
+    toDate: toDate || '',
+  });
+
+  // State for search params (what's actually being searched)
+  const [_searchParamsState, setSearchParamsState] = useState({
+    keyword: query || '',
+    category: category || '',
+    source: source || '',
+    from_date: fromDate || '',
+    to_date: toDate || '',
+    page: page || '1',
+  });
+
+  // Scraping confirmation state
+  const [showScrapingModal, setShowScrapingModal] = useState(false);
+  const [scrapingFilters, setScrapingFilters] = useState<ArticleFilters>({});
+
+  // Notification state
+  const [notification, setNotification] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error' | 'info';
+  }>({
+    open: false,
+    message: '',
+    severity: 'info',
+  });
+
+  // Job monitoring drawer state
+  const [showJobMonitoring, setShowJobMonitoring] = useState(false);
 
   // API queries - use personalized feed for authenticated users when no specific filters are applied
   const hasSpecificFilters = Boolean(
@@ -85,6 +127,67 @@ export const SearchPage: React.FC = () => {
       (userPreferences.preferred_authors &&
         userPreferences.preferred_authors.length > 0));
 
+  // Get personalized feed for authenticated users when no filters applied
+  const {
+    data: personalizedResults,
+    isLoading: personalizedLoading,
+    error: personalizedError,
+  } = useGetPersonalizedFeedQuery(
+    { perPage: 12, page },
+    { skip: !shouldUsePersonalizedFeed }
+  );
+
+  // Use filtered results for search functionality
+  const {
+    data: filteredResults,
+    isLoading: filteredLoading,
+    error: filteredError,
+  } = useGetFilteredArticlesQuery(
+    {
+      keyword: query,
+      category: category || undefined,
+      source: source || undefined,
+      from_date: fromDate || undefined,
+      to_date: toDate || undefined,
+      page,
+      per_page: 12,
+      sort_by: query ? 'relevance' : 'published_at', // Use relevance only when there's a keyword
+      sort_order: 'desc',
+    },
+
+    { skip: shouldUsePersonalizedFeed } // ✅ Skip filtered search when using personalized feed
+  );
+
+  // Get categories and sources
+  const { data: categories } = useGetCategoriesQuery();
+  const { data: sources } = useGetSourcesQuery();
+
+  // Scraping mutation
+  const [initiateScraping, { isLoading: isScraping }] =
+    useInitiateScrapingMutation();
+
+  // Use personalized results when available, otherwise use filtered results
+  const finalResults = shouldUsePersonalizedFeed
+    ? personalizedResults
+    : filteredResults;
+  const finalLoading = shouldUsePersonalizedFeed
+    ? personalizedLoading
+    : filteredLoading;
+  const finalError = shouldUsePersonalizedFeed
+    ? personalizedError
+    : filteredError;
+
+  // Extract articles and pagination info
+  const articles = finalResults?.data || [];
+  const totalPages = finalResults?.last_page || 1;
+  const totalResults = finalResults?.total || 0;
+
+  // Check if we should show scraping modal (no results and scraping available)
+  const shouldShowScrapingModal =
+    articles.length === 0 &&
+    (finalResults as FilteredArticlesResponse)?.scraping_available === true &&
+    !shouldUsePersonalizedFeed;
+
   // Reset alert when preferences change (but not on initial load)
   useEffect(() => {
     if (
@@ -103,54 +206,94 @@ export const SearchPage: React.FC = () => {
     }
   }, [userPreferences?.updated_at, user]);
 
-  // Handle alert dismissal
-  const handleAlertDismiss = () => {
-    setIsAlertDismissed(true);
+  // Show scraping modal when no results found
+  useEffect(() => {
+    if (shouldShowScrapingModal) {
+      const currentFilters: ArticleFilters = {
+        keyword: query,
+        category: category || undefined,
+        source: source || undefined,
+        from_date: fromDate || undefined,
+        to_date: toDate || undefined,
+      };
+      setScrapingFilters(currentFilters);
+      setShowScrapingModal(true);
+    }
+  }, [shouldShowScrapingModal, query, category, source, fromDate, toDate]);
+
+  // Handle scraping confirmation
+  const handleScrapingConfirm = async () => {
+    // Check if user has credits available
+    if (!hasCredits()) {
+      setNotification({
+        open: true,
+        message:
+          'No credits available. Please wait for credits to reset or upgrade your plan.',
+        severity: 'error',
+      });
+      return;
+    }
+
+    try {
+      // Deduct one credit for the scraping job
+      const creditUsed = deductCredit();
+      if (!creditUsed) {
+        setNotification({
+          open: true,
+          message: 'Failed to deduct credit. Please try again.',
+          severity: 'error',
+        });
+        return;
+      }
+
+      const result = await initiateScraping(scrapingFilters).unwrap();
+      setShowScrapingModal(false);
+
+      // Show success notification with credit info
+      setNotification({
+        open: true,
+        message: `Scraping job initiated successfully! Job ID: ${result.job_id}. Credit used: 1 (${remainingCredits - 1} remaining)`,
+        severity: 'success',
+      });
+
+      // Reset search page to default status
+      setFormInputs({
+        keyword: '',
+        category: '',
+        source: '',
+        fromDate: '',
+        toDate: '',
+      });
+      setSearchParamsState({
+        keyword: '',
+        category: '',
+        source: '',
+        from_date: '',
+        to_date: '',
+        page: '1',
+      });
+
+      // Clear URL search params
+      const newSearchParams = new URLSearchParams();
+      newSearchParams.set('page', '1');
+      setSearchParams(newSearchParams);
+
+      // Refetch the filtered results after a short delay
+      setTimeout(() => {
+        // This will trigger a refetch of the filtered articles
+        window.location.reload();
+      }, 2000);
+    } catch (error) {
+      console.error('Failed to initiate scraping:', error);
+
+      // Show error notification
+      setNotification({
+        open: true,
+        message: 'Failed to initiate scraping job. Please try again later.',
+        severity: 'error',
+      });
+    }
   };
-
-  // Get personalized feed for authenticated users when no filters applied
-  const {
-    data: personalizedResults,
-    isLoading: personalizedLoading,
-    error: personalizedError,
-  } = useGetPersonalizedFeedQuery(
-    { perPage: 12, page },
-    { skip: !shouldUsePersonalizedFeed }
-  );
-
-  // Get filtered articles for search with comprehensive filters
-  const {
-    data: filteredResults,
-    isLoading: filteredLoading,
-    error: filteredError,
-  } = useGetFilteredArticlesQuery(
-    {
-      keyword: query,
-      category: category || undefined,
-      source: source || undefined,
-      from_date: fromDate || undefined,
-      to_date: toDate || undefined,
-      page,
-      per_page: 12,
-      sort_by: 'relevance', // Default to relevance sorting for search
-      sort_order: 'desc',
-    },
-    { skip: shouldUsePersonalizedFeed }
-  );
-
-  // Use personalized results when available, otherwise use filtered results
-  const finalResults = shouldUsePersonalizedFeed
-    ? personalizedResults
-    : filteredResults;
-  const finalLoading = shouldUsePersonalizedFeed
-    ? personalizedLoading
-    : filteredLoading;
-  const finalError = shouldUsePersonalizedFeed
-    ? personalizedError
-    : filteredError;
-
-  const { data: categories } = useGetCategoriesQuery();
-  const { data: sources } = useGetSourcesQuery();
 
   // Update search params when form changes
   const updateSearchParams = (newParams: Partial<ArticleFilters>) => {
@@ -176,11 +319,11 @@ export const SearchPage: React.FC = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     updateSearchParams({
-      keyword: searchInput,
-      category: selectedCategory,
-      source: selectedSource,
-      from_date: selectedFromDate,
-      to_date: selectedToDate,
+      keyword: formInputs.keyword,
+      category: formInputs.category,
+      source: formInputs.source,
+      from_date: formInputs.fromDate,
+      to_date: formInputs.toDate,
     });
   };
 
@@ -193,30 +336,45 @@ export const SearchPage: React.FC = () => {
 
     switch (filterType) {
       case 'category':
-        setSelectedCategory(newValue);
+        setFormInputs(prev => ({ ...prev, category: newValue }));
         break;
       case 'source':
-        setSelectedSource(newValue);
+        setFormInputs(prev => ({ ...prev, source: newValue }));
         break;
       case 'from_date':
-        setSelectedFromDate(newValue);
+        setFormInputs(prev => ({ ...prev, fromDate: newValue }));
         break;
       case 'to_date':
-        setSelectedToDate(newValue);
+        setFormInputs(prev => ({ ...prev, toDate: newValue }));
         break;
     }
 
-    updateSearchParams({ [filterType]: newValue });
+    // Don't update search params here - only update form inputs
+    // Search params will be updated when search button is clicked
   };
 
   // Clear all filters
   const clearFilters = () => {
-    setSearchInput('');
-    setSelectedCategory('');
-    setSelectedSource('');
-    setSelectedFromDate('');
-    setSelectedToDate('');
-    setSearchParams({});
+    setFormInputs({
+      keyword: '',
+      category: '',
+      source: '',
+      fromDate: '',
+      toDate: '',
+    });
+    setSearchParamsState({
+      keyword: '',
+      category: '',
+      source: '',
+      from_date: '',
+      to_date: '',
+      page: '1',
+    });
+
+    // Clear URL search params
+    const newSearchParams = new URLSearchParams();
+    newSearchParams.set('page', '1');
+    setSearchParams(newSearchParams);
   };
 
   // Handle page change
@@ -224,41 +382,69 @@ export const SearchPage: React.FC = () => {
     updateSearchParams({ page: newPage });
   };
 
-  const articles = finalResults?.data || [];
-  const totalPages = finalResults?.last_page || 1;
-  const totalResults = finalResults?.total || 0;
-
   return (
     <Box sx={{ p: 3 }}>
       {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant='h3' component='h1' gutterBottom>
-          Search Articles
-        </Typography>
-        <Typography variant='body1' color='text.secondary'>
-          Find the latest news articles by keyword, category, source, and date
-        </Typography>
-        {shouldUsePersonalizedFeed &&
-          hasMeaningfulPreferences &&
-          !isAlertDismissed && (
-            <Alert
-              severity='info'
-              sx={{ mt: 2 }}
-              onClose={handleAlertDismiss}
-              action={
-                <Button
-                  color='inherit'
-                  size='small'
-                  onClick={handleAlertDismiss}
-                >
-                  Got it!
-                </Button>
-              }
-            >
-              🎯 Showing personalized content based on your preferences
-            </Alert>
+      <Box sx={{ mb: 3 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            mb: 2,
+          }}
+        >
+          <Box>
+            <Typography variant='h4' component='h1' gutterBottom>
+              Search Articles
+            </Typography>
+            <Typography variant='body1' color='text.secondary'>
+              Find news articles using keywords, filters, and advanced search
+              options
+            </Typography>
+          </Box>
+
+          {/* Job Monitoring Button */}
+          <Button
+            variant='outlined'
+            startIcon={<WorkIcon />}
+            onClick={() => setShowJobMonitoring(true)}
+            sx={{ minWidth: 140 }}
+          >
+            Job Monitoring
+          </Button>
+        </Box>
+
+        {/* Credit Display */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+          <Typography variant='body2' color='text.secondary'>
+            Credits remaining:
+          </Typography>
+          <Chip
+            label={`${remainingCredits}/5`}
+            color={
+              remainingCredits <= 1
+                ? 'error'
+                : remainingCredits <= 2
+                  ? 'warning'
+                  : 'success'
+            }
+            variant='outlined'
+            size='small'
+          />
+          {remainingCredits <= 1 && (
+            <Typography variant='caption' color='error'>
+              ⚠️ Low credits - use wisely!
+            </Typography>
           )}
+        </Box>
       </Box>
+
+      {/* Job Monitoring Panel */}
+      <JobMonitoringDrawer
+        open={showJobMonitoring}
+        onClose={() => setShowJobMonitoring(false)}
+      />
 
       {/* Search Form */}
       <Card sx={{ mb: 4, p: 3 }}>
@@ -270,8 +456,10 @@ export const SearchPage: React.FC = () => {
                 fullWidth
                 label='Search Articles'
                 placeholder='Enter keywords...'
-                value={searchInput}
-                onChange={e => setSearchInput(e.target.value)}
+                value={formInputs.keyword}
+                onChange={e =>
+                  setFormInputs(prev => ({ ...prev, keyword: e.target.value }))
+                }
                 sx={{ '& .MuiInputBase-root': { height: 56 } }}
                 InputProps={{
                   startAdornment: (
@@ -288,7 +476,7 @@ export const SearchPage: React.FC = () => {
               <FormControl fullWidth>
                 <InputLabel>Category</InputLabel>
                 <Select
-                  value={selectedCategory}
+                  value={formInputs.category}
                   label='Category'
                   onChange={e => handleFilterChange('category', e.target.value)}
                   sx={{ '& .MuiInputBase-root': { height: 56 } }}
@@ -308,7 +496,7 @@ export const SearchPage: React.FC = () => {
               <FormControl fullWidth>
                 <InputLabel>Source</InputLabel>
                 <Select
-                  value={selectedSource}
+                  value={formInputs.source}
                   label='Source'
                   onChange={e => handleFilterChange('source', e.target.value)}
                   sx={{ '& .MuiInputBase-root': { height: 56 } }}
@@ -329,7 +517,7 @@ export const SearchPage: React.FC = () => {
                 fullWidth
                 type='date'
                 label='From Date'
-                value={selectedFromDate}
+                value={formInputs.fromDate}
                 onChange={e => handleFilterChange('from_date', e.target.value)}
                 InputLabelProps={{ shrink: true }}
                 sx={{ '& .MuiInputBase-root': { height: 56 } }}
@@ -341,7 +529,7 @@ export const SearchPage: React.FC = () => {
                 fullWidth
                 type='date'
                 label='To Date'
-                value={selectedToDate}
+                value={formInputs.toDate}
                 onChange={e => handleFilterChange('to_date', e.target.value)}
                 InputLabelProps={{ shrink: true }}
                 sx={{ '& .MuiInputBase-root': { height: 56 } }}
@@ -382,58 +570,62 @@ export const SearchPage: React.FC = () => {
       </Card>
 
       {/* Active Filters Display */}
-      {(query || category || source || fromDate || toDate) && (
+      {(formInputs.keyword ||
+        formInputs.category ||
+        formInputs.source ||
+        formInputs.fromDate ||
+        formInputs.toDate) && (
         <Box sx={{ mb: 3 }}>
           <Typography variant='h6' gutterBottom>
             Active Filters:
           </Typography>
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-            {query && (
+            {formInputs.keyword && (
               <Chip
-                label={`Search: "${query}"`}
+                label={`Search: "${formInputs.keyword}"`}
                 onDelete={() => {
-                  setSearchInput('');
-                  updateSearchParams({ keyword: '' });
+                  setFormInputs(prev => ({ ...prev, keyword: '' }));
+                  // Don't update search params here - only update form inputs
                 }}
                 color='primary'
               />
             )}
-            {category && (
+            {formInputs.category && (
               <Chip
-                label={`Category: ${categories?.find(c => c.slug === category)?.name || category}`}
+                label={`Category: ${categories?.find(c => c.slug === formInputs.category)?.name || formInputs.category}`}
                 onDelete={() => {
-                  setSelectedCategory('');
-                  updateSearchParams({ category: '' });
+                  setFormInputs(prev => ({ ...prev, category: '' }));
+                  // Don't update search params here - only update form inputs
                 }}
                 color='secondary'
               />
             )}
-            {source && (
+            {formInputs.source && (
               <Chip
-                label={`Source: ${sources?.find(s => s.slug === source)?.name || source}`}
+                label={`Source: ${sources?.find(s => s.slug === formInputs.source)?.name || formInputs.source}`}
                 onDelete={() => {
-                  setSelectedSource('');
-                  updateSearchParams({ source: '' });
+                  setFormInputs(prev => ({ ...prev, source: '' }));
+                  // Don't update search params here - only update form inputs
                 }}
                 color='info'
               />
             )}
-            {fromDate && (
+            {formInputs.fromDate && (
               <Chip
-                label={`From: ${format(new Date(fromDate), 'MMM dd, yyyy')}`}
+                label={`From: ${format(new Date(formInputs.fromDate), 'MMM dd, yyyy')}`}
                 onDelete={() => {
-                  setSelectedFromDate('');
-                  updateSearchParams({ from_date: '' });
+                  setFormInputs(prev => ({ ...prev, fromDate: '' }));
+                  // Don't update search params here - only update form inputs
                 }}
                 color='success'
               />
             )}
-            {toDate && (
+            {formInputs.toDate && (
               <Chip
-                label={`To: ${format(new Date(toDate), 'MMM dd, yyyy')}`}
+                label={`To: ${format(new Date(formInputs.toDate), 'MMM dd, yyyy')}`}
                 onDelete={() => {
-                  setSelectedToDate('');
-                  updateSearchParams({ to_date: '' });
+                  setFormInputs(prev => ({ ...prev, toDate: '' }));
+                  // Don't update search params here - only update form inputs
                 }}
                 color='success'
               />
@@ -499,6 +691,33 @@ export const SearchPage: React.FC = () => {
           </Typography>
         </Box>
       )}
+
+      {/* Scraping Confirmation Modal */}
+      <ScrapingConfirmationModal
+        open={showScrapingModal}
+        onClose={() => setShowScrapingModal(false)}
+        onConfirm={handleScrapingConfirm}
+        filters={scrapingFilters}
+        isLoading={isScraping}
+        remainingCredits={remainingCredits}
+        maxCredits={5}
+      />
+
+      {/* Notification Snackbar */}
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={6000}
+        onClose={() => setNotification(prev => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setNotification(prev => ({ ...prev, open: false }))}
+          severity={notification.severity}
+          sx={{ width: '100%' }}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
