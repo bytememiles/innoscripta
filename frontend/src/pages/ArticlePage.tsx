@@ -8,7 +8,9 @@ import { useGetArticleQuery } from '../store/api/newsApi';
 
 export const ArticlePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { setTitle } = useDocumentTitle();
+
+  // Set page title
+  useDocumentTitle(`Article ${id || 'Loading...'}`);
 
   // Fetch article data
   const {
@@ -18,15 +20,6 @@ export const ArticlePage: React.FC = () => {
   } = useGetArticleQuery(Number(id), {
     skip: !id || isNaN(Number(id)),
   });
-
-  // Update title when article data is loaded
-  useEffect(() => {
-    if (article) {
-      setTitle(article.title);
-    } else if (id) {
-      setTitle(`Article ${id}`);
-    }
-  }, [article, id, setTitle]);
 
   // Loading state
   if (isLoading) {

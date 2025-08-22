@@ -15,6 +15,9 @@ export interface UserPreferences {
   preferred_categories: string[] | null; // Changed to string array (slugs)
   preferred_sources: string[] | null; // Changed to string array (slugs)
   preferred_authors: string[] | null;
+  email_notifications?: boolean;
+  language?: string;
+  timezone?: string;
   created_at: string;
   updated_at: string;
 }

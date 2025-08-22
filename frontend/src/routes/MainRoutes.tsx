@@ -16,13 +16,7 @@ const HomePage = Loadable(
   )
 );
 
-const SearchPage = Loadable(
-  lazy(() =>
-    import('../pages/SearchPage').then(module => ({
-      default: module.SearchPage,
-    }))
-  )
-);
+const SearchPage = Loadable(lazy(() => import('../pages/SearchPage')));
 
 const ArticlePage = Loadable(
   lazy(() =>
@@ -32,13 +26,7 @@ const ArticlePage = Loadable(
   )
 );
 
-const ProfilePage = Loadable(
-  lazy(() =>
-    import('../pages/ProfilePage').then(module => ({
-      default: module.ProfilePage,
-    }))
-  )
-);
+const ProfilePage = Loadable(lazy(() => import('../pages/ProfilePage')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
