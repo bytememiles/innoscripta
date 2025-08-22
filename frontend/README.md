@@ -1,227 +1,387 @@
-# News Aggregator Frontend | Innoscripta
+# 🚀 News Aggregator Frontend
 
-A modern React TypeScript frontend built with Material-UI for the Innoscripta News Aggregator application.
+A modern, responsive React-based frontend for the News Aggregator application with intelligent news scraping, real-time job monitoring, and personalized user experiences.
 
-## Features
+## 📋 Table of Contents
 
-- **React 19** with TypeScript
-- **Material-UI (MUI)** for components and theming
-- **Dark/Light theme support** with system preference detection
-- **Redux Toolkit** for state management with RTK Query
-- **React Router** for client-side routing
-- **React Hook Form** with Yup validation
-- **Responsive design** optimized for mobile and desktop
-- **Authentication system** with protected routes
-- **Real-time news feed** with infinite scrolling
-- **Advanced search and filtering**
-- **User preferences management**
-- **Dynamic page titles** with SEO optimization
+- [🚀 Quick Start](#-quick-start)
+- [🏗️ Project Structure](#️-project-structure)
+- [📱 Pages & Components](#-pages--components)
+- [🔄 Workflows & Logic](#-workflows--logic)
+- [🛠️ Development](#️-development)
+- [🚀 Deployment](#-deployment)
+- [📚 API Integration](#-api-integration)
 
-## Tech Stack
+## 🚀 Quick Start
 
-- **Framework**: React 19 + TypeScript
-- **Build Tool**: Vite
-- **UI Library**: Material-UI (MUI) v7
-- **State Management**: Redux Toolkit + RTK Query
-- **Routing**: React Router DOM v7
-- **Forms**: React Hook Form + Yup
-- **HTTP Client**: Axios
-- **Date Handling**: date-fns
-- **Styling**: Emotion (CSS-in-JS)
+### Prerequisites
 
-## Prerequisites
+- **Node.js**: 18.x or higher
+- **Package Manager**: pnpm (recommended) or npm
+- **Backend**: Ensure the Laravel backend is running on `http://localhost:8000`
 
-- Docker and Docker Compose
-- Node.js 20+ (for local development)
-
-## Docker Setup
-
-### Production Build
-
-Build and run the production-optimized container:
+### Installation & Setup
 
 ```bash
-# Build the production image
-docker-compose build frontend
+# Clone the repository
+git clone <repository-url>
+cd innoscripta/frontend
 
-# Run the production container
-docker-compose up frontend
+# Install dependencies
+pnpm install
 
-# Or run in detached mode
-docker-compose up -d frontend
+# Set up environment variables
+cp .env.example .env.local
+# Edit .env.local with your backend URL
+
+# Start development server
+pnpm dev
 ```
-
-The frontend will be available at `http://localhost:3000`
-
-### Development Mode
-
-Run the development server with hot reloading:
-
-```bash
-# Run the development container
-docker-compose --profile dev up frontend-dev
-
-# Or run in detached mode
-docker-compose --profile dev up -d frontend-dev
-```
-
-The development server will be available at `http://localhost:5173`
 
 ### Environment Variables
 
-Create a `.env` file in the frontend directory:
-
-```env
-VITE_API_URL=http://localhost:8000/api
-VITE_APP_NAME=News Aggregator
+```bash
+# .env.local
+VITE_API_BASE_URL=http://localhost:8000/api
+VITE_APP_NAME="News Aggregator"
 ```
 
-## Local Development (without Docker)
-
-If you prefer to run locally without Docker:
+### Available Scripts
 
 ```bash
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
-
-# Run linting
-npm run lint
+pnpm dev          # Start development server
+pnpm build        # Build for production
+pnpm preview      # Preview production build
+pnpm lint         # Run ESLint
+pnpm lint:fix     # Fix ESLint issues
+pnpm type-check   # Run TypeScript type checking
+pnpm format       # Format code with Prettier
 ```
 
-## Project Structure
+## 🏗️ Project Structure
 
 ```
 frontend/
-├── public/                 # Static assets
 ├── src/
-│   ├── components/        # Reusable UI components
-│   │   ├── auth/         # Authentication components
-│   │   ├── layout/       # Layout components
-│   │   ├── news/         # News-related components
-│   │   └── ui/           # Generic UI components
-│   ├── hooks/            # Custom React hooks
-│   ├── pages/            # Page components
-│   ├── services/         # API services
-│   ├── store/            # Redux store and slices
-│   │   ├── api/          # RTK Query API definitions
-│   │   └── slices/       # Redux slices
-│   ├── styles/           # Global styles
-│   ├── theme/            # MUI theme configuration
-│   ├── types/            # TypeScript type definitions
-│   ├── utils/            # Utility functions
-│   ├── App.tsx           # Main App component
-│   └── main.tsx          # Application entry point
-├── Dockerfile            # Production Docker image
-├── Dockerfile.dev        # Development Docker image
-├── docker-compose.yml    # Docker Compose configuration
-├── nginx.conf            # Nginx configuration for production
-├── package.json          # Dependencies and scripts
-├── tsconfig.json         # TypeScript configuration
-├── vite.config.ts        # Vite configuration
-└── README.md             # This file
+│   ├── components/          # Reusable UI components
+│   │   ├── auth/           # Authentication components
+│   │   ├── layout/         # Layout and navigation
+│   │   ├── news/           # News-related components
+│   │   ├── ui/             # Generic UI components
+│   │   └── route-guard/    # Route protection
+│   ├── pages/              # Main application pages
+│   ├── hooks/              # Custom React hooks
+│   ├── contexts/           # React contexts (Auth, etc.)
+│   ├── store/              # Redux store and RTK Query
+│   ├── types/              # TypeScript type definitions
+│   ├── utils/              # Utility functions
+│   ├── constants/          # Application constants
+│   ├── theme/              # Material-UI theme configuration
+│   └── styles/             # Global styles and CSS
+├── public/                  # Static assets
+├── dist/                    # Build output
+└── docker-compose.yml       # Docker configuration
 ```
 
-## Available Scripts
+### Key Technologies
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build locally
-- `npm run lint` - Run ESLint
+- **React 18.2.0** with TypeScript 5.2.2
+- **Material-UI (MUI) v5.15.15** for UI components
+- **Redux Toolkit v2.2.3** with RTK Query for state management
+- **React Router v6.22.3** for navigation
+- **Vite v5.2.0** for build tooling
+- **ESLint v8.57.0 + Prettier v3.2.5** for code quality
+- **React Hook Form v7.51.3** with Yup v1.4.0 for form handling
+- **Axios v1.6.8** for HTTP requests
+- **date-fns v3.6.0** for date manipulation
 
-## Theme System
+## 📱 Pages & Components
 
-The application supports both light and dark themes:
+### Core Pages
 
-- **System Preference**: Automatically detects user's system theme
-- **Manual Toggle**: Users can manually switch between themes
-- **Persistence**: Theme preference is saved to localStorage
+#### 🏠 **HomePage** (`/`)
 
-## Authentication
+- **Purpose**: Landing page with featured articles and quick access
+- **Features**:
+  - Personalized news feed
+  - Quick search functionality
+  - Category navigation
+  - Recent articles display
 
-The frontend includes a complete authentication system:
+#### 🔍 **SearchPage** (`/news/search`)
 
-- **Login/Register**: Form-based authentication
-- **Protected Routes**: Automatic redirection for unauthenticated users
-- **Token Management**: Automatic token refresh and logout
-- **Password Reset**: Forgot password functionality
+- **Purpose**: Advanced news search with filtering and scraping
+- **Features**:
+  - Multi-criteria search (keyword, category, source, date range)
+  - Real-time search results
+  - News scraping confirmation modal
+  - Credit system integration
+  - Job creation for filtered scraping
 
-## API Integration
+#### 📰 **ArticlePage** (`/news/:id`)
 
-- **Base URL**: Configurable via `VITE_API_URL` environment variable
-- **Authentication**: Automatic token injection in requests
-- **Error Handling**: Global error handling with user notifications
-- **Caching**: Intelligent caching with RTK Query
+- **Purpose**: Detailed article view with related content
+- **Features**:
+  - Full article content
+  - Related articles
+  - Social sharing
+  - Reading preferences
 
-## Responsive Design
+#### 👤 **ProfilePage** (`/profile`)
 
-The application is fully responsive and optimized for:
+- **Purpose**: User profile management and preferences
+- **Features**:
+  - Personal information
+  - News preferences
+  - Credit management
+  - Reading history
 
-- **Desktop**: Full-featured experience with sidebar navigation
-- **Tablet**: Responsive grid layouts and collapsible navigation
-- **Mobile**: Touch-optimized interface with drawer navigation
+#### 📊 **JobsPage** (`/jobs`)
 
-## Performance Optimizations
+- **Purpose**: Job monitoring and management
+- **Features**:
+  - Queue job status
+  - Job cancellation/retry
+  - Real-time updates
+  - Queue synchronization
 
-- **Code Splitting**: Automatic route-based code splitting
-- **Image Optimization**: Lazy loading and responsive images
-- **Bundle Analysis**: Build-time bundle size warnings
-- **Caching**: Service worker ready (can be enabled)
+### Key Components
 
-## Contributing
+#### 🔐 **Authentication**
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests and linting
-5. Submit a pull request
+- `LoginForm`: User login with validation
+- `RegisterForm`: User registration
+- `AuthGuard`: Route protection
+- `AuthContext`: Authentication state management
 
-## Troubleshooting
+#### 📰 **News Components**
+
+- `ArticleCard`: Article preview cards
+- `ArticleList`: Paginated article lists
+- `SearchFilters`: Advanced search interface
+- `ScrapingConfirmationModal`: Job creation confirmation
+
+#### 📊 **Job Monitoring**
+
+- `JobMonitoringDrawer`: Quick job status overview
+- `JobTable`: Detailed job information
+- `QueueControls`: Job management actions
+
+#### 🎨 **UI Components**
+
+- `Layout`: Main application layout
+- `Navigation`: Top navigation bar
+- `LoadingSpinner`: Loading states
+- `ErrorBoundary`: Error handling
+
+## 🔄 Workflows & Logic
+
+### 🔍 **News Search Workflow**
+
+```mermaid
+graph TD
+    A[User enters search criteria] --> B[Apply filters]
+    B --> C{Articles found?}
+    C -->|Yes| D[Display results]
+    C -->|No| E[Show scraping confirmation]
+    E --> F{User confirms?}
+    F -->|Yes| G[Create scraping job]
+    F -->|No| H[Return to search]
+    G --> I[Job queued successfully]
+    I --> J[Monitor job progress]
+    J --> K[Results appear when complete]
+```
+
+**Key Logic**:
+
+- **Filter Application**: Real-time filtering with debounced search
+- **Scraping Decision**: Automatic detection when no results found
+- **Job Creation**: Credit-based job creation via Laravel queue
+- **Result Monitoring**: Real-time job status updates
+
+### 📊 **Job Management Workflow**
+
+```mermaid
+graph TD
+    A[Job created] --> B[Added to queue]
+    B --> C[Queue worker processes]
+    C --> D{Job success?}
+    D -->|Yes| E[Mark completed]
+    D -->|No| F[Mark failed]
+    E --> G[Update frontend]
+    F --> H[Allow retry]
+    H --> I[Create new job]
+    I --> B
+```
+
+**Key Logic**:
+
+- **Queue Integration**: Direct integration with Laravel Redis queue
+- **Status Tracking**: Real-time job status monitoring
+- **Job Control**: Cancel, retry, and monitor operations
+- **Auto-refresh**: Periodic status updates
+
+### 🔐 **Authentication Workflow**
+
+```mermaid
+graph TD
+    A[User visits protected route] --> B{Auth token exists?}
+    B -->|No| C[Redirect to login]
+    B -->|Yes| D[Validate token]
+    D --> E{Token valid?}
+    E -->|No| F[Clear token & redirect]
+    E -->|Yes| G[Allow access]
+    C --> H[Login form]
+    H --> I[Submit credentials]
+    I --> J[Receive token]
+    J --> K[Store token]
+    K --> L[Redirect to original route]
+```
+
+**Key Logic**:
+
+- **Token Management**: JWT token storage and validation
+- **Route Protection**: Automatic redirect for unauthenticated users
+- **Session Persistence**: Token-based session management
+- **Error Handling**: Graceful authentication failures
+
+### 💳 **Credit System Workflow**
+
+```mermaid
+graph TD
+    A[User initiates scraping] --> B{Has credits?}
+    B -->|No| C[Show insufficient credits]
+    B -->|Yes| D[Deduct credit]
+    D --> E[Create scraping job]
+    E --> F[Job processing]
+    F --> G[Job completion]
+    G --> H[Results available]
+    C --> I[Wait for credit reset]
+```
+
+**Key Logic**:
+
+- **Credit Validation**: Pre-job credit checking
+- **Automatic Deduction**: Credit consumption on job creation
+- **Reset Mechanism**: Daily credit refresh
+- **User Feedback**: Clear credit status display
+
+## 🛠️ Development
+
+### Code Quality Tools
+
+- **ESLint**: Code linting and best practices
+- **Prettier**: Code formatting
+- **TypeScript**: Type safety and IntelliSense
+- **Husky**: Git hooks for pre-commit checks
+
+### State Management
+
+- **Redux Toolkit**: Centralized state management
+- **RTK Query**: API data fetching and caching
+- **Local Storage**: User preferences and authentication
+
+### API Integration
+
+- **Axios**: HTTP client for API calls
+- **RTK Query**: Automatic caching and synchronization
+- **Error Handling**: Comprehensive error management
+- **Authentication**: Bearer token integration
+
+### Performance Optimizations
+
+- **Code Splitting**: Route-based lazy loading
+- **Memoization**: React.memo and useMemo usage
+- **Debouncing**: Search input optimization
+- **Virtual Scrolling**: Large list performance
+
+## 🚀 Deployment
+
+### Docker Deployment
+
+```bash
+# Build and run with Docker
+docker compose up --build
+
+# Production build
+docker build -t news-aggregator-frontend .
+```
+
+### Environment Configuration
+
+```bash
+# Production environment
+VITE_API_BASE_URL=https://api.yourdomain.com
+VITE_APP_NAME="News Aggregator"
+NODE_ENV=production
+```
+
+### Build Optimization
+
+```bash
+# Production build
+pnpm build
+
+# Analyze bundle
+pnpm build --analyze
+
+# Preview build
+pnpm preview
+```
+
+## 📚 API Integration
+
+### Endpoints
+
+- **Authentication**: `/api/login`, `/api/register`
+- **Articles**: `/api/articles`, `/api/articles/search`
+- **Queue Management**: `/api/queue/jobs`, `/api/queue/sync-status`
+- **User Preferences**: `/api/preferences`
+
+### Data Flow
+
+1. **User Action** → Component dispatches action
+2. **RTK Query** → API call with authentication
+3. **Backend Processing** → Laravel handles request
+4. **Response** → Data cached and component updated
+5. **UI Update** → Component re-renders with new data
+
+### Error Handling
+
+- **Network Errors**: Automatic retry and fallback
+- **Authentication Errors**: Automatic logout and redirect
+- **Validation Errors**: User-friendly error messages
+- **Server Errors**: Graceful degradation
+
+## 🔧 Troubleshooting
 
 ### Common Issues
 
-**Build fails with Node.js version error:**
+1. **Build Failures**: Check TypeScript errors and dependencies
+2. **API Connection**: Verify backend URL and CORS settings
+3. **Authentication**: Check token validity and storage
+4. **Performance**: Monitor bundle size and lazy loading
 
-- Ensure you're using Node.js 20+ or use Docker
+### Debug Tools
 
-**CORS errors:**
+- **React DevTools**: Component inspection
+- **Redux DevTools**: State management debugging
+- **Network Tab**: API call monitoring
+- **Console Logs**: Application logging
 
-- Check that `VITE_API_URL` points to the correct backend URL
-- Ensure the backend allows the frontend's origin
+---
 
-**Hot reloading not working in Docker:**
+## 📄 License
 
-- Use the development Docker setup with `--profile dev`
-- Ensure port 5173 is properly mapped
+This project is part of the News Aggregator application. See the main repository for license information.
 
-### Docker Issues
+## 🤝 Contributing
 
-**Container won't start:**
+1. Follow the established code style (ESLint + Prettier)
+2. Write meaningful commit messages
+3. Test your changes thoroughly
+4. Update documentation as needed
 
-```bash
-# Check logs
-docker-compose logs frontend
+---
 
-# Rebuild without cache
-docker-compose build --no-cache frontend
-```
-
-**Port conflicts:**
-
-```bash
-# Change ports in docker-compose.yml
-ports:
-  - "3001:80"  # Instead of 3000:80
-```
-
-## License
-
-This project is part of the Innoscripta News Aggregator application.
+**Happy coding! 🎉**
