@@ -17,6 +17,9 @@ tags:
     name: Categories
     description: "\nAPIs for retrieving article categories"
   -
+    name: Endpoints
+    description: ''
+  -
     name: Sources
     description: "\nAPIs for retrieving news sources"
   -
@@ -27,7 +30,7 @@ paths:
     get:
       summary: 'List articles'
       operationId: listArticles
-      description: 'Retrieve a paginated list of articles with optional filtering.'
+      description: "Retrieve a paginated list of articles with optional filtering.\nIf no articles exist, automatically scrapes news based on user preferences or defaults."
       parameters:
         -
           in: query
@@ -142,8 +145,6 @@ paths:
                     last_page_url: 'http://localhost:8000/api/articles?page=10'
                     links: []
                     next_page_url: 'http://localhost:8000/api/articles?page=2'
-                    path: 'http://localhost:8000/api/articles'
-                    per_page: 10
                     prev_page_url: null
                     to: 10
                     total: 100
@@ -250,12 +251,6 @@ paths:
                       next_page_url:
                         type: string
                         example: 'http://localhost:8000/api/articles?page=2'
-                      path:
-                        type: string
-                        example: 'http://localhost:8000/api/articles'
-                      per_page:
-                        type: integer
-                        example: 10
                       prev_page_url:
                         type: string
                         example: null
@@ -313,44 +308,515 @@ paths:
                 page:
                   type: integer
                   description: 'Must be at least 1.'
-                  example: 82
+                  example: 88
                   nullable: false
                 per_page:
                   type: integer
                   description: 'Must be at least 1. Must not be greater than 50.'
-                  example: 5
+                  example: 24
                   nullable: false
                 category:
                   type: string
                   description: 'The <code>slug</code> of an existing record in the categories table.'
-                  example: amet
+                  example: id
                   nullable: false
                 source:
                   type: string
                   description: 'The <code>slug</code> of an existing record in the sources table.'
-                  example: ad
+                  example: quam
                   nullable: false
                 from_date:
                   type: string
                   description: 'Must be a valid date in the format <code>Y-m-d</code>.'
-                  example: '2025-08-21'
+                  example: '2025-08-22'
                   nullable: false
                 to_date:
                   type: string
                   description: 'Must be a valid date in the format <code>Y-m-d</code>. Must be a date after or equal to <code>from_date</code>.'
-                  example: '2029-08-09'
+                  example: '2105-08-17'
                   nullable: false
                 keyword:
                   type: string
                   description: 'Must not be greater than 255 characters.'
-                  example: tglnkryfhjfcnwi
+                  example: xrmsynpv
+                  nullable: false
+      security: []
+  /api/articles/filtered:
+    get:
+      summary: 'Get filtered articles for search page'
+      operationId: getFilteredArticlesForSearchPage
+      description: "Retrieve articles with comprehensive filtering options for the search page.\nThis endpoint is designed specifically for search functionality with filters."
+      parameters:
+        -
+          in: query
+          name: page
+          description: 'Page number for pagination.'
+          example: 1
+          required: false
+          schema:
+            type: integer
+            description: 'Page number for pagination.'
+            example: 1
+            nullable: false
+        -
+          in: query
+          name: per_page
+          description: 'Number of articles per page (max 50).'
+          example: 10
+          required: false
+          schema:
+            type: integer
+            description: 'Number of articles per page (max 50).'
+            example: 10
+            nullable: false
+        -
+          in: query
+          name: keyword
+          description: 'Search keyword in title, description, and content.'
+          example: 'artificial intelligence'
+          required: false
+          schema:
+            type: string
+            description: 'Search keyword in title, description, and content.'
+            example: 'artificial intelligence'
+            nullable: false
+        -
+          in: query
+          name: category
+          description: 'Filter by category slug.'
+          example: technology
+          required: false
+          schema:
+            type: string
+            description: 'Filter by category slug.'
+            example: technology
+            nullable: false
+        -
+          in: query
+          name: source
+          description: 'Filter by source slug.'
+          example: newsapi
+          required: false
+          schema:
+            type: string
+            description: 'Filter by source slug.'
+            example: newsapi
+            nullable: false
+        -
+          in: query
+          name: from_date
+          description: 'Filter articles from this date (Y-m-d format).'
+          example: '2024-01-01'
+          required: false
+          schema:
+            type: string
+            description: 'Filter articles from this date (Y-m-d format).'
+            example: '2024-01-01'
+            nullable: false
+        -
+          in: query
+          name: to_date
+          description: 'Filter articles to this date (Y-m-d format).'
+          example: '2024-01-31'
+          required: false
+          schema:
+            type: string
+            description: 'Filter articles to this date (Y-m-d format).'
+            example: '2024-01-31'
+            nullable: false
+        -
+          in: query
+          name: sort_by
+          description: 'Sort order (published_at, title, relevance).'
+          example: published_at
+          required: false
+          schema:
+            type: string
+            description: 'Sort order (published_at, title, relevance).'
+            example: published_at
+            nullable: false
+        -
+          in: query
+          name: sort_order
+          description: 'Sort direction (asc, desc).'
+          example: desc
+          required: false
+          schema:
+            type: string
+            description: 'Sort direction (asc, desc).'
+            example: desc
+            nullable: false
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  success: true
+                  data:
+                    current_page: 1
+                    data:
+                      -
+                        id: 1
+                        title: 'Breaking News: AI Revolution'
+                        description: 'Latest developments in artificial intelligence...'
+                        content: 'Full article content here...'
+                        url: 'https://example.com/article/1'
+                        url_to_image: 'https://example.com/image.jpg'
+                        published_at: '2024-01-15T10:30:00.000000Z'
+                        source:
+                          id: 1
+                          name: NewsAPI
+                          slug: newsapi
+                        category:
+                          id: 1
+                          name: Technology
+                          slug: technology
+                        created_at: '2024-01-15T10:30:00.000000Z'
+                        updated_at: '2024-01-15T10:30:00.000000Z'
+                    first_page_url: 'http://localhost:8000/api/articles/filtered?page=1'
+                    from: 1
+                    last_page: 10
+                    last_page_url: 'http://localhost:8000/api/articles/filtered?page=10'
+                    links: []
+                    next_page_url: 'http://localhost:8000/api/articles/filtered?page=2'
+                    prev_page_url: null
+                    to: 10
+                    total: 100
+                  filters_applied:
+                    keyword: 'artificial intelligence'
+                    category: technology
+                    source: newsapi
+                    from_date: '2024-01-01'
+                    to_date: '2024-01-31'
+                    sort_by: published_at
+                    sort_order: desc
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      current_page:
+                        type: integer
+                        example: 1
+                      data:
+                        type: array
+                        example:
+                          -
+                            id: 1
+                            title: 'Breaking News: AI Revolution'
+                            description: 'Latest developments in artificial intelligence...'
+                            content: 'Full article content here...'
+                            url: 'https://example.com/article/1'
+                            url_to_image: 'https://example.com/image.jpg'
+                            published_at: '2024-01-15T10:30:00.000000Z'
+                            source:
+                              id: 1
+                              name: NewsAPI
+                              slug: newsapi
+                            category:
+                              id: 1
+                              name: Technology
+                              slug: technology
+                            created_at: '2024-01-15T10:30:00.000000Z'
+                            updated_at: '2024-01-15T10:30:00.000000Z'
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              example: 1
+                            title:
+                              type: string
+                              example: 'Breaking News: AI Revolution'
+                            description:
+                              type: string
+                              example: 'Latest developments in artificial intelligence...'
+                            content:
+                              type: string
+                              example: 'Full article content here...'
+                            url:
+                              type: string
+                              example: 'https://example.com/article/1'
+                            url_to_image:
+                              type: string
+                              example: 'https://example.com/image.jpg'
+                            published_at:
+                              type: string
+                              example: '2024-01-15T10:30:00.000000Z'
+                            source:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                  example: 1
+                                name:
+                                  type: string
+                                  example: NewsAPI
+                                slug:
+                                  type: string
+                                  example: newsapi
+                            category:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                  example: 1
+                                name:
+                                  type: string
+                                  example: Technology
+                                slug:
+                                  type: string
+                                  example: technology
+                            created_at:
+                              type: string
+                              example: '2024-01-15T10:30:00.000000Z'
+                            updated_at:
+                              type: string
+                              example: '2024-01-15T10:30:00.000000Z'
+                      first_page_url:
+                        type: string
+                        example: 'http://localhost:8000/api/articles/filtered?page=1'
+                      from:
+                        type: integer
+                        example: 1
+                      last_page:
+                        type: integer
+                        example: 10
+                      last_page_url:
+                        type: string
+                        example: 'http://localhost:8000/api/articles/filtered?page=10'
+                      links:
+                        type: array
+                        example: []
+                      next_page_url:
+                        type: string
+                        example: 'http://localhost:8000/api/articles/filtered?page=2'
+                      prev_page_url:
+                        type: string
+                        example: null
+                      to:
+                        type: integer
+                        example: 10
+                      total:
+                        type: integer
+                        example: 100
+                  filters_applied:
+                    type: object
+                    properties:
+                      keyword:
+                        type: string
+                        example: 'artificial intelligence'
+                      category:
+                        type: string
+                        example: technology
+                      source:
+                        type: string
+                        example: newsapi
+                      from_date:
+                        type: string
+                        example: '2024-01-01'
+                      to_date:
+                        type: string
+                        example: '2024-01-31'
+                      sort_by:
+                        type: string
+                        example: published_at
+                      sort_order:
+                        type: string
+                        example: desc
+      tags:
+        - Articles
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: integer
+                  description: 'Must be at least 1.'
+                  example: 36
+                  nullable: false
+                per_page:
+                  type: integer
+                  description: 'Must be at least 1. Must not be greater than 50.'
+                  example: 9
+                  nullable: false
+                keyword:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: akifwlxhhuqz
+                  nullable: false
+                category:
+                  type: string
+                  description: 'The <code>slug</code> of an existing record in the categories table.'
+                  example: debitis
+                  nullable: false
+                source:
+                  type: string
+                  description: 'The <code>slug</code> of an existing record in the sources table.'
+                  example: incidunt
+                  nullable: false
+                from_date:
+                  type: string
+                  description: 'Must be a valid date in the format <code>Y-m-d</code>.'
+                  example: '2025-08-22'
+                  nullable: false
+                to_date:
+                  type: string
+                  description: 'Must be a valid date in the format <code>Y-m-d</code>. Must be a date after or equal to <code>from_date</code>.'
+                  example: '2099-05-02'
+                  nullable: false
+                sort_by:
+                  type: string
+                  description: ''
+                  example: relevance
+                  nullable: false
+                  enum:
+                    - published_at
+                    - title
+                    - relevance
+                sort_order:
+                  type: string
+                  description: ''
+                  example: desc
+                  nullable: false
+                  enum:
+                    - asc
+                    - desc
+      security: []
+  /api/articles/initiate-scraping:
+    post:
+      summary: 'Manually initiate news scraping based on filters'
+      operationId: manuallyInitiateNewsScrapingBasedOnFilters
+      description: ''
+      parameters:
+        -
+          in: query
+          name: keyword
+          description: 'Search keyword.'
+          example: 'artificial intelligence'
+          required: false
+          schema:
+            type: string
+            description: 'Search keyword.'
+            example: 'artificial intelligence'
+            nullable: false
+        -
+          in: query
+          name: category
+          description: 'Filter by category slug.'
+          example: technology
+          required: false
+          schema:
+            type: string
+            description: 'Filter by category slug.'
+            example: technology
+            nullable: false
+        -
+          in: query
+          name: source
+          description: 'Filter by source slug.'
+          example: newsapi
+          required: false
+          schema:
+            type: string
+            description: 'Filter by source slug.'
+            example: newsapi
+            nullable: false
+        -
+          in: query
+          name: from_date
+          description: 'Filter articles from this date (Y-m-d format).'
+          example: '2024-01-01'
+          required: false
+          schema:
+            type: string
+            description: 'Filter articles from this date (Y-m-d format).'
+            example: '2024-01-01'
+            nullable: false
+        -
+          in: query
+          name: to_date
+          description: 'Filter articles to this date (Y-m-d format).'
+          example: '2024-01-31'
+          required: false
+          schema:
+            type: string
+            description: 'Filter articles to this date (Y-m-d format).'
+            example: '2024-01-31'
+            nullable: false
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  success: true
+                  message: 'News scraping job has been queued successfully'
+                  job_id: job-uuid-here
+                  estimated_duration: '2-5 minutes'
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'News scraping job has been queued successfully'
+                  job_id:
+                    type: string
+                    example: job-uuid-here
+                  estimated_duration:
+                    type: string
+                    example: '2-5 minutes'
+      tags:
+        - Articles
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                keyword:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: jqgmjotkq
+                  nullable: false
+                category:
+                  type: string
+                  description: 'The <code>slug</code> of an existing record in the categories table.'
+                  example: dolore
+                  nullable: false
+                source:
+                  type: string
+                  description: 'The <code>slug</code> of an existing record in the sources table.'
+                  example: rerum
+                  nullable: false
+                from_date:
+                  type: string
+                  description: 'Must be a valid date in the format <code>Y-m-d</code>.'
+                  example: '2025-08-22'
+                  nullable: false
+                to_date:
+                  type: string
+                  description: 'Must be a valid date in the format <code>Y-m-d</code>. Must be a date after or equal to <code>from_date</code>.'
+                  example: '2107-04-20'
                   nullable: false
       security: []
   /api/articles/search:
     get:
       summary: 'Search articles'
       operationId: searchArticles
-      description: 'Full-text search across article title, description, and content.'
+      description: "Full-text search across article title, description, and content.\nAutomatically scrapes new articles if needed and merges with existing results."
       parameters:
         -
           in: query
@@ -464,9 +930,7 @@ paths:
                     last_page: 5
                     last_page_url: 'http://localhost:8000/api/articles/search?q=ai&page=5'
                     links: []
-                    next_page_url: 'http://localhost:8000/api/articles/search?q=ai&page=2'
-                    path: 'http://localhost:8000/api/articles/search'
-                    per_page: 10
+                    next_page_url: 'http://localhost:8000/api/articles?page=2'
                     prev_page_url: null
                     to: 10
                     total: 50
@@ -572,13 +1036,7 @@ paths:
                         example: []
                       next_page_url:
                         type: string
-                        example: 'http://localhost:8000/api/articles/search?q=ai&page=2'
-                      path:
-                        type: string
-                        example: 'http://localhost:8000/api/articles/search'
-                      per_page:
-                        type: integer
-                        example: 10
+                        example: 'http://localhost:8000/api/articles?page=2'
                       prev_page_url:
                         type: string
                         example: null
@@ -628,22 +1086,22 @@ paths:
                 q:
                   type: string
                   description: 'Must be at least 1 character. Must not be greater than 255 characters.'
-                  example: jdkawqrrfdrlrpgcclqr
+                  example: wxi
                   nullable: false
                 page:
                   type: integer
                   description: 'Must be at least 1.'
-                  example: 66
+                  example: 15
                   nullable: false
                 per_page:
                   type: integer
                   description: 'Must be at least 1. Must not be greater than 50.'
-                  example: 17
+                  example: 11
                   nullable: false
                 category:
                   type: string
                   description: 'The <code>slug</code> of an existing record in the categories table.'
-                  example: aut
+                  example: et
                   nullable: false
                 source:
                   type: string
@@ -653,12 +1111,12 @@ paths:
                 from_date:
                   type: string
                   description: 'Must be a valid date in the format <code>Y-m-d</code>.'
-                  example: '2025-08-21'
+                  example: '2025-08-22'
                   nullable: false
                 to_date:
                   type: string
                   description: 'Must be a valid date in the format <code>Y-m-d</code>. Must be a date after or equal to <code>from_date</code>.'
-                  example: '2101-12-26'
+                  example: '2042-12-29'
                   nullable: false
               required:
                 - q
@@ -680,7 +1138,7 @@ paths:
                   success: true
                   data:
                     article:
-                      id: 1
+                      id: 550e8400-e29b-41d4-a716-446655440000
                       title: 'Breaking News: AI Revolution'
                       description: 'Latest developments in artificial intelligence...'
                       content: 'Full article content here...'
@@ -688,11 +1146,11 @@ paths:
                       url_to_image: 'https://example.com/image.jpg'
                       published_at: '2024-01-15T10:30:00.000000Z'
                       source:
-                        id: 1
+                        id: 550e8400-e29b-41d4-a716-446655440001
                         name: NewsAPI
                         slug: newsapi
                       category:
-                        id: 1
+                        id: 550e8400-e29b-41d4-a716-446655440002
                         name: Technology
                         slug: technology
                       created_at: '2024-01-15T10:30:00.000000Z'
@@ -708,8 +1166,8 @@ paths:
                         type: object
                         properties:
                           id:
-                            type: integer
-                            example: 1
+                            type: string
+                            example: 550e8400-e29b-41d4-a716-446655440000
                           title:
                             type: string
                             example: 'Breaking News: AI Revolution'
@@ -732,8 +1190,8 @@ paths:
                             type: object
                             properties:
                               id:
-                                type: integer
-                                example: 1
+                                type: string
+                                example: 550e8400-e29b-41d4-a716-446655440001
                               name:
                                 type: string
                                 example: NewsAPI
@@ -744,8 +1202,8 @@ paths:
                             type: object
                             properties:
                               id:
-                                type: integer
-                                example: 1
+                                type: string
+                                example: 550e8400-e29b-41d4-a716-446655440002
                               name:
                                 type: string
                                 example: Technology
@@ -781,11 +1239,11 @@ paths:
       -
         in: path
         name: id
-        description: 'The article ID.'
-        example: 1
+        description: 'The article UUID.'
+        example: 550e8400-e29b-41d4-a716-446655440000
         required: true
         schema:
-          type: integer
+          type: string
   /api/register:
     post:
       summary: 'Register a new user'
@@ -1170,14 +1628,14 @@ paths:
                   data:
                     categories:
                       -
-                        id: 1
+                        id: 550e8400-e29b-41d4-a716-446655440001
                         name: Technology
                         slug: technology
                         description: 'Latest technology news and updates'
                         created_at: '2024-01-15T10:30:00.000000Z'
                         updated_at: '2024-01-15T10:30:00.000000Z'
                       -
-                        id: 2
+                        id: 550e8400-e29b-41d4-a716-446655440002
                         name: Business
                         slug: business
                         description: 'Business and finance news'
@@ -1194,14 +1652,14 @@ paths:
                         type: array
                         example:
                           -
-                            id: 1
+                            id: 550e8400-e29b-41d4-a716-446655440001
                             name: Technology
                             slug: technology
                             description: 'Latest technology news and updates'
                             created_at: '2024-01-15T10:30:00.000000Z'
                             updated_at: '2024-01-15T10:30:00.000000Z'
                           -
-                            id: 2
+                            id: 550e8400-e29b-41d4-a716-446655440002
                             name: Business
                             slug: business
                             description: 'Business and finance news'
@@ -1211,8 +1669,8 @@ paths:
                           type: object
                           properties:
                             id:
-                              type: integer
-                              example: 1
+                              type: string
+                              example: 550e8400-e29b-41d4-a716-446655440001
                             name:
                               type: string
                               example: Technology
@@ -1231,6 +1689,278 @@ paths:
       tags:
         - Categories
       security: []
+  /api/queue/jobs:
+    get:
+      summary: 'Get all queue jobs with their status'
+      operationId: getAllQueueJobsWithTheirStatus
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  success: true
+                  data:
+                    -
+                      id: job-uuid-here
+                      type: filtered_search
+                      status: queued
+                      filters:
+                        keyword: 'artificial intelligence'
+                        category: technology
+                      created_at: '2024-01-15T10:30:00.000000Z'
+                      started_at: null
+                      completed_at: null
+                      failed_at: null
+                      error_message: null
+                      progress: 0
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    example:
+                      -
+                        id: job-uuid-here
+                        type: filtered_search
+                        status: queued
+                        filters:
+                          keyword: 'artificial intelligence'
+                          category: technology
+                        created_at: '2024-01-15T10:30:00.000000Z'
+                        started_at: null
+                        completed_at: null
+                        failed_at: null
+                        error_message: null
+                        progress: 0
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: job-uuid-here
+                        type:
+                          type: string
+                          example: filtered_search
+                        status:
+                          type: string
+                          example: queued
+                        filters:
+                          type: object
+                          properties:
+                            keyword:
+                              type: string
+                              example: 'artificial intelligence'
+                            category:
+                              type: string
+                              example: technology
+                        created_at:
+                          type: string
+                          example: '2024-01-15T10:30:00.000000Z'
+                        started_at:
+                          type: string
+                          example: null
+                        completed_at:
+                          type: string
+                          example: null
+                        failed_at:
+                          type: string
+                          example: null
+                        error_message:
+                          type: string
+                          example: null
+                        progress:
+                          type: integer
+                          example: 0
+      tags:
+        - Endpoints
+      security: []
+  '/api/queue/jobs/{jobId}':
+    get:
+      summary: 'Get specific job status'
+      operationId: getSpecificJobStatus
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  success: true
+                  data:
+                    id: job-uuid-here
+                    type: filtered_search
+                    status: in_progress
+                    filters:
+                      keyword: 'artificial intelligence'
+                    created_at: '2024-01-15T10:30:00.000000Z'
+                    started_at: '2024-01-15T10:31:00.000000Z'
+                    completed_at: null
+                    failed_at: null
+                    error_message: null
+                    progress: 45
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: job-uuid-here
+                      type:
+                        type: string
+                        example: filtered_search
+                      status:
+                        type: string
+                        example: in_progress
+                      filters:
+                        type: object
+                        properties:
+                          keyword:
+                            type: string
+                            example: 'artificial intelligence'
+                      created_at:
+                        type: string
+                        example: '2024-01-15T10:30:00.000000Z'
+                      started_at:
+                        type: string
+                        example: '2024-01-15T10:31:00.000000Z'
+                      completed_at:
+                        type: string
+                        example: null
+                      failed_at:
+                        type: string
+                        example: null
+                      error_message:
+                        type: string
+                        example: null
+                      progress:
+                        type: integer
+                        example: 45
+      tags:
+        - Endpoints
+      security: []
+    delete:
+      summary: 'Cancel a queued job'
+      operationId: cancelAQueuedJob
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  success: true
+                  message: 'Job cancelled successfully'
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Job cancelled successfully'
+      tags:
+        - Endpoints
+      security: []
+    parameters:
+      -
+        in: path
+        name: jobId
+        description: ''
+        example: harum
+        required: true
+        schema:
+          type: string
+  /api/queue/sync-status:
+    post:
+      summary: "Sync queue status with Laravel's queue system"
+      operationId: syncQueueStatusWithLaravelsQueueSystem
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  success: true
+                  message: 'Queue status synced successfully'
+                  job_counts:
+                    queued: 5
+                    failed: 2
+                    completed: 10
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Queue status synced successfully'
+                  job_counts:
+                    type: object
+                    properties:
+                      queued:
+                        type: integer
+                        example: 5
+                      failed:
+                        type: integer
+                        example: 2
+                      completed:
+                        type: integer
+                        example: 10
+      tags:
+        - Endpoints
+      security: []
+  '/api/queue/jobs/{jobId}/retry':
+    post:
+      summary: 'Retry a failed job'
+      operationId: retryAFailedJob
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  success: true
+                  message: 'Job queued for retry successfully'
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Job queued for retry successfully'
+      tags:
+        - Endpoints
+      security: []
+    parameters:
+      -
+        in: path
+        name: jobId
+        description: ''
+        example: voluptas
+        required: true
+        schema:
+          type: string
   /api/sources:
     get:
       summary: 'List all sources'
@@ -1249,7 +1979,7 @@ paths:
                   data:
                     sources:
                       -
-                        id: 1
+                        id: 550e8400-e29b-41d4-a716-446655440001
                         name: NewsAPI
                         slug: newsapi
                         description: 'NewsAPI.org news aggregator'
@@ -1257,7 +1987,7 @@ paths:
                         created_at: '2024-01-15T10:30:00.000000Z'
                         updated_at: '2024-01-15T10:30:00.000000Z'
                       -
-                        id: 2
+                        id: 550e8400-e29b-41d4-a716-446655440002
                         name: NewsData.io
                         slug: newsdata
                         description: 'NewsData.io API service'
@@ -1265,7 +1995,7 @@ paths:
                         created_at: '2024-01-15T10:30:00.000000Z'
                         updated_at: '2024-01-15T10:30:00.000000Z'
                       -
-                        id: 3
+                        id: 550e8400-e29b-41d4-a716-446655440003
                         name: 'The New York Times'
                         slug: nyt
                         description: 'The New York Times API'
@@ -1283,7 +2013,7 @@ paths:
                         type: array
                         example:
                           -
-                            id: 1
+                            id: 550e8400-e29b-41d4-a716-446655440001
                             name: NewsAPI
                             slug: newsapi
                             description: 'NewsAPI.org news aggregator'
@@ -1291,7 +2021,7 @@ paths:
                             created_at: '2024-01-15T10:30:00.000000Z'
                             updated_at: '2024-01-15T10:30:00.000000Z'
                           -
-                            id: 2
+                            id: 550e8400-e29b-41d4-a716-446655440002
                             name: NewsData.io
                             slug: newsdata
                             description: 'NewsData.io API service'
@@ -1299,7 +2029,7 @@ paths:
                             created_at: '2024-01-15T10:30:00.000000Z'
                             updated_at: '2024-01-15T10:30:00.000000Z'
                           -
-                            id: 3
+                            id: 550e8400-e29b-41d4-a716-446655440003
                             name: 'The New York Times'
                             slug: nyt
                             description: 'The New York Times API'
@@ -1310,8 +2040,8 @@ paths:
                           type: object
                           properties:
                             id:
-                              type: integer
-                              example: 1
+                              type: string
+                              example: 550e8400-e29b-41d4-a716-446655440001
                             name:
                               type: string
                               example: NewsAPI
@@ -1345,83 +2075,115 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                example:
-                  success: true
-                  data:
-                    preferences:
-                      id: 1
-                      user_id: 1
-                      preferred_categories:
-                        - technology
-                        - business
-                      preferred_sources:
-                        - newsapi
-                        - nyt
-                      preferred_authors:
-                        - 'John Smith'
-                        - 'Jane Doe'
-                      created_at: '2024-01-15T10:30:00.000000Z'
-                      updated_at: '2024-01-15T10:30:00.000000Z'
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  data:
+                oneOf:
+                  -
+                    description: ''
                     type: object
+                    example:
+                      success: true
+                      data:
+                        preferences:
+                          id: 1
+                          user_id: 1
+                          preferred_categories:
+                            - technology
+                            - business
+                          preferred_sources:
+                            - newsapi
+                            - nyt
+                          preferred_authors:
+                            - 'John Smith'
+                            - 'Jane Doe'
+                          created_at: '2024-01-15T10:30:00.000000Z'
+                          updated_at: '2024-01-15T10:30:00.000000Z'
                     properties:
-                      preferences:
+                      success:
+                        type: boolean
+                        example: true
+                      data:
                         type: object
                         properties:
-                          id:
-                            type: integer
-                            example: 1
-                          user_id:
-                            type: integer
-                            example: 1
-                          preferred_categories:
-                            type: array
-                            example:
-                              - technology
-                              - business
-                            items:
-                              type: string
-                          preferred_sources:
-                            type: array
-                            example:
-                              - newsapi
-                              - nyt
-                            items:
-                              type: string
-                          preferred_authors:
-                            type: array
-                            example:
-                              - 'John Smith'
-                              - 'Jane Doe'
-                            items:
-                              type: string
-                          created_at:
-                            type: string
-                            example: '2024-01-15T10:30:00.000000Z'
-                          updated_at:
-                            type: string
-                            example: '2024-01-15T10:30:00.000000Z'
-        404:
-          description: ''
-          content:
-            application/json:
-              schema:
-                type: object
-                example:
-                  success: false
-                  message: 'No preferences found. Please set your preferences first.'
-                properties:
-                  success:
-                    type: boolean
-                    example: false
-                  message:
-                    type: string
-                    example: 'No preferences found. Please set your preferences first.'
+                          preferences:
+                            type: object
+                            properties:
+                              id:
+                                type: integer
+                                example: 1
+                              user_id:
+                                type: integer
+                                example: 1
+                              preferred_categories:
+                                type: array
+                                example:
+                                  - technology
+                                  - business
+                                items:
+                                  type: string
+                              preferred_sources:
+                                type: array
+                                example:
+                                  - newsapi
+                                  - nyt
+                                items:
+                                  type: string
+                              preferred_authors:
+                                type: array
+                                example:
+                                  - 'John Smith'
+                                  - 'Jane Doe'
+                                items:
+                                  type: string
+                              created_at:
+                                type: string
+                                example: '2024-01-15T10:30:00.000000Z'
+                              updated_at:
+                                type: string
+                                example: '2024-01-15T10:30:00.000000Z'
+                  -
+                    description: ''
+                    type: object
+                    example:
+                      success: true
+                      data:
+                        preferences:
+                          user_id: 1
+                          preferred_categories: []
+                          preferred_sources: []
+                          preferred_authors: []
+                          email_notifications: false
+                          timezone: UTC
+                      message: 'No preferences found. Please set your preferences first.'
+                    properties:
+                      success:
+                        type: boolean
+                        example: true
+                      data:
+                        type: object
+                        properties:
+                          preferences:
+                            type: object
+                            properties:
+                              user_id:
+                                type: integer
+                                example: 1
+                              preferred_categories:
+                                type: array
+                                example: []
+                              preferred_sources:
+                                type: array
+                                example: []
+                              preferred_authors:
+                                type: array
+                                example: []
+                              email_notifications:
+                                type: boolean
+                                example: false
+                              timezone:
+                                type: string
+                                example: UTC
+                      message:
+                        type: string
+                        example: 'No preferences found. Please set your preferences first.'
       tags:
         - 'User Preferences'
     post:
@@ -1569,11 +2331,21 @@ paths:
                     - 'Jane Doe'
                   items:
                     type: string
+                email_notifications:
+                  type: boolean
+                  description: ''
+                  example: false
+                  nullable: true
+                timezone:
+                  type: string
+                  description: 'Must not be greater than 100 characters.'
+                  example: Pacific/Saipan
+                  nullable: true
   /api/personalized-feed:
     get:
-      summary: 'Get personalized news feed'
-      operationId: getPersonalizedNewsFeed
-      description: 'Retrieve a personalized news feed based on user preferences.'
+      summary: 'Get personalized news feed for home page'
+      operationId: getPersonalizedNewsFeedForHomePage
+      description: "Retrieve a personalized news feed based on user preferences for the home page.\nThis endpoint is designed specifically for home page personalization.\nIf no articles exist, automatically scrapes news based on preferences."
       parameters:
         -
           in: query
@@ -1655,11 +2427,18 @@ paths:
                     last_page_url: 'http://localhost:8000/api/personalized-feed?page=10'
                     links: []
                     next_page_url: 'http://localhost:8000/api/personalized-feed?page=2'
-                    path: 'http://localhost:8000/api/personalized-feed'
-                    per_page: 10
                     prev_page_url: null
                     to: 10
                     total: 100
+                  preferences_applied:
+                    categories:
+                      - technology
+                      - science
+                    sources:
+                      - newsapi
+                      - nyt
+                    authors:
+                      - 'John Doe'
                 properties:
                   success:
                     type: boolean
@@ -1763,12 +2542,6 @@ paths:
                       next_page_url:
                         type: string
                         example: 'http://localhost:8000/api/personalized-feed?page=2'
-                      path:
-                        type: string
-                        example: 'http://localhost:8000/api/personalized-feed'
-                      per_page:
-                        type: integer
-                        example: 10
                       prev_page_url:
                         type: string
                         example: null
@@ -1778,76 +2551,28 @@ paths:
                       total:
                         type: integer
                         example: 100
-        404:
-          description: ''
-          content:
-            application/json:
-              schema:
-                type: object
-                example:
-                  success: false
-                  message: 'No preferences found. Please set your preferences first to get a personalized feed.'
-                properties:
-                  success:
-                    type: boolean
-                    example: false
-                  message:
-                    type: string
-                    example: 'No preferences found. Please set your preferences first to get a personalized feed.'
-        422:
-          description: ''
-          content:
-            application/json:
-              schema:
-                type: object
-                example:
-                  success: false
-                  message: 'Validation error'
-                  errors:
-                    per_page:
-                      - 'The per page must not be greater than 50.'
-                properties:
-                  success:
-                    type: boolean
-                    example: false
-                  message:
-                    type: string
-                    example: 'Validation error'
-                  errors:
+                  preferences_applied:
                     type: object
                     properties:
-                      per_page:
+                      categories:
                         type: array
                         example:
-                          - 'The per page must not be greater than 50.'
+                          - technology
+                          - science
+                        items:
+                          type: string
+                      sources:
+                        type: array
+                        example:
+                          - newsapi
+                          - nyt
+                        items:
+                          type: string
+                      authors:
+                        type: array
+                        example:
+                          - 'John Doe'
                         items:
                           type: string
       tags:
         - 'User Preferences'
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                page:
-                  type: integer
-                  description: 'Must be at least 1.'
-                  example: 83
-                  nullable: false
-                per_page:
-                  type: integer
-                  description: 'Must be at least 1. Must not be greater than 50.'
-                  example: 2
-                  nullable: false
-                from_date:
-                  type: string
-                  description: 'Must be a valid date in the format <code>Y-m-d</code>.'
-                  example: '2025-08-21'
-                  nullable: false
-                to_date:
-                  type: string
-                  description: 'Must be a valid date in the format <code>Y-m-d</code>. Must be a date after or equal to <code>from_date</code>.'
-                  example: '2068-12-11'
-                  nullable: false

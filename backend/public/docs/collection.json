@@ -10,7 +10,7 @@
     ],
     "info": {
         "name": "News Aggregator API Documentation",
-        "_postman_id": "b6dd5581-20f5-44b7-9721-283c0607c33c",
+        "_postman_id": "ec4efed6-ad72-4097-85a6-7acd6251703a",
         "description": "A comprehensive news aggregation API that collects and serves news articles from multiple sources including NewsAPI, NewsData.io, and The New York Times.",
         "schema": "https:\/\/schema.getpostman.com\/json\/collection\/v2.1.0\/collection.json"
     },
@@ -84,9 +84,9 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\"page\":82,\"per_page\":5,\"category\":\"amet\",\"source\":\"ad\",\"from_date\":\"2025-08-21\",\"to_date\":\"2029-08-09\",\"keyword\":\"tglnkryfhjfcnwi\"}"
+                            "raw": "{\"page\":88,\"per_page\":24,\"category\":\"id\",\"source\":\"quam\",\"from_date\":\"2025-08-22\",\"to_date\":\"2105-08-17\",\"keyword\":\"xrmsynpv\"}"
                         },
-                        "description": "Retrieve a paginated list of articles with optional filtering.",
+                        "description": "Retrieve a paginated list of articles with optional filtering.\nIf no articles exist, automatically scrapes news based on user preferences or defaults.",
                         "auth": {
                             "type": "noauth"
                         }
@@ -95,13 +95,175 @@
                         {
                             "header": [],
                             "code": 200,
-                            "body": "{\n  \"success\": true,\n  \"data\": {\n    \"current_page\": 1,\n    \"data\": [\n      {\n        \"id\": 1,\n        \"title\": \"Breaking News: AI Revolution\",\n        \"description\": \"Latest developments in artificial intelligence...\",\n        \"content\": \"Full article content here...\",\n        \"url\": \"https:\/\/example.com\/article\/1\",\n        \"url_to_image\": \"https:\/\/example.com\/image.jpg\",\n        \"published_at\": \"2024-01-15T10:30:00.000000Z\",\n        \"source\": {\n          \"id\": 1,\n          \"name\": \"NewsAPI\",\n          \"slug\": \"newsapi\"\n        },\n        \"category\": {\n          \"id\": 1,\n          \"name\": \"Technology\",\n          \"slug\": \"technology\"\n        },\n        \"created_at\": \"2024-01-15T10:30:00.000000Z\",\n        \"updated_at\": \"2024-01-15T10:30:00.000000Z\"\n      }\n    ],\n    \"first_page_url\": \"http:\/\/localhost:8000\/api\/articles?page=1\",\n    \"from\": 1,\n    \"last_page\": 10,\n    \"last_page_url\": \"http:\/\/localhost:8000\/api\/articles?page=10\",\n    \"links\": [],\n    \"next_page_url\": \"http:\/\/localhost:8000\/api\/articles?page=2\",\n    \"path\": \"http:\/\/localhost:8000\/api\/articles\",\n    \"per_page\": 10,\n    \"prev_page_url\": null,\n    \"to\": 10,\n    \"total\": 100\n  }\n}",
+                            "body": "{\n  \"success\": true,\n  \"data\": {\n    \"current_page\": 1,\n    \"data\": [\n      {\n        \"id\": 1,\n        \"title\": \"Breaking News: AI Revolution\",\n        \"description\": \"Latest developments in artificial intelligence...\",\n        \"content\": \"Full article content here...\",\n        \"url\": \"https:\/\/example.com\/article\/1\",\n        \"url_to_image\": \"https:\/\/example.com\/image.jpg\",\n        \"published_at\": \"2024-01-15T10:30:00.000000Z\",\n        \"source\": {\n          \"id\": 1,\n          \"name\": \"NewsAPI\",\n          \"slug\": \"newsapi\"\n        },\n        \"category\": {\n          \"id\": 1,\n          \"name\": \"Technology\",\n          \"slug\": \"technology\"\n        },\n        \"created_at\": \"2024-01-15T10:30:00.000000Z\",\n        \"updated_at\": \"2024-01-15T10:30:00.000000Z\"\n      }\n    ],\n    \"first_page_url\": \"http:\/\/localhost:8000\/api\/articles?page=1\",\n    \"from\": 1,\n    \"last_page\": 10,\n    \"last_page_url\": \"http:\/\/localhost:8000\/api\/articles?page=10\",\n    \"links\": [],\n    \"next_page_url\": \"http:\/\/localhost:8000\/api\/articles?page=2\",\n    \"prev_page_url\": null,\n    \"to\": 10,\n    \"total\": 100\n  }\n}",
                             "name": ""
                         },
                         {
                             "header": [],
                             "code": 422,
                             "body": "{\n  \"success\": false,\n  \"message\": \"Validation error\",\n  \"errors\": {\n    \"per_page\": [\"The per page must not be greater than 50.\"],\n    \"from_date\": [\"The from date does not match the format Y-m-d.\"]\n  }\n}",
+                            "name": ""
+                        }
+                    ]
+                },
+                {
+                    "name": "Get filtered articles for search page",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "api\/articles\/filtered",
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "description": "Page number for pagination.",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "per_page",
+                                    "value": "10",
+                                    "description": "Number of articles per page (max 50).",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "keyword",
+                                    "value": "artificial+intelligence",
+                                    "description": "Search keyword in title, description, and content.",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "technology",
+                                    "description": "Filter by category slug.",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "source",
+                                    "value": "newsapi",
+                                    "description": "Filter by source slug.",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "from_date",
+                                    "value": "2024-01-01",
+                                    "description": "Filter articles from this date (Y-m-d format).",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "to_date",
+                                    "value": "2024-01-31",
+                                    "description": "Filter articles to this date (Y-m-d format).",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "sort_by",
+                                    "value": "published_at",
+                                    "description": "Sort order (published_at, title, relevance).",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "sort_order",
+                                    "value": "desc",
+                                    "description": "Sort direction (asc, desc).",
+                                    "disabled": false
+                                }
+                            ],
+                            "raw": "{{baseUrl}}\/api\/articles\/filtered?page=1&per_page=10&keyword=artificial+intelligence&category=technology&source=newsapi&from_date=2024-01-01&to_date=2024-01-31&sort_by=published_at&sort_order=desc"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"page\":36,\"per_page\":9,\"keyword\":\"akifwlxhhuqz\",\"category\":\"debitis\",\"source\":\"incidunt\",\"from_date\":\"2025-08-22\",\"to_date\":\"2099-05-02\",\"sort_by\":\"relevance\",\"sort_order\":\"desc\"}"
+                        },
+                        "description": "Retrieve articles with comprehensive filtering options for the search page.\nThis endpoint is designed specifically for search functionality with filters.",
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    },
+                    "response": [
+                        {
+                            "header": [],
+                            "code": 200,
+                            "body": "{\n  \"success\": true,\n  \"data\": {\n    \"current_page\": 1,\n    \"data\": [\n      {\n        \"id\": 1,\n        \"title\": \"Breaking News: AI Revolution\",\n        \"description\": \"Latest developments in artificial intelligence...\",\n        \"content\": \"Full article content here...\",\n        \"url\": \"https:\/\/example.com\/article\/1\",\n        \"url_to_image\": \"https:\/\/example.com\/image.jpg\",\n        \"published_at\": \"2024-01-15T10:30:00.000000Z\",\n        \"source\": {\n          \"id\": 1,\n          \"name\": \"NewsAPI\",\n          \"slug\": \"newsapi\"\n        },\n        \"category\": {\n          \"id\": 1,\n          \"name\": \"Technology\",\n          \"slug\": \"technology\"\n        },\n        \"created_at\": \"2024-01-15T10:30:00.000000Z\",\n        \"updated_at\": \"2024-01-15T10:30:00.000000Z\"\n      }\n    ],\n    \"first_page_url\": \"http:\/\/localhost:8000\/api\/articles\/filtered?page=1\",\n    \"from\": 1,\n    \"last_page\": 10,\n    \"last_page_url\": \"http:\/\/localhost:8000\/api\/articles\/filtered?page=10\",\n    \"links\": [],\n    \"next_page_url\": \"http:\/\/localhost:8000\/api\/articles\/filtered?page=2\",\n    \"prev_page_url\": null,\n    \"to\": 10,\n    \"total\": 100\n  },\n  \"filters_applied\": {\n    \"keyword\": \"artificial intelligence\",\n    \"category\": \"technology\",\n    \"source\": \"newsapi\",\n    \"from_date\": \"2024-01-01\",\n    \"to_date\": \"2024-01-31\",\n    \"sort_by\": \"published_at\",\n    \"sort_order\": \"desc\"\n  }\n}",
+                            "name": ""
+                        }
+                    ]
+                },
+                {
+                    "name": "Manually initiate news scraping based on filters",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "api\/articles\/initiate-scraping",
+                            "query": [
+                                {
+                                    "key": "keyword",
+                                    "value": "artificial+intelligence",
+                                    "description": "Search keyword.",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "category",
+                                    "value": "technology",
+                                    "description": "Filter by category slug.",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "source",
+                                    "value": "newsapi",
+                                    "description": "Filter by source slug.",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "from_date",
+                                    "value": "2024-01-01",
+                                    "description": "Filter articles from this date (Y-m-d format).",
+                                    "disabled": false
+                                },
+                                {
+                                    "key": "to_date",
+                                    "value": "2024-01-31",
+                                    "description": "Filter articles to this date (Y-m-d format).",
+                                    "disabled": false
+                                }
+                            ],
+                            "raw": "{{baseUrl}}\/api\/articles\/initiate-scraping?keyword=artificial+intelligence&category=technology&source=newsapi&from_date=2024-01-01&to_date=2024-01-31"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\"keyword\":\"jqgmjotkq\",\"category\":\"dolore\",\"source\":\"rerum\",\"from_date\":\"2025-08-22\",\"to_date\":\"2107-04-20\"}"
+                        },
+                        "description": "",
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    },
+                    "response": [
+                        {
+                            "header": [],
+                            "code": 200,
+                            "body": "{\n  \"success\": true,\n  \"message\": \"News scraping job has been queued successfully\",\n  \"job_id\": \"job-uuid-here\",\n  \"estimated_duration\": \"2-5 minutes\"\n}",
                             "name": ""
                         }
                     ]
@@ -171,9 +333,9 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\"q\":\"jdkawqrrfdrlrpgcclqr\",\"page\":66,\"per_page\":17,\"category\":\"aut\",\"source\":\"totam\",\"from_date\":\"2025-08-21\",\"to_date\":\"2101-12-26\"}"
+                            "raw": "{\"q\":\"wxi\",\"page\":15,\"per_page\":11,\"category\":\"et\",\"source\":\"totam\",\"from_date\":\"2025-08-22\",\"to_date\":\"2042-12-29\"}"
                         },
-                        "description": "Full-text search across article title, description, and content.",
+                        "description": "Full-text search across article title, description, and content.\nAutomatically scrapes new articles if needed and merges with existing results.",
                         "auth": {
                             "type": "noauth"
                         }
@@ -182,7 +344,7 @@
                         {
                             "header": [],
                             "code": 200,
-                            "body": "{\n  \"success\": true,\n  \"data\": {\n    \"current_page\": 1,\n    \"data\": [\n      {\n        \"id\": 1,\n        \"title\": \"Breaking News: AI Revolution\",\n        \"description\": \"Latest developments in artificial intelligence...\",\n        \"content\": \"Full article content here...\",\n        \"url\": \"https:\/\/example.com\/article\/1\",\n        \"url_to_image\": \"https:\/\/example.com\/image.jpg\",\n        \"published_at\": \"2024-01-15T10:30:00.000000Z\",\n        \"source\": {\n          \"id\": 1,\n          \"name\": \"NewsAPI\",\n          \"slug\": \"newsapi\"\n        },\n        \"category\": {\n          \"id\": 1,\n          \"name\": \"Technology\",\n          \"slug\": \"technology\"\n        },\n        \"created_at\": \"2024-01-15T10:30:00.000000Z\",\n        \"updated_at\": \"2024-01-15T10:30:00.000000Z\"\n      }\n    ],\n    \"first_page_url\": \"http:\/\/localhost:8000\/api\/articles\/search?q=ai&page=1\",\n    \"from\": 1,\n    \"last_page\": 5,\n    \"last_page_url\": \"http:\/\/localhost:8000\/api\/articles\/search?q=ai&page=5\",\n    \"links\": [],\n    \"next_page_url\": \"http:\/\/localhost:8000\/api\/articles\/search?q=ai&page=2\",\n    \"path\": \"http:\/\/localhost:8000\/api\/articles\/search\",\n    \"per_page\": 10,\n    \"prev_page_url\": null,\n    \"to\": 10,\n    \"total\": 50\n  }\n}",
+                            "body": "{\n  \"success\": true,\n  \"data\": {\n    \"current_page\": 1,\n    \"data\": [\n      {\n        \"id\": 1,\n        \"title\": \"Breaking News: AI Revolution\",\n        \"description\": \"Latest developments in artificial intelligence...\",\n        \"content\": \"Full article content here...\",\n        \"url\": \"https:\/\/example.com\/article\/1\",\n        \"url_to_image\": \"https:\/\/example.com\/image.jpg\",\n        \"published_at\": \"2024-01-15T10:30:00.000000Z\",\n        \"source\": {\n          \"id\": 1,\n          \"name\": \"NewsAPI\",\n          \"slug\": \"newsapi\"\n        },\n        \"category\": {\n          \"id\": 1,\n          \"name\": \"Technology\",\n          \"slug\": \"technology\"\n        },\n        \"created_at\": \"2024-01-15T10:30:00.000000Z\",\n        \"updated_at\": \"2024-01-15T10:30:00.000000Z\"\n      }\n    ],\n    \"first_page_url\": \"http:\/\/localhost:8000\/api\/articles\/search?q=ai&page=1\",\n    \"from\": 1,\n    \"last_page\": 5,\n    \"last_page_url\": \"http:\/\/localhost:8000\/api\/articles\/search?q=ai&page=5\",\n    \"links\": [],\n    \"next_page_url\": \"http:\/\/localhost:8000\/api\/articles?page=2\",\n    \"prev_page_url\": null,\n    \"to\": 10,\n    \"total\": 50\n  }\n}",
                             "name": ""
                         },
                         {
@@ -205,8 +367,8 @@
                                 {
                                     "id": "id",
                                     "key": "id",
-                                    "value": "1",
-                                    "description": "The article ID."
+                                    "value": "550e8400-e29b-41d4-a716-446655440000",
+                                    "description": "The article UUID."
                                 }
                             ]
                         },
@@ -231,7 +393,7 @@
                         {
                             "header": [],
                             "code": 200,
-                            "body": "{\n  \"success\": true,\n  \"data\": {\n    \"article\": {\n      \"id\": 1,\n      \"title\": \"Breaking News: AI Revolution\",\n      \"description\": \"Latest developments in artificial intelligence...\",\n      \"content\": \"Full article content here...\",\n      \"url\": \"https:\/\/example.com\/article\/1\",\n      \"url_to_image\": \"https:\/\/example.com\/image.jpg\",\n      \"published_at\": \"2024-01-15T10:30:00.000000Z\",\n      \"source\": {\n        \"id\": 1,\n        \"name\": \"NewsAPI\",\n        \"slug\": \"newsapi\"\n      },\n      \"category\": {\n        \"id\": 1,\n        \"name\": \"Technology\",\n        \"slug\": \"technology\"\n      },\n      \"created_at\": \"2024-01-15T10:30:00.000000Z\",\n      \"updated_at\": \"2024-01-15T10:30:00.000000Z\"\n    }\n  }\n}",
+                            "body": "{\n  \"success\": true,\n  \"data\": {\n    \"article\": {\n      \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n      \"title\": \"Breaking News: AI Revolution\",\n      \"description\": \"Latest developments in artificial intelligence...\",\n      \"content\": \"Full article content here...\",\n      \"url\": \"https:\/\/example.com\/article\/1\",\n      \"url_to_image\": \"https:\/\/example.com\/image.jpg\",\n      \"published_at\": \"2024-01-15T10:30:00.000000Z\",\n      \"source\": {\n        \"id\": \"550e8400-e29b-41d4-a716-446655440001\",\n        \"name\": \"NewsAPI\",\n        \"slug\": \"newsapi\"\n      },\n      \"category\": {\n        \"id\": \"550e8400-e29b-41d4-a716-446655440002\",\n        \"name\": \"Technology\",\n        \"slug\": \"technology\"\n      },\n      \"created_at\": \"2024-01-15T10:30:00.000000Z\",\n      \"updated_at\": \"2024-01-15T10:30:00.000000Z\"\n    }\n  }\n}",
                             "name": ""
                         },
                         {
@@ -454,7 +616,212 @@
                         {
                             "header": [],
                             "code": 200,
-                            "body": "{\n  \"success\": true,\n  \"data\": {\n    \"categories\": [\n      {\n        \"id\": 1,\n        \"name\": \"Technology\",\n        \"slug\": \"technology\",\n        \"description\": \"Latest technology news and updates\",\n        \"created_at\": \"2024-01-15T10:30:00.000000Z\",\n        \"updated_at\": \"2024-01-15T10:30:00.000000Z\"\n      },\n      {\n        \"id\": 2,\n        \"name\": \"Business\",\n        \"slug\": \"business\",\n        \"description\": \"Business and finance news\",\n        \"created_at\": \"2024-01-15T10:30:00.000000Z\",\n        \"updated_at\": \"2024-01-15T10:30:00.000000Z\"\n      }\n    ]\n  }\n}",
+                            "body": "{\n  \"success\": true,\n  \"data\": {\n    \"categories\": [\n      {\n        \"id\": \"550e8400-e29b-41d4-a716-446655440001\",\n        \"name\": \"Technology\",\n        \"slug\": \"technology\",\n        \"description\": \"Latest technology news and updates\",\n        \"created_at\": \"2024-01-15T10:30:00.000000Z\",\n        \"updated_at\": \"2024-01-15T10:30:00.000000Z\"\n      },\n      {\n        \"id\": \"550e8400-e29b-41d4-a716-446655440002\",\n        \"name\": \"Business\",\n        \"slug\": \"business\",\n        \"description\": \"Business and finance news\",\n        \"created_at\": \"2024-01-15T10:30:00.000000Z\",\n        \"updated_at\": \"2024-01-15T10:30:00.000000Z\"\n      }\n    ]\n  }\n}",
+                            "name": ""
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Endpoints",
+            "description": "",
+            "item": [
+                {
+                    "name": "Get all queue jobs with their status",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "api\/queue\/jobs",
+                            "query": [],
+                            "raw": "{{baseUrl}}\/api\/queue\/jobs"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": null,
+                        "description": "",
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    },
+                    "response": [
+                        {
+                            "header": [],
+                            "code": 200,
+                            "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"job-uuid-here\",\n      \"type\": \"filtered_search\",\n      \"status\": \"queued\",\n      \"filters\": {\n        \"keyword\": \"artificial intelligence\",\n        \"category\": \"technology\"\n      },\n      \"created_at\": \"2024-01-15T10:30:00.000000Z\",\n      \"started_at\": null,\n      \"completed_at\": null,\n      \"failed_at\": null,\n      \"error_message\": null,\n      \"progress\": 0\n    }\n  ]\n}",
+                            "name": ""
+                        }
+                    ]
+                },
+                {
+                    "name": "Get specific job status",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "api\/queue\/jobs\/:jobId",
+                            "query": [],
+                            "raw": "{{baseUrl}}\/api\/queue\/jobs\/:jobId",
+                            "variable": [
+                                {
+                                    "id": "jobId",
+                                    "key": "jobId",
+                                    "value": "harum",
+                                    "description": ""
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": null,
+                        "description": "",
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    },
+                    "response": [
+                        {
+                            "header": [],
+                            "code": 200,
+                            "body": "{\n  \"success\": true,\n  \"data\": {\n        \"id\": \"job-uuid-here\",\n        \"type\": \"filtered_search\",\n        \"status\": \"in_progress\",\n        \"filters\": {\n          \"keyword\": \"artificial intelligence\"\n        },\n        \"created_at\": \"2024-01-15T10:30:00.000000Z\",\n        \"started_at\": \"2024-01-15T10:31:00.000000Z\",\n        \"completed_at\": null,\n        \"failed_at\": null,\n        \"error_message\": null,\n        \"progress\": 45\n      }\n}",
+                            "name": ""
+                        }
+                    ]
+                },
+                {
+                    "name": "Cancel a queued job",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "api\/queue\/jobs\/:jobId",
+                            "query": [],
+                            "raw": "{{baseUrl}}\/api\/queue\/jobs\/:jobId",
+                            "variable": [
+                                {
+                                    "id": "jobId",
+                                    "key": "jobId",
+                                    "value": "iste",
+                                    "description": ""
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": null,
+                        "description": "",
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    },
+                    "response": [
+                        {
+                            "header": [],
+                            "code": 200,
+                            "body": "{\n  \"success\": true,\n  \"message\": \"Job cancelled successfully\"\n}",
+                            "name": ""
+                        }
+                    ]
+                },
+                {
+                    "name": "Sync queue status with Laravel's queue system",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "api\/queue\/sync-status",
+                            "query": [],
+                            "raw": "{{baseUrl}}\/api\/queue\/sync-status"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": null,
+                        "description": "",
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    },
+                    "response": [
+                        {
+                            "header": [],
+                            "code": 200,
+                            "body": "{\n  \"success\": true,\n  \"message\": \"Queue status synced successfully\",\n  \"job_counts\": {\n    \"queued\": 5,\n    \"failed\": 2,\n    \"completed\": 10\n  }\n}",
+                            "name": ""
+                        }
+                    ]
+                },
+                {
+                    "name": "Retry a failed job",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "api\/queue\/jobs\/:jobId\/retry",
+                            "query": [],
+                            "raw": "{{baseUrl}}\/api\/queue\/jobs\/:jobId\/retry",
+                            "variable": [
+                                {
+                                    "id": "jobId",
+                                    "key": "jobId",
+                                    "value": "voluptas",
+                                    "description": ""
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": null,
+                        "description": "",
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    },
+                    "response": [
+                        {
+                            "header": [],
+                            "code": 200,
+                            "body": "{\n  \"success\": true,\n  \"message\": \"Job queued for retry successfully\"\n}",
                             "name": ""
                         }
                     ]
@@ -495,7 +862,7 @@
                         {
                             "header": [],
                             "code": 200,
-                            "body": "{\n  \"success\": true,\n  \"data\": {\n    \"sources\": [\n      {\n        \"id\": 1,\n        \"name\": \"NewsAPI\",\n        \"slug\": \"newsapi\",\n        \"description\": \"NewsAPI.org news aggregator\",\n        \"url\": \"https:\/\/newsapi.org\",\n        \"created_at\": \"2024-01-15T10:30:00.000000Z\",\n        \"updated_at\": \"2024-01-15T10:30:00.000000Z\"\n      },\n      {\n        \"id\": 2,\n        \"name\": \"NewsData.io\",\n        \"slug\": \"newsdata\",\n        \"description\": \"NewsData.io API service\",\n        \"url\": \"https:\/\/newsdata.io\",\n        \"created_at\": \"2024-01-15T10:30:00.000000Z\",\n        \"updated_at\": \"2024-01-15T10:30:00.000000Z\"\n      },\n      {\n        \"id\": 3,\n        \"name\": \"The New York Times\",\n        \"slug\": \"nyt\",\n        \"description\": \"The New York Times API\",\n        \"url\": \"https:\/\/developer.nytimes.com\",\n        \"created_at\": \"2024-01-15T10:30:00.000000Z\",\n        \"updated_at\": \"2024-01-15T10:30:00.000000Z\"\n      }\n    ]\n  }\n}",
+                            "body": "{\n  \"success\": true,\n  \"data\": {\n    \"sources\": [\n      {\n        \"id\": \"550e8400-e29b-41d4-a716-446655440001\",\n        \"name\": \"NewsAPI\",\n        \"slug\": \"newsapi\",\n        \"description\": \"NewsAPI.org news aggregator\",\n        \"url\": \"https:\/\/newsapi.org\",\n        \"created_at\": \"2024-01-15T10:30:00.000000Z\",\n        \"updated_at\": \"2024-01-15T10:30:00.000000Z\"\n      },\n      {\n        \"id\": \"550e8400-e29b-41d4-a716-446655440002\",\n        \"name\": \"NewsData.io\",\n        \"slug\": \"newsdata\",\n        \"description\": \"NewsData.io API service\",\n        \"url\": \"https:\/\/newsdata.io\",\n        \"created_at\": \"2024-01-15T10:30:00.000000Z\",\n        \"updated_at\": \"2024-01-15T10:30:00.000000Z\"\n      },\n      {\n        \"id\": \"550e8400-e29b-41d4-a716-446655440003\",\n        \"name\": \"The New York Times\",\n        \"slug\": \"nyt\",\n        \"description\": \"The New York Times API\",\n        \"url\": \"https:\/\/developer.nytimes.com\",\n        \"created_at\": \"2024-01-15T10:30:00.000000Z\",\n        \"updated_at\": \"2024-01-15T10:30:00.000000Z\"\n      }\n    ]\n  }\n}",
                             "name": ""
                         }
                     ]
@@ -538,8 +905,8 @@
                         },
                         {
                             "header": [],
-                            "code": 404,
-                            "body": "{\n  \"success\": false,\n  \"message\": \"No preferences found. Please set your preferences first.\"\n}",
+                            "code": 200,
+                            "body": "{\n  \"success\": true,\n  \"data\": {\n    \"preferences\": {\n      \"user_id\": 1,\n      \"preferred_categories\": [],\n      \"preferred_sources\": [],\n      \"preferred_authors\": [],\n      \"email_notifications\": false,\n      \"timezone\": \"UTC\"\n    }\n  },\n  \"message\": \"No preferences found. Please set your preferences first.\"\n}",
                             "name": ""
                         }
                     ]
@@ -566,7 +933,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\"preferred_categories\":[\"technology\",\"business\"],\"preferred_sources\":[\"newsapi\",\"nyt\"],\"preferred_authors\":[\"John Smith\",\"Jane Doe\"]}"
+                            "raw": "{\"preferred_categories\":[\"technology\",\"business\"],\"preferred_sources\":[\"newsapi\",\"nyt\"],\"preferred_authors\":[\"John Smith\",\"Jane Doe\"],\"email_notifications\":false,\"timezone\":\"Pacific\\\/Saipan\"}"
                         },
                         "description": "Create or update the current user's preferences for personalized content."
                     },
@@ -586,7 +953,7 @@
                     ]
                 },
                 {
-                    "name": "Get personalized news feed",
+                    "name": "Get personalized news feed for home page",
                     "request": {
                         "url": {
                             "host": "{{baseUrl}}",
@@ -630,29 +997,14 @@
                                 "value": "application\/json"
                             }
                         ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\"page\":83,\"per_page\":2,\"from_date\":\"2025-08-21\",\"to_date\":\"2068-12-11\"}"
-                        },
-                        "description": "Retrieve a personalized news feed based on user preferences."
+                        "body": null,
+                        "description": "Retrieve a personalized news feed based on user preferences for the home page.\nThis endpoint is designed specifically for home page personalization.\nIf no articles exist, automatically scrapes news based on preferences."
                     },
                     "response": [
                         {
                             "header": [],
                             "code": 200,
-                            "body": "{\n  \"success\": true,\n  \"data\": {\n    \"current_page\": 1,\n    \"data\": [\n      {\n        \"id\": 1,\n        \"title\": \"Breaking News: AI Revolution\",\n        \"description\": \"Latest developments in artificial intelligence...\",\n        \"content\": \"Full article content here...\",\n        \"url\": \"https:\/\/example.com\/article\/1\",\n        \"url_to_image\": \"https:\/\/example.com\/image.jpg\",\n        \"published_at\": \"2024-01-15T10:30:00.000000Z\",\n        \"source\": {\n          \"id\": 1,\n          \"name\": \"NewsAPI\",\n          \"slug\": \"newsapi\"\n        },\n        \"category\": {\n          \"id\": 1,\n          \"name\": \"Technology\",\n          \"slug\": \"technology\"\n        },\n        \"created_at\": \"2024-01-15T10:30:00.000000Z\",\n        \"updated_at\": \"2024-01-15T10:30:00.000000Z\"\n      }\n    ],\n    \"first_page_url\": \"http:\/\/localhost:8000\/api\/personalized-feed?page=1\",\n    \"from\": 1,\n    \"last_page\": 10,\n    \"last_page_url\": \"http:\/\/localhost:8000\/api\/personalized-feed?page=10\",\n    \"links\": [],\n    \"next_page_url\": \"http:\/\/localhost:8000\/api\/personalized-feed?page=2\",\n    \"path\": \"http:\/\/localhost:8000\/api\/personalized-feed\",\n    \"per_page\": 10,\n    \"prev_page_url\": null,\n    \"to\": 10,\n    \"total\": 100\n  }\n}",
-                            "name": ""
-                        },
-                        {
-                            "header": [],
-                            "code": 404,
-                            "body": "{\n  \"success\": false,\n  \"message\": \"No preferences found. Please set your preferences first to get a personalized feed.\"\n}",
-                            "name": ""
-                        },
-                        {
-                            "header": [],
-                            "code": 422,
-                            "body": "{\n  \"success\": false,\n  \"message\": \"Validation error\",\n  \"errors\": {\n    \"per_page\": [\"The per page must not be greater than 50.\"]\n  }\n}",
+                            "body": "{\n  \"success\": true,\n  \"data\": {\n    \"current_page\": 1,\n    \"data\": [\n      {\n        \"id\": 1,\n        \"title\": \"Breaking News: AI Revolution\",\n        \"description\": \"Latest developments in artificial intelligence...\",\n        \"content\": \"Full article content here...\",\n        \"url\": \"https:\/\/example.com\/article\/1\",\n        \"url_to_image\": \"https:\/\/example.com\/image.jpg\",\n        \"published_at\": \"2024-01-15T10:30:00.000000Z\",\n        \"source\": {\n          \"id\": 1,\n          \"name\": \"NewsAPI\",\n          \"slug\": \"newsapi\"\n        },\n        \"category\": {\n          \"id\": 1,\n          \"name\": \"Technology\",\n          \"slug\": \"technology\"\n        },\n        \"created_at\": \"2024-01-15T10:30:00.000000Z\",\n        \"updated_at\": \"2024-01-15T10:30:00.000000Z\"\n      }\n    ],\n    \"first_page_url\": \"http:\/\/localhost:8000\/api\/personalized-feed?page=1\",\n    \"from\": 1,\n    \"last_page\": 10,\n    \"last_page_url\": \"http:\/\/localhost:8000\/api\/personalized-feed?page=10\",\n    \"links\": [],\n    \"next_page_url\": \"http:\/\/localhost:8000\/api\/personalized-feed?page=2\",\n    \"prev_page_url\": null,\n    \"to\": 10,\n    \"total\": 100\n  },\n  \"preferences_applied\": {\n    \"categories\": [\"technology\", \"science\"],\n    \"sources\": [\"newsapi\", \"nyt\"],\n    \"authors\": [\"John Doe\"]\n  }\n}",
                             "name": ""
                         }
                     ]

@@ -82,6 +82,12 @@
                                                     <li class="tocify-item level-2" data-unique="articles-GETapi-articles">
                                 <a href="#articles-GETapi-articles">List articles</a>
                             </li>
+                                                                                <li class="tocify-item level-2" data-unique="articles-GETapi-articles-filtered">
+                                <a href="#articles-GETapi-articles-filtered">Get filtered articles for search page</a>
+                            </li>
+                                                                                <li class="tocify-item level-2" data-unique="articles-POSTapi-articles-initiate-scraping">
+                                <a href="#articles-POSTapi-articles-initiate-scraping">Manually initiate news scraping based on filters</a>
+                            </li>
                                                                                 <li class="tocify-item level-2" data-unique="articles-GETapi-articles-search">
                                 <a href="#articles-GETapi-articles-search">Search articles</a>
                             </li>
@@ -119,6 +125,28 @@
                             </li>
                                                                         </ul>
                             </ul>
+                    <ul id="tocify-header-endpoints" class="tocify-header">
+                <li class="tocify-item level-1" data-unique="endpoints">
+                    <a href="#endpoints">Endpoints</a>
+                </li>
+                                    <ul id="tocify-subheader-endpoints" class="tocify-subheader">
+                                                    <li class="tocify-item level-2" data-unique="endpoints-GETapi-queue-jobs">
+                                <a href="#endpoints-GETapi-queue-jobs">Get all queue jobs with their status</a>
+                            </li>
+                                                                                <li class="tocify-item level-2" data-unique="endpoints-GETapi-queue-jobs--jobId-">
+                                <a href="#endpoints-GETapi-queue-jobs--jobId-">Get specific job status</a>
+                            </li>
+                                                                                <li class="tocify-item level-2" data-unique="endpoints-DELETEapi-queue-jobs--jobId-">
+                                <a href="#endpoints-DELETEapi-queue-jobs--jobId-">Cancel a queued job</a>
+                            </li>
+                                                                                <li class="tocify-item level-2" data-unique="endpoints-POSTapi-queue-sync-status">
+                                <a href="#endpoints-POSTapi-queue-sync-status">Sync queue status with Laravel's queue system</a>
+                            </li>
+                                                                                <li class="tocify-item level-2" data-unique="endpoints-POSTapi-queue-jobs--jobId--retry">
+                                <a href="#endpoints-POSTapi-queue-jobs--jobId--retry">Retry a failed job</a>
+                            </li>
+                                                                        </ul>
+                            </ul>
                     <ul id="tocify-header-sources" class="tocify-header">
                 <li class="tocify-item level-1" data-unique="sources">
                     <a href="#sources">Sources</a>
@@ -141,7 +169,7 @@
                                 <a href="#user-preferences-POSTapi-preferences">Update user preferences</a>
                             </li>
                                                                                 <li class="tocify-item level-2" data-unique="user-preferences-GETapi-personalized-feed">
-                                <a href="#user-preferences-GETapi-personalized-feed">Get personalized news feed</a>
+                                <a href="#user-preferences-GETapi-personalized-feed">Get personalized news feed for home page</a>
                             </li>
                                                                         </ul>
                             </ul>
@@ -154,7 +182,7 @@
     </ul>
 
     <ul class="toc-footer" id="last-updated">
-        <li>Last updated: August 21, 2025</li>
+        <li>Last updated: August 22, 2025</li>
     </ul>
 </div>
 
@@ -192,7 +220,8 @@
 <p>
 </p>
 
-<p>Retrieve a paginated list of articles with optional filtering.</p>
+<p>Retrieve a paginated list of articles with optional filtering.
+If no articles exist, automatically scrapes news based on user preferences or defaults.</p>
 
 <span id="example-requests-GETapi-articles">
 <blockquote>Example request:</blockquote>
@@ -204,13 +233,13 @@
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
-    \"page\": 82,
-    \"per_page\": 5,
-    \"category\": \"amet\",
-    \"source\": \"ad\",
-    \"from_date\": \"2025-08-21\",
-    \"to_date\": \"2029-08-09\",
-    \"keyword\": \"tglnkryfhjfcnwi\"
+    \"page\": 88,
+    \"per_page\": 24,
+    \"category\": \"id\",
+    \"source\": \"quam\",
+    \"from_date\": \"2025-08-22\",
+    \"to_date\": \"2105-08-17\",
+    \"keyword\": \"xrmsynpv\"
 }"
 </code></pre></div>
 
@@ -238,13 +267,13 @@ const headers = {
 };
 
 let body = {
-    "page": 82,
-    "per_page": 5,
-    "category": "amet",
-    "source": "ad",
-    "from_date": "2025-08-21",
-    "to_date": "2029-08-09",
-    "keyword": "tglnkryfhjfcnwi"
+    "page": 88,
+    "per_page": 24,
+    "category": "id",
+    "source": "quam",
+    "from_date": "2025-08-22",
+    "to_date": "2105-08-17",
+    "keyword": "xrmsynpv"
 };
 
 fetch(url, {
@@ -294,8 +323,6 @@ fetch(url, {
         &quot;last_page_url&quot;: &quot;http://localhost:8000/api/articles?page=10&quot;,
         &quot;links&quot;: [],
         &quot;next_page_url&quot;: &quot;http://localhost:8000/api/articles?page=2&quot;,
-        &quot;path&quot;: &quot;http://localhost:8000/api/articles&quot;,
-        &quot;per_page&quot;: 10,
         &quot;prev_page_url&quot;: null,
         &quot;to&quot;: 10,
         &quot;total&quot;: 100
@@ -475,10 +502,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <i>optional</i> &nbsp;
                 <input type="number" style="display: none"
                step="any"               name="page"                data-endpoint="GETapi-articles"
-               value="82"
+               value="88"
                data-component="body">
     <br>
-<p>Must be at least 1. Example: <code>82</code></p>
+<p>Must be at least 1. Example: <code>88</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>per_page</code></b>&nbsp;&nbsp;
@@ -486,10 +513,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <i>optional</i> &nbsp;
                 <input type="number" style="display: none"
                step="any"               name="per_page"                data-endpoint="GETapi-articles"
-               value="5"
+               value="24"
                data-component="body">
     <br>
-<p>Must be at least 1. Must not be greater than 50. Example: <code>5</code></p>
+<p>Must be at least 1. Must not be greater than 50. Example: <code>24</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>category</code></b>&nbsp;&nbsp;
@@ -497,10 +524,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <i>optional</i> &nbsp;
                 <input type="text" style="display: none"
                               name="category"                data-endpoint="GETapi-articles"
-               value="amet"
+               value="id"
                data-component="body">
     <br>
-<p>The <code>slug</code> of an existing record in the categories table. Example: <code>amet</code></p>
+<p>The <code>slug</code> of an existing record in the categories table. Example: <code>id</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>source</code></b>&nbsp;&nbsp;
@@ -508,10 +535,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <i>optional</i> &nbsp;
                 <input type="text" style="display: none"
                               name="source"                data-endpoint="GETapi-articles"
-               value="ad"
+               value="quam"
                data-component="body">
     <br>
-<p>The <code>slug</code> of an existing record in the sources table. Example: <code>ad</code></p>
+<p>The <code>slug</code> of an existing record in the sources table. Example: <code>quam</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>from_date</code></b>&nbsp;&nbsp;
@@ -519,10 +546,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <i>optional</i> &nbsp;
                 <input type="text" style="display: none"
                               name="from_date"                data-endpoint="GETapi-articles"
-               value="2025-08-21"
+               value="2025-08-22"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2025-08-21</code></p>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2025-08-22</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>to_date</code></b>&nbsp;&nbsp;
@@ -530,10 +557,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <i>optional</i> &nbsp;
                 <input type="text" style="display: none"
                               name="to_date"                data-endpoint="GETapi-articles"
-               value="2029-08-09"
+               value="2105-08-17"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Must be a date after or equal to <code>from_date</code>. Example: <code>2029-08-09</code></p>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Must be a date after or equal to <code>from_date</code>. Example: <code>2105-08-17</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>keyword</code></b>&nbsp;&nbsp;
@@ -541,10 +568,674 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <i>optional</i> &nbsp;
                 <input type="text" style="display: none"
                               name="keyword"                data-endpoint="GETapi-articles"
-               value="tglnkryfhjfcnwi"
+               value="xrmsynpv"
                data-component="body">
     <br>
-<p>Must not be greater than 255 characters. Example: <code>tglnkryfhjfcnwi</code></p>
+<p>Must not be greater than 255 characters. Example: <code>xrmsynpv</code></p>
+        </div>
+        </form>
+
+                    <h2 id="articles-GETapi-articles-filtered">Get filtered articles for search page</h2>
+
+<p>
+</p>
+
+<p>Retrieve articles with comprehensive filtering options for the search page.
+This endpoint is designed specifically for search functionality with filters.</p>
+
+<span id="example-requests-GETapi-articles-filtered">
+<blockquote>Example request:</blockquote>
+
+
+<div class="bash-example">
+    <pre><code class="language-bash">curl --request GET \
+    --get "http://localhost:8000/api/articles/filtered?page=1&amp;per_page=10&amp;keyword=artificial+intelligence&amp;category=technology&amp;source=newsapi&amp;from_date=2024-01-01&amp;to_date=2024-01-31&amp;sort_by=published_at&amp;sort_order=desc" \
+    --header "Content-Type: application/json" \
+    --header "Accept: application/json" \
+    --data "{
+    \"page\": 36,
+    \"per_page\": 9,
+    \"keyword\": \"akifwlxhhuqz\",
+    \"category\": \"debitis\",
+    \"source\": \"incidunt\",
+    \"from_date\": \"2025-08-22\",
+    \"to_date\": \"2099-05-02\",
+    \"sort_by\": \"relevance\",
+    \"sort_order\": \"desc\"
+}"
+</code></pre></div>
+
+
+<div class="javascript-example">
+    <pre><code class="language-javascript">const url = new URL(
+    "http://localhost:8000/api/articles/filtered"
+);
+
+const params = {
+    "page": "1",
+    "per_page": "10",
+    "keyword": "artificial intelligence",
+    "category": "technology",
+    "source": "newsapi",
+    "from_date": "2024-01-01",
+    "to_date": "2024-01-31",
+    "sort_by": "published_at",
+    "sort_order": "desc",
+};
+Object.keys(params)
+    .forEach(key =&gt; url.searchParams.append(key, params[key]));
+
+const headers = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+};
+
+let body = {
+    "page": 36,
+    "per_page": 9,
+    "keyword": "akifwlxhhuqz",
+    "category": "debitis",
+    "source": "incidunt",
+    "from_date": "2025-08-22",
+    "to_date": "2099-05-02",
+    "sort_by": "relevance",
+    "sort_order": "desc"
+};
+
+fetch(url, {
+    method: "GET",
+    headers,
+    body: JSON.stringify(body),
+}).then(response =&gt; response.json());</code></pre></div>
+
+</span>
+
+<span id="example-responses-GETapi-articles-filtered">
+            <blockquote>
+            <p>Example response (200):</p>
+        </blockquote>
+                <pre>
+
+<code class="language-json" style="max-height: 300px;">{
+    &quot;success&quot;: true,
+    &quot;data&quot;: {
+        &quot;current_page&quot;: 1,
+        &quot;data&quot;: [
+            {
+                &quot;id&quot;: 1,
+                &quot;title&quot;: &quot;Breaking News: AI Revolution&quot;,
+                &quot;description&quot;: &quot;Latest developments in artificial intelligence...&quot;,
+                &quot;content&quot;: &quot;Full article content here...&quot;,
+                &quot;url&quot;: &quot;https://example.com/article/1&quot;,
+                &quot;url_to_image&quot;: &quot;https://example.com/image.jpg&quot;,
+                &quot;published_at&quot;: &quot;2024-01-15T10:30:00.000000Z&quot;,
+                &quot;source&quot;: {
+                    &quot;id&quot;: 1,
+                    &quot;name&quot;: &quot;NewsAPI&quot;,
+                    &quot;slug&quot;: &quot;newsapi&quot;
+                },
+                &quot;category&quot;: {
+                    &quot;id&quot;: 1,
+                    &quot;name&quot;: &quot;Technology&quot;,
+                    &quot;slug&quot;: &quot;technology&quot;
+                },
+                &quot;created_at&quot;: &quot;2024-01-15T10:30:00.000000Z&quot;,
+                &quot;updated_at&quot;: &quot;2024-01-15T10:30:00.000000Z&quot;
+            }
+        ],
+        &quot;first_page_url&quot;: &quot;http://localhost:8000/api/articles/filtered?page=1&quot;,
+        &quot;from&quot;: 1,
+        &quot;last_page&quot;: 10,
+        &quot;last_page_url&quot;: &quot;http://localhost:8000/api/articles/filtered?page=10&quot;,
+        &quot;links&quot;: [],
+        &quot;next_page_url&quot;: &quot;http://localhost:8000/api/articles/filtered?page=2&quot;,
+        &quot;prev_page_url&quot;: null,
+        &quot;to&quot;: 10,
+        &quot;total&quot;: 100
+    },
+    &quot;filters_applied&quot;: {
+        &quot;keyword&quot;: &quot;artificial intelligence&quot;,
+        &quot;category&quot;: &quot;technology&quot;,
+        &quot;source&quot;: &quot;newsapi&quot;,
+        &quot;from_date&quot;: &quot;2024-01-01&quot;,
+        &quot;to_date&quot;: &quot;2024-01-31&quot;,
+        &quot;sort_by&quot;: &quot;published_at&quot;,
+        &quot;sort_order&quot;: &quot;desc&quot;
+    }
+}</code>
+ </pre>
+    </span>
+<span id="execution-results-GETapi-articles-filtered" hidden>
+    <blockquote>Received response<span
+                id="execution-response-status-GETapi-articles-filtered"></span>:
+    </blockquote>
+    <pre class="json"><code id="execution-response-content-GETapi-articles-filtered"
+      data-empty-response-text="<Empty response>" style="max-height: 400px;"></code></pre>
+</span>
+<span id="execution-error-GETapi-articles-filtered" hidden>
+    <blockquote>Request failed with error:</blockquote>
+    <pre><code id="execution-error-message-GETapi-articles-filtered">
+
+Tip: Check that you&#039;re properly connected to the network.
+If you&#039;re a maintainer of ths API, verify that your API is running and you&#039;ve enabled CORS.
+You can check the Dev Tools console for debugging information.</code></pre>
+</span>
+<form id="form-GETapi-articles-filtered" data-method="GET"
+      data-path="api/articles/filtered"
+      data-authed="0"
+      data-hasfiles="0"
+      data-isarraybody="0"
+      autocomplete="off"
+      onsubmit="event.preventDefault(); executeTryOut('GETapi-articles-filtered', this);">
+    <h3>
+        Request&nbsp;&nbsp;&nbsp;
+                    <button type="button"
+                    style="background-color: #8fbcd4; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-tryout-GETapi-articles-filtered"
+                    onclick="tryItOut('GETapi-articles-filtered');">Try it out ⚡
+            </button>
+            <button type="button"
+                    style="background-color: #c97a7e; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-canceltryout-GETapi-articles-filtered"
+                    onclick="cancelTryOut('GETapi-articles-filtered');" hidden>Cancel 🛑
+            </button>&nbsp;&nbsp;
+            <button type="submit"
+                    style="background-color: #6ac174; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-executetryout-GETapi-articles-filtered"
+                    data-initial-text="Send Request 💥"
+                    data-loading-text="⏱ Sending..."
+                    hidden>Send Request 💥
+            </button>
+            </h3>
+            <p>
+            <small class="badge badge-green">GET</small>
+            <b><code>api/articles/filtered</code></b>
+        </p>
+                <h4 class="fancy-heading-panel"><b>Headers</b></h4>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Content-Type"                data-endpoint="GETapi-articles-filtered"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Accept</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Accept"                data-endpoint="GETapi-articles-filtered"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                            <h4 class="fancy-heading-panel"><b>Query Parameters</b></h4>
+                                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>page</code></b>&nbsp;&nbsp;
+<small>integer</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="number" style="display: none"
+               step="any"               name="page"                data-endpoint="GETapi-articles-filtered"
+               value="1"
+               data-component="query">
+    <br>
+<p>Page number for pagination. Example: <code>1</code></p>
+            </div>
+                                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>per_page</code></b>&nbsp;&nbsp;
+<small>integer</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="number" style="display: none"
+               step="any"               name="per_page"                data-endpoint="GETapi-articles-filtered"
+               value="10"
+               data-component="query">
+    <br>
+<p>Number of articles per page (max 50). Example: <code>10</code></p>
+            </div>
+                                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>keyword</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="text" style="display: none"
+                              name="keyword"                data-endpoint="GETapi-articles-filtered"
+               value="artificial intelligence"
+               data-component="query">
+    <br>
+<p>Search keyword in title, description, and content. Example: <code>artificial intelligence</code></p>
+            </div>
+                                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>category</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="text" style="display: none"
+                              name="category"                data-endpoint="GETapi-articles-filtered"
+               value="technology"
+               data-component="query">
+    <br>
+<p>Filter by category slug. Example: <code>technology</code></p>
+            </div>
+                                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>source</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="text" style="display: none"
+                              name="source"                data-endpoint="GETapi-articles-filtered"
+               value="newsapi"
+               data-component="query">
+    <br>
+<p>Filter by source slug. Example: <code>newsapi</code></p>
+            </div>
+                                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>from_date</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="text" style="display: none"
+                              name="from_date"                data-endpoint="GETapi-articles-filtered"
+               value="2024-01-01"
+               data-component="query">
+    <br>
+<p>Filter articles from this date (Y-m-d format). Example: <code>2024-01-01</code></p>
+            </div>
+                                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>to_date</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="text" style="display: none"
+                              name="to_date"                data-endpoint="GETapi-articles-filtered"
+               value="2024-01-31"
+               data-component="query">
+    <br>
+<p>Filter articles to this date (Y-m-d format). Example: <code>2024-01-31</code></p>
+            </div>
+                                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>sort_by</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="text" style="display: none"
+                              name="sort_by"                data-endpoint="GETapi-articles-filtered"
+               value="published_at"
+               data-component="query">
+    <br>
+<p>Sort order (published_at, title, relevance). Example: <code>published_at</code></p>
+            </div>
+                                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>sort_order</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="text" style="display: none"
+                              name="sort_order"                data-endpoint="GETapi-articles-filtered"
+               value="desc"
+               data-component="query">
+    <br>
+<p>Sort direction (asc, desc). Example: <code>desc</code></p>
+            </div>
+                        <h4 class="fancy-heading-panel"><b>Body Parameters</b></h4>
+        <div style=" padding-left: 28px;  clear: unset;">
+            <b style="line-height: 2;"><code>page</code></b>&nbsp;&nbsp;
+<small>integer</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="number" style="display: none"
+               step="any"               name="page"                data-endpoint="GETapi-articles-filtered"
+               value="36"
+               data-component="body">
+    <br>
+<p>Must be at least 1. Example: <code>36</code></p>
+        </div>
+                <div style=" padding-left: 28px;  clear: unset;">
+            <b style="line-height: 2;"><code>per_page</code></b>&nbsp;&nbsp;
+<small>integer</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="number" style="display: none"
+               step="any"               name="per_page"                data-endpoint="GETapi-articles-filtered"
+               value="9"
+               data-component="body">
+    <br>
+<p>Must be at least 1. Must not be greater than 50. Example: <code>9</code></p>
+        </div>
+                <div style=" padding-left: 28px;  clear: unset;">
+            <b style="line-height: 2;"><code>keyword</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="text" style="display: none"
+                              name="keyword"                data-endpoint="GETapi-articles-filtered"
+               value="akifwlxhhuqz"
+               data-component="body">
+    <br>
+<p>Must not be greater than 255 characters. Example: <code>akifwlxhhuqz</code></p>
+        </div>
+                <div style=" padding-left: 28px;  clear: unset;">
+            <b style="line-height: 2;"><code>category</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="text" style="display: none"
+                              name="category"                data-endpoint="GETapi-articles-filtered"
+               value="debitis"
+               data-component="body">
+    <br>
+<p>The <code>slug</code> of an existing record in the categories table. Example: <code>debitis</code></p>
+        </div>
+                <div style=" padding-left: 28px;  clear: unset;">
+            <b style="line-height: 2;"><code>source</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="text" style="display: none"
+                              name="source"                data-endpoint="GETapi-articles-filtered"
+               value="incidunt"
+               data-component="body">
+    <br>
+<p>The <code>slug</code> of an existing record in the sources table. Example: <code>incidunt</code></p>
+        </div>
+                <div style=" padding-left: 28px;  clear: unset;">
+            <b style="line-height: 2;"><code>from_date</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="text" style="display: none"
+                              name="from_date"                data-endpoint="GETapi-articles-filtered"
+               value="2025-08-22"
+               data-component="body">
+    <br>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2025-08-22</code></p>
+        </div>
+                <div style=" padding-left: 28px;  clear: unset;">
+            <b style="line-height: 2;"><code>to_date</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="text" style="display: none"
+                              name="to_date"                data-endpoint="GETapi-articles-filtered"
+               value="2099-05-02"
+               data-component="body">
+    <br>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Must be a date after or equal to <code>from_date</code>. Example: <code>2099-05-02</code></p>
+        </div>
+                <div style=" padding-left: 28px;  clear: unset;">
+            <b style="line-height: 2;"><code>sort_by</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="text" style="display: none"
+                              name="sort_by"                data-endpoint="GETapi-articles-filtered"
+               value="relevance"
+               data-component="body">
+    <br>
+<p>Example: <code>relevance</code></p>
+Must be one of:
+<ul style="list-style-type: square;"><li><code>published_at</code></li> <li><code>title</code></li> <li><code>relevance</code></li></ul>
+        </div>
+                <div style=" padding-left: 28px;  clear: unset;">
+            <b style="line-height: 2;"><code>sort_order</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="text" style="display: none"
+                              name="sort_order"                data-endpoint="GETapi-articles-filtered"
+               value="desc"
+               data-component="body">
+    <br>
+<p>Example: <code>desc</code></p>
+Must be one of:
+<ul style="list-style-type: square;"><li><code>asc</code></li> <li><code>desc</code></li></ul>
+        </div>
+        </form>
+
+                    <h2 id="articles-POSTapi-articles-initiate-scraping">Manually initiate news scraping based on filters</h2>
+
+<p>
+</p>
+
+
+
+<span id="example-requests-POSTapi-articles-initiate-scraping">
+<blockquote>Example request:</blockquote>
+
+
+<div class="bash-example">
+    <pre><code class="language-bash">curl --request POST \
+    "http://localhost:8000/api/articles/initiate-scraping?keyword=artificial+intelligence&amp;category=technology&amp;source=newsapi&amp;from_date=2024-01-01&amp;to_date=2024-01-31" \
+    --header "Content-Type: application/json" \
+    --header "Accept: application/json" \
+    --data "{
+    \"keyword\": \"jqgmjotkq\",
+    \"category\": \"dolore\",
+    \"source\": \"rerum\",
+    \"from_date\": \"2025-08-22\",
+    \"to_date\": \"2107-04-20\"
+}"
+</code></pre></div>
+
+
+<div class="javascript-example">
+    <pre><code class="language-javascript">const url = new URL(
+    "http://localhost:8000/api/articles/initiate-scraping"
+);
+
+const params = {
+    "keyword": "artificial intelligence",
+    "category": "technology",
+    "source": "newsapi",
+    "from_date": "2024-01-01",
+    "to_date": "2024-01-31",
+};
+Object.keys(params)
+    .forEach(key =&gt; url.searchParams.append(key, params[key]));
+
+const headers = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+};
+
+let body = {
+    "keyword": "jqgmjotkq",
+    "category": "dolore",
+    "source": "rerum",
+    "from_date": "2025-08-22",
+    "to_date": "2107-04-20"
+};
+
+fetch(url, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body),
+}).then(response =&gt; response.json());</code></pre></div>
+
+</span>
+
+<span id="example-responses-POSTapi-articles-initiate-scraping">
+            <blockquote>
+            <p>Example response (200):</p>
+        </blockquote>
+                <pre>
+
+<code class="language-json" style="max-height: 300px;">{
+    &quot;success&quot;: true,
+    &quot;message&quot;: &quot;News scraping job has been queued successfully&quot;,
+    &quot;job_id&quot;: &quot;job-uuid-here&quot;,
+    &quot;estimated_duration&quot;: &quot;2-5 minutes&quot;
+}</code>
+ </pre>
+    </span>
+<span id="execution-results-POSTapi-articles-initiate-scraping" hidden>
+    <blockquote>Received response<span
+                id="execution-response-status-POSTapi-articles-initiate-scraping"></span>:
+    </blockquote>
+    <pre class="json"><code id="execution-response-content-POSTapi-articles-initiate-scraping"
+      data-empty-response-text="<Empty response>" style="max-height: 400px;"></code></pre>
+</span>
+<span id="execution-error-POSTapi-articles-initiate-scraping" hidden>
+    <blockquote>Request failed with error:</blockquote>
+    <pre><code id="execution-error-message-POSTapi-articles-initiate-scraping">
+
+Tip: Check that you&#039;re properly connected to the network.
+If you&#039;re a maintainer of ths API, verify that your API is running and you&#039;ve enabled CORS.
+You can check the Dev Tools console for debugging information.</code></pre>
+</span>
+<form id="form-POSTapi-articles-initiate-scraping" data-method="POST"
+      data-path="api/articles/initiate-scraping"
+      data-authed="0"
+      data-hasfiles="0"
+      data-isarraybody="0"
+      autocomplete="off"
+      onsubmit="event.preventDefault(); executeTryOut('POSTapi-articles-initiate-scraping', this);">
+    <h3>
+        Request&nbsp;&nbsp;&nbsp;
+                    <button type="button"
+                    style="background-color: #8fbcd4; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-tryout-POSTapi-articles-initiate-scraping"
+                    onclick="tryItOut('POSTapi-articles-initiate-scraping');">Try it out ⚡
+            </button>
+            <button type="button"
+                    style="background-color: #c97a7e; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-canceltryout-POSTapi-articles-initiate-scraping"
+                    onclick="cancelTryOut('POSTapi-articles-initiate-scraping');" hidden>Cancel 🛑
+            </button>&nbsp;&nbsp;
+            <button type="submit"
+                    style="background-color: #6ac174; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-executetryout-POSTapi-articles-initiate-scraping"
+                    data-initial-text="Send Request 💥"
+                    data-loading-text="⏱ Sending..."
+                    hidden>Send Request 💥
+            </button>
+            </h3>
+            <p>
+            <small class="badge badge-black">POST</small>
+            <b><code>api/articles/initiate-scraping</code></b>
+        </p>
+                <h4 class="fancy-heading-panel"><b>Headers</b></h4>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Content-Type"                data-endpoint="POSTapi-articles-initiate-scraping"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Accept</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Accept"                data-endpoint="POSTapi-articles-initiate-scraping"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                            <h4 class="fancy-heading-panel"><b>Query Parameters</b></h4>
+                                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>keyword</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="text" style="display: none"
+                              name="keyword"                data-endpoint="POSTapi-articles-initiate-scraping"
+               value="artificial intelligence"
+               data-component="query">
+    <br>
+<p>Search keyword. Example: <code>artificial intelligence</code></p>
+            </div>
+                                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>category</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="text" style="display: none"
+                              name="category"                data-endpoint="POSTapi-articles-initiate-scraping"
+               value="technology"
+               data-component="query">
+    <br>
+<p>Filter by category slug. Example: <code>technology</code></p>
+            </div>
+                                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>source</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="text" style="display: none"
+                              name="source"                data-endpoint="POSTapi-articles-initiate-scraping"
+               value="newsapi"
+               data-component="query">
+    <br>
+<p>Filter by source slug. Example: <code>newsapi</code></p>
+            </div>
+                                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>from_date</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="text" style="display: none"
+                              name="from_date"                data-endpoint="POSTapi-articles-initiate-scraping"
+               value="2024-01-01"
+               data-component="query">
+    <br>
+<p>Filter articles from this date (Y-m-d format). Example: <code>2024-01-01</code></p>
+            </div>
+                                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>to_date</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="text" style="display: none"
+                              name="to_date"                data-endpoint="POSTapi-articles-initiate-scraping"
+               value="2024-01-31"
+               data-component="query">
+    <br>
+<p>Filter articles to this date (Y-m-d format). Example: <code>2024-01-31</code></p>
+            </div>
+                        <h4 class="fancy-heading-panel"><b>Body Parameters</b></h4>
+        <div style=" padding-left: 28px;  clear: unset;">
+            <b style="line-height: 2;"><code>keyword</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="text" style="display: none"
+                              name="keyword"                data-endpoint="POSTapi-articles-initiate-scraping"
+               value="jqgmjotkq"
+               data-component="body">
+    <br>
+<p>Must not be greater than 255 characters. Example: <code>jqgmjotkq</code></p>
+        </div>
+                <div style=" padding-left: 28px;  clear: unset;">
+            <b style="line-height: 2;"><code>category</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="text" style="display: none"
+                              name="category"                data-endpoint="POSTapi-articles-initiate-scraping"
+               value="dolore"
+               data-component="body">
+    <br>
+<p>The <code>slug</code> of an existing record in the categories table. Example: <code>dolore</code></p>
+        </div>
+                <div style=" padding-left: 28px;  clear: unset;">
+            <b style="line-height: 2;"><code>source</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="text" style="display: none"
+                              name="source"                data-endpoint="POSTapi-articles-initiate-scraping"
+               value="rerum"
+               data-component="body">
+    <br>
+<p>The <code>slug</code> of an existing record in the sources table. Example: <code>rerum</code></p>
+        </div>
+                <div style=" padding-left: 28px;  clear: unset;">
+            <b style="line-height: 2;"><code>from_date</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="text" style="display: none"
+                              name="from_date"                data-endpoint="POSTapi-articles-initiate-scraping"
+               value="2025-08-22"
+               data-component="body">
+    <br>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2025-08-22</code></p>
+        </div>
+                <div style=" padding-left: 28px;  clear: unset;">
+            <b style="line-height: 2;"><code>to_date</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="text" style="display: none"
+                              name="to_date"                data-endpoint="POSTapi-articles-initiate-scraping"
+               value="2107-04-20"
+               data-component="body">
+    <br>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Must be a date after or equal to <code>from_date</code>. Example: <code>2107-04-20</code></p>
         </div>
         </form>
 
@@ -553,7 +1244,8 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <p>
 </p>
 
-<p>Full-text search across article title, description, and content.</p>
+<p>Full-text search across article title, description, and content.
+Automatically scrapes new articles if needed and merges with existing results.</p>
 
 <span id="example-requests-GETapi-articles-search">
 <blockquote>Example request:</blockquote>
@@ -565,13 +1257,13 @@ You can check the Dev Tools console for debugging information.</code></pre>
     --header "Content-Type: application/json" \
     --header "Accept: application/json" \
     --data "{
-    \"q\": \"jdkawqrrfdrlrpgcclqr\",
-    \"page\": 66,
-    \"per_page\": 17,
-    \"category\": \"aut\",
+    \"q\": \"wxi\",
+    \"page\": 15,
+    \"per_page\": 11,
+    \"category\": \"et\",
     \"source\": \"totam\",
-    \"from_date\": \"2025-08-21\",
-    \"to_date\": \"2101-12-26\"
+    \"from_date\": \"2025-08-22\",
+    \"to_date\": \"2042-12-29\"
 }"
 </code></pre></div>
 
@@ -599,13 +1291,13 @@ const headers = {
 };
 
 let body = {
-    "q": "jdkawqrrfdrlrpgcclqr",
-    "page": 66,
-    "per_page": 17,
-    "category": "aut",
+    "q": "wxi",
+    "page": 15,
+    "per_page": 11,
+    "category": "et",
     "source": "totam",
-    "from_date": "2025-08-21",
-    "to_date": "2101-12-26"
+    "from_date": "2025-08-22",
+    "to_date": "2042-12-29"
 };
 
 fetch(url, {
@@ -654,9 +1346,7 @@ fetch(url, {
         &quot;last_page&quot;: 5,
         &quot;last_page_url&quot;: &quot;http://localhost:8000/api/articles/search?q=ai&amp;page=5&quot;,
         &quot;links&quot;: [],
-        &quot;next_page_url&quot;: &quot;http://localhost:8000/api/articles/search?q=ai&amp;page=2&quot;,
-        &quot;path&quot;: &quot;http://localhost:8000/api/articles/search&quot;,
-        &quot;per_page&quot;: 10,
+        &quot;next_page_url&quot;: &quot;http://localhost:8000/api/articles?page=2&quot;,
         &quot;prev_page_url&quot;: null,
         &quot;to&quot;: 10,
         &quot;total&quot;: 50
@@ -833,10 +1523,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
  &nbsp;
                 <input type="text" style="display: none"
                               name="q"                data-endpoint="GETapi-articles-search"
-               value="jdkawqrrfdrlrpgcclqr"
+               value="wxi"
                data-component="body">
     <br>
-<p>Must be at least 1 character. Must not be greater than 255 characters. Example: <code>jdkawqrrfdrlrpgcclqr</code></p>
+<p>Must be at least 1 character. Must not be greater than 255 characters. Example: <code>wxi</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>page</code></b>&nbsp;&nbsp;
@@ -844,10 +1534,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <i>optional</i> &nbsp;
                 <input type="number" style="display: none"
                step="any"               name="page"                data-endpoint="GETapi-articles-search"
-               value="66"
+               value="15"
                data-component="body">
     <br>
-<p>Must be at least 1. Example: <code>66</code></p>
+<p>Must be at least 1. Example: <code>15</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>per_page</code></b>&nbsp;&nbsp;
@@ -855,10 +1545,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <i>optional</i> &nbsp;
                 <input type="number" style="display: none"
                step="any"               name="per_page"                data-endpoint="GETapi-articles-search"
-               value="17"
+               value="11"
                data-component="body">
     <br>
-<p>Must be at least 1. Must not be greater than 50. Example: <code>17</code></p>
+<p>Must be at least 1. Must not be greater than 50. Example: <code>11</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>category</code></b>&nbsp;&nbsp;
@@ -866,10 +1556,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <i>optional</i> &nbsp;
                 <input type="text" style="display: none"
                               name="category"                data-endpoint="GETapi-articles-search"
-               value="aut"
+               value="et"
                data-component="body">
     <br>
-<p>The <code>slug</code> of an existing record in the categories table. Example: <code>aut</code></p>
+<p>The <code>slug</code> of an existing record in the categories table. Example: <code>et</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>source</code></b>&nbsp;&nbsp;
@@ -888,10 +1578,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <i>optional</i> &nbsp;
                 <input type="text" style="display: none"
                               name="from_date"                data-endpoint="GETapi-articles-search"
-               value="2025-08-21"
+               value="2025-08-22"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2025-08-21</code></p>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2025-08-22</code></p>
         </div>
                 <div style=" padding-left: 28px;  clear: unset;">
             <b style="line-height: 2;"><code>to_date</code></b>&nbsp;&nbsp;
@@ -899,10 +1589,10 @@ You can check the Dev Tools console for debugging information.</code></pre>
 <i>optional</i> &nbsp;
                 <input type="text" style="display: none"
                               name="to_date"                data-endpoint="GETapi-articles-search"
-               value="2101-12-26"
+               value="2042-12-29"
                data-component="body">
     <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Must be a date after or equal to <code>from_date</code>. Example: <code>2101-12-26</code></p>
+<p>Must be a valid date in the format <code>Y-m-d</code>. Must be a date after or equal to <code>from_date</code>. Example: <code>2042-12-29</code></p>
         </div>
         </form>
 
@@ -919,14 +1609,14 @@ You can check the Dev Tools console for debugging information.</code></pre>
 
 <div class="bash-example">
     <pre><code class="language-bash">curl --request GET \
-    --get "http://localhost:8000/api/articles/1" \
+    --get "http://localhost:8000/api/articles/550e8400-e29b-41d4-a716-446655440000" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json"</code></pre></div>
 
 
 <div class="javascript-example">
     <pre><code class="language-javascript">const url = new URL(
-    "http://localhost:8000/api/articles/1"
+    "http://localhost:8000/api/articles/550e8400-e29b-41d4-a716-446655440000"
 );
 
 const headers = {
@@ -951,7 +1641,7 @@ fetch(url, {
     &quot;success&quot;: true,
     &quot;data&quot;: {
         &quot;article&quot;: {
-            &quot;id&quot;: 1,
+            &quot;id&quot;: &quot;550e8400-e29b-41d4-a716-446655440000&quot;,
             &quot;title&quot;: &quot;Breaking News: AI Revolution&quot;,
             &quot;description&quot;: &quot;Latest developments in artificial intelligence...&quot;,
             &quot;content&quot;: &quot;Full article content here...&quot;,
@@ -959,12 +1649,12 @@ fetch(url, {
             &quot;url_to_image&quot;: &quot;https://example.com/image.jpg&quot;,
             &quot;published_at&quot;: &quot;2024-01-15T10:30:00.000000Z&quot;,
             &quot;source&quot;: {
-                &quot;id&quot;: 1,
+                &quot;id&quot;: &quot;550e8400-e29b-41d4-a716-446655440001&quot;,
                 &quot;name&quot;: &quot;NewsAPI&quot;,
                 &quot;slug&quot;: &quot;newsapi&quot;
             },
             &quot;category&quot;: {
-                &quot;id&quot;: 1,
+                &quot;id&quot;: &quot;550e8400-e29b-41d4-a716-446655440002&quot;,
                 &quot;name&quot;: &quot;Technology&quot;,
                 &quot;slug&quot;: &quot;technology&quot;
             },
@@ -1057,14 +1747,14 @@ You can check the Dev Tools console for debugging information.</code></pre>
                         <h4 class="fancy-heading-panel"><b>URL Parameters</b></h4>
                     <div style="padding-left: 28px; clear: unset;">
                 <b style="line-height: 2;"><code>id</code></b>&nbsp;&nbsp;
-<small>integer</small>&nbsp;
+<small>string</small>&nbsp;
  &nbsp;
-                <input type="number" style="display: none"
-               step="any"               name="id"                data-endpoint="GETapi-articles--id-"
-               value="1"
+                <input type="text" style="display: none"
+                              name="id"                data-endpoint="GETapi-articles--id-"
+               value="550e8400-e29b-41d4-a716-446655440000"
                data-component="url">
     <br>
-<p>The article ID. Example: <code>1</code></p>
+<p>The article UUID. Example: <code>550e8400-e29b-41d4-a716-446655440000</code></p>
             </div>
                     </form>
 
@@ -1785,7 +2475,7 @@ fetch(url, {
     &quot;data&quot;: {
         &quot;categories&quot;: [
             {
-                &quot;id&quot;: 1,
+                &quot;id&quot;: &quot;550e8400-e29b-41d4-a716-446655440001&quot;,
                 &quot;name&quot;: &quot;Technology&quot;,
                 &quot;slug&quot;: &quot;technology&quot;,
                 &quot;description&quot;: &quot;Latest technology news and updates&quot;,
@@ -1793,7 +2483,7 @@ fetch(url, {
                 &quot;updated_at&quot;: &quot;2024-01-15T10:30:00.000000Z&quot;
             },
             {
-                &quot;id&quot;: 2,
+                &quot;id&quot;: &quot;550e8400-e29b-41d4-a716-446655440002&quot;,
                 &quot;name&quot;: &quot;Business&quot;,
                 &quot;slug&quot;: &quot;business&quot;,
                 &quot;description&quot;: &quot;Business and finance news&quot;,
@@ -1876,6 +2566,670 @@ You can check the Dev Tools console for debugging information.</code></pre>
             </div>
                         </form>
 
+                <h1 id="endpoints">Endpoints</h1>
+
+    
+
+                                <h2 id="endpoints-GETapi-queue-jobs">Get all queue jobs with their status</h2>
+
+<p>
+</p>
+
+
+
+<span id="example-requests-GETapi-queue-jobs">
+<blockquote>Example request:</blockquote>
+
+
+<div class="bash-example">
+    <pre><code class="language-bash">curl --request GET \
+    --get "http://localhost:8000/api/queue/jobs" \
+    --header "Content-Type: application/json" \
+    --header "Accept: application/json"</code></pre></div>
+
+
+<div class="javascript-example">
+    <pre><code class="language-javascript">const url = new URL(
+    "http://localhost:8000/api/queue/jobs"
+);
+
+const headers = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+};
+
+fetch(url, {
+    method: "GET",
+    headers,
+}).then(response =&gt; response.json());</code></pre></div>
+
+</span>
+
+<span id="example-responses-GETapi-queue-jobs">
+            <blockquote>
+            <p>Example response (200):</p>
+        </blockquote>
+                <pre>
+
+<code class="language-json" style="max-height: 300px;">{
+    &quot;success&quot;: true,
+    &quot;data&quot;: [
+        {
+            &quot;id&quot;: &quot;job-uuid-here&quot;,
+            &quot;type&quot;: &quot;filtered_search&quot;,
+            &quot;status&quot;: &quot;queued&quot;,
+            &quot;filters&quot;: {
+                &quot;keyword&quot;: &quot;artificial intelligence&quot;,
+                &quot;category&quot;: &quot;technology&quot;
+            },
+            &quot;created_at&quot;: &quot;2024-01-15T10:30:00.000000Z&quot;,
+            &quot;started_at&quot;: null,
+            &quot;completed_at&quot;: null,
+            &quot;failed_at&quot;: null,
+            &quot;error_message&quot;: null,
+            &quot;progress&quot;: 0
+        }
+    ]
+}</code>
+ </pre>
+    </span>
+<span id="execution-results-GETapi-queue-jobs" hidden>
+    <blockquote>Received response<span
+                id="execution-response-status-GETapi-queue-jobs"></span>:
+    </blockquote>
+    <pre class="json"><code id="execution-response-content-GETapi-queue-jobs"
+      data-empty-response-text="<Empty response>" style="max-height: 400px;"></code></pre>
+</span>
+<span id="execution-error-GETapi-queue-jobs" hidden>
+    <blockquote>Request failed with error:</blockquote>
+    <pre><code id="execution-error-message-GETapi-queue-jobs">
+
+Tip: Check that you&#039;re properly connected to the network.
+If you&#039;re a maintainer of ths API, verify that your API is running and you&#039;ve enabled CORS.
+You can check the Dev Tools console for debugging information.</code></pre>
+</span>
+<form id="form-GETapi-queue-jobs" data-method="GET"
+      data-path="api/queue/jobs"
+      data-authed="0"
+      data-hasfiles="0"
+      data-isarraybody="0"
+      autocomplete="off"
+      onsubmit="event.preventDefault(); executeTryOut('GETapi-queue-jobs', this);">
+    <h3>
+        Request&nbsp;&nbsp;&nbsp;
+                    <button type="button"
+                    style="background-color: #8fbcd4; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-tryout-GETapi-queue-jobs"
+                    onclick="tryItOut('GETapi-queue-jobs');">Try it out ⚡
+            </button>
+            <button type="button"
+                    style="background-color: #c97a7e; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-canceltryout-GETapi-queue-jobs"
+                    onclick="cancelTryOut('GETapi-queue-jobs');" hidden>Cancel 🛑
+            </button>&nbsp;&nbsp;
+            <button type="submit"
+                    style="background-color: #6ac174; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-executetryout-GETapi-queue-jobs"
+                    data-initial-text="Send Request 💥"
+                    data-loading-text="⏱ Sending..."
+                    hidden>Send Request 💥
+            </button>
+            </h3>
+            <p>
+            <small class="badge badge-green">GET</small>
+            <b><code>api/queue/jobs</code></b>
+        </p>
+                <h4 class="fancy-heading-panel"><b>Headers</b></h4>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Content-Type"                data-endpoint="GETapi-queue-jobs"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Accept</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Accept"                data-endpoint="GETapi-queue-jobs"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                        </form>
+
+                    <h2 id="endpoints-GETapi-queue-jobs--jobId-">Get specific job status</h2>
+
+<p>
+</p>
+
+
+
+<span id="example-requests-GETapi-queue-jobs--jobId-">
+<blockquote>Example request:</blockquote>
+
+
+<div class="bash-example">
+    <pre><code class="language-bash">curl --request GET \
+    --get "http://localhost:8000/api/queue/jobs/harum" \
+    --header "Content-Type: application/json" \
+    --header "Accept: application/json"</code></pre></div>
+
+
+<div class="javascript-example">
+    <pre><code class="language-javascript">const url = new URL(
+    "http://localhost:8000/api/queue/jobs/harum"
+);
+
+const headers = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+};
+
+fetch(url, {
+    method: "GET",
+    headers,
+}).then(response =&gt; response.json());</code></pre></div>
+
+</span>
+
+<span id="example-responses-GETapi-queue-jobs--jobId-">
+            <blockquote>
+            <p>Example response (200):</p>
+        </blockquote>
+                <pre>
+
+<code class="language-json" style="max-height: 300px;">{
+    &quot;success&quot;: true,
+    &quot;data&quot;: {
+        &quot;id&quot;: &quot;job-uuid-here&quot;,
+        &quot;type&quot;: &quot;filtered_search&quot;,
+        &quot;status&quot;: &quot;in_progress&quot;,
+        &quot;filters&quot;: {
+            &quot;keyword&quot;: &quot;artificial intelligence&quot;
+        },
+        &quot;created_at&quot;: &quot;2024-01-15T10:30:00.000000Z&quot;,
+        &quot;started_at&quot;: &quot;2024-01-15T10:31:00.000000Z&quot;,
+        &quot;completed_at&quot;: null,
+        &quot;failed_at&quot;: null,
+        &quot;error_message&quot;: null,
+        &quot;progress&quot;: 45
+    }
+}</code>
+ </pre>
+    </span>
+<span id="execution-results-GETapi-queue-jobs--jobId-" hidden>
+    <blockquote>Received response<span
+                id="execution-response-status-GETapi-queue-jobs--jobId-"></span>:
+    </blockquote>
+    <pre class="json"><code id="execution-response-content-GETapi-queue-jobs--jobId-"
+      data-empty-response-text="<Empty response>" style="max-height: 400px;"></code></pre>
+</span>
+<span id="execution-error-GETapi-queue-jobs--jobId-" hidden>
+    <blockquote>Request failed with error:</blockquote>
+    <pre><code id="execution-error-message-GETapi-queue-jobs--jobId-">
+
+Tip: Check that you&#039;re properly connected to the network.
+If you&#039;re a maintainer of ths API, verify that your API is running and you&#039;ve enabled CORS.
+You can check the Dev Tools console for debugging information.</code></pre>
+</span>
+<form id="form-GETapi-queue-jobs--jobId-" data-method="GET"
+      data-path="api/queue/jobs/{jobId}"
+      data-authed="0"
+      data-hasfiles="0"
+      data-isarraybody="0"
+      autocomplete="off"
+      onsubmit="event.preventDefault(); executeTryOut('GETapi-queue-jobs--jobId-', this);">
+    <h3>
+        Request&nbsp;&nbsp;&nbsp;
+                    <button type="button"
+                    style="background-color: #8fbcd4; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-tryout-GETapi-queue-jobs--jobId-"
+                    onclick="tryItOut('GETapi-queue-jobs--jobId-');">Try it out ⚡
+            </button>
+            <button type="button"
+                    style="background-color: #c97a7e; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-canceltryout-GETapi-queue-jobs--jobId-"
+                    onclick="cancelTryOut('GETapi-queue-jobs--jobId-');" hidden>Cancel 🛑
+            </button>&nbsp;&nbsp;
+            <button type="submit"
+                    style="background-color: #6ac174; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-executetryout-GETapi-queue-jobs--jobId-"
+                    data-initial-text="Send Request 💥"
+                    data-loading-text="⏱ Sending..."
+                    hidden>Send Request 💥
+            </button>
+            </h3>
+            <p>
+            <small class="badge badge-green">GET</small>
+            <b><code>api/queue/jobs/{jobId}</code></b>
+        </p>
+                <h4 class="fancy-heading-panel"><b>Headers</b></h4>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Content-Type"                data-endpoint="GETapi-queue-jobs--jobId-"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Accept</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Accept"                data-endpoint="GETapi-queue-jobs--jobId-"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                        <h4 class="fancy-heading-panel"><b>URL Parameters</b></h4>
+                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>jobId</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="jobId"                data-endpoint="GETapi-queue-jobs--jobId-"
+               value="harum"
+               data-component="url">
+    <br>
+<p>Example: <code>harum</code></p>
+            </div>
+                    </form>
+
+                    <h2 id="endpoints-DELETEapi-queue-jobs--jobId-">Cancel a queued job</h2>
+
+<p>
+</p>
+
+
+
+<span id="example-requests-DELETEapi-queue-jobs--jobId-">
+<blockquote>Example request:</blockquote>
+
+
+<div class="bash-example">
+    <pre><code class="language-bash">curl --request DELETE \
+    "http://localhost:8000/api/queue/jobs/iste" \
+    --header "Content-Type: application/json" \
+    --header "Accept: application/json"</code></pre></div>
+
+
+<div class="javascript-example">
+    <pre><code class="language-javascript">const url = new URL(
+    "http://localhost:8000/api/queue/jobs/iste"
+);
+
+const headers = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+};
+
+fetch(url, {
+    method: "DELETE",
+    headers,
+}).then(response =&gt; response.json());</code></pre></div>
+
+</span>
+
+<span id="example-responses-DELETEapi-queue-jobs--jobId-">
+            <blockquote>
+            <p>Example response (200):</p>
+        </blockquote>
+                <pre>
+
+<code class="language-json" style="max-height: 300px;">{
+    &quot;success&quot;: true,
+    &quot;message&quot;: &quot;Job cancelled successfully&quot;
+}</code>
+ </pre>
+    </span>
+<span id="execution-results-DELETEapi-queue-jobs--jobId-" hidden>
+    <blockquote>Received response<span
+                id="execution-response-status-DELETEapi-queue-jobs--jobId-"></span>:
+    </blockquote>
+    <pre class="json"><code id="execution-response-content-DELETEapi-queue-jobs--jobId-"
+      data-empty-response-text="<Empty response>" style="max-height: 400px;"></code></pre>
+</span>
+<span id="execution-error-DELETEapi-queue-jobs--jobId-" hidden>
+    <blockquote>Request failed with error:</blockquote>
+    <pre><code id="execution-error-message-DELETEapi-queue-jobs--jobId-">
+
+Tip: Check that you&#039;re properly connected to the network.
+If you&#039;re a maintainer of ths API, verify that your API is running and you&#039;ve enabled CORS.
+You can check the Dev Tools console for debugging information.</code></pre>
+</span>
+<form id="form-DELETEapi-queue-jobs--jobId-" data-method="DELETE"
+      data-path="api/queue/jobs/{jobId}"
+      data-authed="0"
+      data-hasfiles="0"
+      data-isarraybody="0"
+      autocomplete="off"
+      onsubmit="event.preventDefault(); executeTryOut('DELETEapi-queue-jobs--jobId-', this);">
+    <h3>
+        Request&nbsp;&nbsp;&nbsp;
+                    <button type="button"
+                    style="background-color: #8fbcd4; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-tryout-DELETEapi-queue-jobs--jobId-"
+                    onclick="tryItOut('DELETEapi-queue-jobs--jobId-');">Try it out ⚡
+            </button>
+            <button type="button"
+                    style="background-color: #c97a7e; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-canceltryout-DELETEapi-queue-jobs--jobId-"
+                    onclick="cancelTryOut('DELETEapi-queue-jobs--jobId-');" hidden>Cancel 🛑
+            </button>&nbsp;&nbsp;
+            <button type="submit"
+                    style="background-color: #6ac174; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-executetryout-DELETEapi-queue-jobs--jobId-"
+                    data-initial-text="Send Request 💥"
+                    data-loading-text="⏱ Sending..."
+                    hidden>Send Request 💥
+            </button>
+            </h3>
+            <p>
+            <small class="badge badge-red">DELETE</small>
+            <b><code>api/queue/jobs/{jobId}</code></b>
+        </p>
+                <h4 class="fancy-heading-panel"><b>Headers</b></h4>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Content-Type"                data-endpoint="DELETEapi-queue-jobs--jobId-"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Accept</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Accept"                data-endpoint="DELETEapi-queue-jobs--jobId-"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                        <h4 class="fancy-heading-panel"><b>URL Parameters</b></h4>
+                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>jobId</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="jobId"                data-endpoint="DELETEapi-queue-jobs--jobId-"
+               value="iste"
+               data-component="url">
+    <br>
+<p>Example: <code>iste</code></p>
+            </div>
+                    </form>
+
+                    <h2 id="endpoints-POSTapi-queue-sync-status">Sync queue status with Laravel&#039;s queue system</h2>
+
+<p>
+</p>
+
+
+
+<span id="example-requests-POSTapi-queue-sync-status">
+<blockquote>Example request:</blockquote>
+
+
+<div class="bash-example">
+    <pre><code class="language-bash">curl --request POST \
+    "http://localhost:8000/api/queue/sync-status" \
+    --header "Content-Type: application/json" \
+    --header "Accept: application/json"</code></pre></div>
+
+
+<div class="javascript-example">
+    <pre><code class="language-javascript">const url = new URL(
+    "http://localhost:8000/api/queue/sync-status"
+);
+
+const headers = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+};
+
+fetch(url, {
+    method: "POST",
+    headers,
+}).then(response =&gt; response.json());</code></pre></div>
+
+</span>
+
+<span id="example-responses-POSTapi-queue-sync-status">
+            <blockquote>
+            <p>Example response (200):</p>
+        </blockquote>
+                <pre>
+
+<code class="language-json" style="max-height: 300px;">{
+    &quot;success&quot;: true,
+    &quot;message&quot;: &quot;Queue status synced successfully&quot;,
+    &quot;job_counts&quot;: {
+        &quot;queued&quot;: 5,
+        &quot;failed&quot;: 2,
+        &quot;completed&quot;: 10
+    }
+}</code>
+ </pre>
+    </span>
+<span id="execution-results-POSTapi-queue-sync-status" hidden>
+    <blockquote>Received response<span
+                id="execution-response-status-POSTapi-queue-sync-status"></span>:
+    </blockquote>
+    <pre class="json"><code id="execution-response-content-POSTapi-queue-sync-status"
+      data-empty-response-text="<Empty response>" style="max-height: 400px;"></code></pre>
+</span>
+<span id="execution-error-POSTapi-queue-sync-status" hidden>
+    <blockquote>Request failed with error:</blockquote>
+    <pre><code id="execution-error-message-POSTapi-queue-sync-status">
+
+Tip: Check that you&#039;re properly connected to the network.
+If you&#039;re a maintainer of ths API, verify that your API is running and you&#039;ve enabled CORS.
+You can check the Dev Tools console for debugging information.</code></pre>
+</span>
+<form id="form-POSTapi-queue-sync-status" data-method="POST"
+      data-path="api/queue/sync-status"
+      data-authed="0"
+      data-hasfiles="0"
+      data-isarraybody="0"
+      autocomplete="off"
+      onsubmit="event.preventDefault(); executeTryOut('POSTapi-queue-sync-status', this);">
+    <h3>
+        Request&nbsp;&nbsp;&nbsp;
+                    <button type="button"
+                    style="background-color: #8fbcd4; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-tryout-POSTapi-queue-sync-status"
+                    onclick="tryItOut('POSTapi-queue-sync-status');">Try it out ⚡
+            </button>
+            <button type="button"
+                    style="background-color: #c97a7e; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-canceltryout-POSTapi-queue-sync-status"
+                    onclick="cancelTryOut('POSTapi-queue-sync-status');" hidden>Cancel 🛑
+            </button>&nbsp;&nbsp;
+            <button type="submit"
+                    style="background-color: #6ac174; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-executetryout-POSTapi-queue-sync-status"
+                    data-initial-text="Send Request 💥"
+                    data-loading-text="⏱ Sending..."
+                    hidden>Send Request 💥
+            </button>
+            </h3>
+            <p>
+            <small class="badge badge-black">POST</small>
+            <b><code>api/queue/sync-status</code></b>
+        </p>
+                <h4 class="fancy-heading-panel"><b>Headers</b></h4>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Content-Type"                data-endpoint="POSTapi-queue-sync-status"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Accept</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Accept"                data-endpoint="POSTapi-queue-sync-status"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                        </form>
+
+                    <h2 id="endpoints-POSTapi-queue-jobs--jobId--retry">Retry a failed job</h2>
+
+<p>
+</p>
+
+
+
+<span id="example-requests-POSTapi-queue-jobs--jobId--retry">
+<blockquote>Example request:</blockquote>
+
+
+<div class="bash-example">
+    <pre><code class="language-bash">curl --request POST \
+    "http://localhost:8000/api/queue/jobs/voluptas/retry" \
+    --header "Content-Type: application/json" \
+    --header "Accept: application/json"</code></pre></div>
+
+
+<div class="javascript-example">
+    <pre><code class="language-javascript">const url = new URL(
+    "http://localhost:8000/api/queue/jobs/voluptas/retry"
+);
+
+const headers = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+};
+
+fetch(url, {
+    method: "POST",
+    headers,
+}).then(response =&gt; response.json());</code></pre></div>
+
+</span>
+
+<span id="example-responses-POSTapi-queue-jobs--jobId--retry">
+            <blockquote>
+            <p>Example response (200):</p>
+        </blockquote>
+                <pre>
+
+<code class="language-json" style="max-height: 300px;">{
+    &quot;success&quot;: true,
+    &quot;message&quot;: &quot;Job queued for retry successfully&quot;
+}</code>
+ </pre>
+    </span>
+<span id="execution-results-POSTapi-queue-jobs--jobId--retry" hidden>
+    <blockquote>Received response<span
+                id="execution-response-status-POSTapi-queue-jobs--jobId--retry"></span>:
+    </blockquote>
+    <pre class="json"><code id="execution-response-content-POSTapi-queue-jobs--jobId--retry"
+      data-empty-response-text="<Empty response>" style="max-height: 400px;"></code></pre>
+</span>
+<span id="execution-error-POSTapi-queue-jobs--jobId--retry" hidden>
+    <blockquote>Request failed with error:</blockquote>
+    <pre><code id="execution-error-message-POSTapi-queue-jobs--jobId--retry">
+
+Tip: Check that you&#039;re properly connected to the network.
+If you&#039;re a maintainer of ths API, verify that your API is running and you&#039;ve enabled CORS.
+You can check the Dev Tools console for debugging information.</code></pre>
+</span>
+<form id="form-POSTapi-queue-jobs--jobId--retry" data-method="POST"
+      data-path="api/queue/jobs/{jobId}/retry"
+      data-authed="0"
+      data-hasfiles="0"
+      data-isarraybody="0"
+      autocomplete="off"
+      onsubmit="event.preventDefault(); executeTryOut('POSTapi-queue-jobs--jobId--retry', this);">
+    <h3>
+        Request&nbsp;&nbsp;&nbsp;
+                    <button type="button"
+                    style="background-color: #8fbcd4; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-tryout-POSTapi-queue-jobs--jobId--retry"
+                    onclick="tryItOut('POSTapi-queue-jobs--jobId--retry');">Try it out ⚡
+            </button>
+            <button type="button"
+                    style="background-color: #c97a7e; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-canceltryout-POSTapi-queue-jobs--jobId--retry"
+                    onclick="cancelTryOut('POSTapi-queue-jobs--jobId--retry');" hidden>Cancel 🛑
+            </button>&nbsp;&nbsp;
+            <button type="submit"
+                    style="background-color: #6ac174; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-executetryout-POSTapi-queue-jobs--jobId--retry"
+                    data-initial-text="Send Request 💥"
+                    data-loading-text="⏱ Sending..."
+                    hidden>Send Request 💥
+            </button>
+            </h3>
+            <p>
+            <small class="badge badge-black">POST</small>
+            <b><code>api/queue/jobs/{jobId}/retry</code></b>
+        </p>
+                <h4 class="fancy-heading-panel"><b>Headers</b></h4>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Content-Type"                data-endpoint="POSTapi-queue-jobs--jobId--retry"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Accept</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Accept"                data-endpoint="POSTapi-queue-jobs--jobId--retry"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                        <h4 class="fancy-heading-panel"><b>URL Parameters</b></h4>
+                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>jobId</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="jobId"                data-endpoint="POSTapi-queue-jobs--jobId--retry"
+               value="voluptas"
+               data-component="url">
+    <br>
+<p>Example: <code>voluptas</code></p>
+            </div>
+                    </form>
+
                 <h1 id="sources">Sources</h1>
 
     <p>APIs for retrieving news sources</p>
@@ -1926,7 +3280,7 @@ fetch(url, {
     &quot;data&quot;: {
         &quot;sources&quot;: [
             {
-                &quot;id&quot;: 1,
+                &quot;id&quot;: &quot;550e8400-e29b-41d4-a716-446655440001&quot;,
                 &quot;name&quot;: &quot;NewsAPI&quot;,
                 &quot;slug&quot;: &quot;newsapi&quot;,
                 &quot;description&quot;: &quot;NewsAPI.org news aggregator&quot;,
@@ -1935,7 +3289,7 @@ fetch(url, {
                 &quot;updated_at&quot;: &quot;2024-01-15T10:30:00.000000Z&quot;
             },
             {
-                &quot;id&quot;: 2,
+                &quot;id&quot;: &quot;550e8400-e29b-41d4-a716-446655440002&quot;,
                 &quot;name&quot;: &quot;NewsData.io&quot;,
                 &quot;slug&quot;: &quot;newsdata&quot;,
                 &quot;description&quot;: &quot;NewsData.io API service&quot;,
@@ -1944,7 +3298,7 @@ fetch(url, {
                 &quot;updated_at&quot;: &quot;2024-01-15T10:30:00.000000Z&quot;
             },
             {
-                &quot;id&quot;: 3,
+                &quot;id&quot;: &quot;550e8400-e29b-41d4-a716-446655440003&quot;,
                 &quot;name&quot;: &quot;The New York Times&quot;,
                 &quot;slug&quot;: &quot;nyt&quot;,
                 &quot;description&quot;: &quot;The New York Times API&quot;,
@@ -2099,12 +3453,22 @@ fetch(url, {
 }</code>
  </pre>
             <blockquote>
-            <p>Example response (404):</p>
+            <p>Example response (200):</p>
         </blockquote>
                 <pre>
 
 <code class="language-json" style="max-height: 300px;">{
-    &quot;success&quot;: false,
+    &quot;success&quot;: true,
+    &quot;data&quot;: {
+        &quot;preferences&quot;: {
+            &quot;user_id&quot;: 1,
+            &quot;preferred_categories&quot;: [],
+            &quot;preferred_sources&quot;: [],
+            &quot;preferred_authors&quot;: [],
+            &quot;email_notifications&quot;: false,
+            &quot;timezone&quot;: &quot;UTC&quot;
+        }
+    },
     &quot;message&quot;: &quot;No preferences found. Please set your preferences first.&quot;
 }</code>
  </pre>
@@ -2209,7 +3573,9 @@ You can check the Dev Tools console for debugging information.</code></pre>
     \"preferred_authors\": [
         \"John Smith\",
         \"Jane Doe\"
-    ]
+    ],
+    \"email_notifications\": false,
+    \"timezone\": \"Pacific\\/Saipan\"
 }"
 </code></pre></div>
 
@@ -2236,7 +3602,9 @@ let body = {
     "preferred_authors": [
         "John Smith",
         "Jane Doe"
-    ]
+    ],
+    "email_notifications": false,
+    "timezone": "Pacific\/Saipan"
 };
 
 fetch(url, {
@@ -2406,15 +3774,49 @@ You can check the Dev Tools console for debugging information.</code></pre>
     <br>
 <p>Array of author names.</p>
         </div>
+                <div style=" padding-left: 28px;  clear: unset;">
+            <b style="line-height: 2;"><code>email_notifications</code></b>&nbsp;&nbsp;
+<small>boolean</small>&nbsp;
+<i>optional</i> &nbsp;
+                <label data-endpoint="POSTapi-preferences" style="display: none">
+            <input type="radio" name="email_notifications"
+                   value="true"
+                   data-endpoint="POSTapi-preferences"
+                   data-component="body"             >
+            <code>true</code>
+        </label>
+        <label data-endpoint="POSTapi-preferences" style="display: none">
+            <input type="radio" name="email_notifications"
+                   value="false"
+                   data-endpoint="POSTapi-preferences"
+                   data-component="body"             >
+            <code>false</code>
+        </label>
+    <br>
+<p>Example: <code>false</code></p>
+        </div>
+                <div style=" padding-left: 28px;  clear: unset;">
+            <b style="line-height: 2;"><code>timezone</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="text" style="display: none"
+                              name="timezone"                data-endpoint="POSTapi-preferences"
+               value="Pacific/Saipan"
+               data-component="body">
+    <br>
+<p>Must not be greater than 100 characters. Example: <code>Pacific/Saipan</code></p>
+        </div>
         </form>
 
-                    <h2 id="user-preferences-GETapi-personalized-feed">Get personalized news feed</h2>
+                    <h2 id="user-preferences-GETapi-personalized-feed">Get personalized news feed for home page</h2>
 
 <p>
 <small class="badge badge-darkred">requires authentication</small>
 </p>
 
-<p>Retrieve a personalized news feed based on user preferences.</p>
+<p>Retrieve a personalized news feed based on user preferences for the home page.
+This endpoint is designed specifically for home page personalization.
+If no articles exist, automatically scrapes news based on preferences.</p>
 
 <span id="example-requests-GETapi-personalized-feed">
 <blockquote>Example request:</blockquote>
@@ -2424,14 +3826,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
     <pre><code class="language-bash">curl --request GET \
     --get "http://localhost:8000/api/personalized-feed?page=1&amp;per_page=10&amp;from_date=2024-01-01&amp;to_date=2024-01-31" \
     --header "Content-Type: application/json" \
-    --header "Accept: application/json" \
-    --data "{
-    \"page\": 83,
-    \"per_page\": 2,
-    \"from_date\": \"2025-08-21\",
-    \"to_date\": \"2068-12-11\"
-}"
-</code></pre></div>
+    --header "Accept: application/json"</code></pre></div>
 
 
 <div class="javascript-example">
@@ -2453,17 +3848,9 @@ const headers = {
     "Accept": "application/json",
 };
 
-let body = {
-    "page": 83,
-    "per_page": 2,
-    "from_date": "2025-08-21",
-    "to_date": "2068-12-11"
-};
-
 fetch(url, {
     method: "GET",
     headers,
-    body: JSON.stringify(body),
 }).then(response =&gt; response.json());</code></pre></div>
 
 </span>
@@ -2507,35 +3894,21 @@ fetch(url, {
         &quot;last_page_url&quot;: &quot;http://localhost:8000/api/personalized-feed?page=10&quot;,
         &quot;links&quot;: [],
         &quot;next_page_url&quot;: &quot;http://localhost:8000/api/personalized-feed?page=2&quot;,
-        &quot;path&quot;: &quot;http://localhost:8000/api/personalized-feed&quot;,
-        &quot;per_page&quot;: 10,
         &quot;prev_page_url&quot;: null,
         &quot;to&quot;: 10,
         &quot;total&quot;: 100
-    }
-}</code>
- </pre>
-            <blockquote>
-            <p>Example response (404):</p>
-        </blockquote>
-                <pre>
-
-<code class="language-json" style="max-height: 300px;">{
-    &quot;success&quot;: false,
-    &quot;message&quot;: &quot;No preferences found. Please set your preferences first to get a personalized feed.&quot;
-}</code>
- </pre>
-            <blockquote>
-            <p>Example response (422):</p>
-        </blockquote>
-                <pre>
-
-<code class="language-json" style="max-height: 300px;">{
-    &quot;success&quot;: false,
-    &quot;message&quot;: &quot;Validation error&quot;,
-    &quot;errors&quot;: {
-        &quot;per_page&quot;: [
-            &quot;The per page must not be greater than 50.&quot;
+    },
+    &quot;preferences_applied&quot;: {
+        &quot;categories&quot;: [
+            &quot;technology&quot;,
+            &quot;science&quot;
+        ],
+        &quot;sources&quot;: [
+            &quot;newsapi&quot;,
+            &quot;nyt&quot;
+        ],
+        &quot;authors&quot;: [
+            &quot;John Doe&quot;
         ]
     }
 }</code>
@@ -2655,52 +4028,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
     <br>
 <p>Filter articles to this date (Y-m-d format). Example: <code>2024-01-31</code></p>
             </div>
-                        <h4 class="fancy-heading-panel"><b>Body Parameters</b></h4>
-        <div style=" padding-left: 28px;  clear: unset;">
-            <b style="line-height: 2;"><code>page</code></b>&nbsp;&nbsp;
-<small>integer</small>&nbsp;
-<i>optional</i> &nbsp;
-                <input type="number" style="display: none"
-               step="any"               name="page"                data-endpoint="GETapi-personalized-feed"
-               value="83"
-               data-component="body">
-    <br>
-<p>Must be at least 1. Example: <code>83</code></p>
-        </div>
-                <div style=" padding-left: 28px;  clear: unset;">
-            <b style="line-height: 2;"><code>per_page</code></b>&nbsp;&nbsp;
-<small>integer</small>&nbsp;
-<i>optional</i> &nbsp;
-                <input type="number" style="display: none"
-               step="any"               name="per_page"                data-endpoint="GETapi-personalized-feed"
-               value="2"
-               data-component="body">
-    <br>
-<p>Must be at least 1. Must not be greater than 50. Example: <code>2</code></p>
-        </div>
-                <div style=" padding-left: 28px;  clear: unset;">
-            <b style="line-height: 2;"><code>from_date</code></b>&nbsp;&nbsp;
-<small>string</small>&nbsp;
-<i>optional</i> &nbsp;
-                <input type="text" style="display: none"
-                              name="from_date"                data-endpoint="GETapi-personalized-feed"
-               value="2025-08-21"
-               data-component="body">
-    <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Example: <code>2025-08-21</code></p>
-        </div>
-                <div style=" padding-left: 28px;  clear: unset;">
-            <b style="line-height: 2;"><code>to_date</code></b>&nbsp;&nbsp;
-<small>string</small>&nbsp;
-<i>optional</i> &nbsp;
-                <input type="text" style="display: none"
-                              name="to_date"                data-endpoint="GETapi-personalized-feed"
-               value="2068-12-11"
-               data-component="body">
-    <br>
-<p>Must be a valid date in the format <code>Y-m-d</code>. Must be a date after or equal to <code>from_date</code>. Example: <code>2068-12-11</code></p>
-        </div>
-        </form>
+                </form>
 
             
 
