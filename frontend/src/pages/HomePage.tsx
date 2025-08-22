@@ -7,6 +7,7 @@ import { ArticleCard, ArticleCardSkeleton } from '../components/ui';
 import { ROUTES } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import useLocalStorage from '../hooks/useLocalStorage';
 import {
   useGetArticlesQuery,
   useGetPersonalizedFeedQuery,
@@ -17,32 +18,16 @@ export const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Check localStorage for alert dismissal state
-  const getAlertDismissedState = () => {
-    if (!user) return false;
-    const dismissed = localStorage.getItem(
-      `personalized_alert_dismissed_${user.id}`
-    );
-    return dismissed === 'true';
-  };
-
-  const [showPersonalizedAlert, setShowPersonalizedAlert] = useState(() => {
-    if (!user) return false;
-    return !getAlertDismissedState();
-  });
+  // Use localStorage hook for alert dismissal state
+  const [isAlertDismissed, setIsAlertDismissed] = useLocalStorage(
+    `personalized_alert_dismissed_${user?.id || 'anonymous'}`,
+    false
+  );
 
   const isInitialLoad = useRef(true);
 
   // Set page title
   useDocumentTitle('Home');
-
-  // Reset alert only when user preferences actually change
-  useEffect(() => {
-    if (user) {
-      const dismissed = getAlertDismissedState();
-      setShowPersonalizedAlert(!dismissed);
-    }
-  }, [user]);
 
   // Listen for preference changes from the store
   const { data: userPreferences } = useGetUserPreferencesQuery(undefined, {
@@ -65,22 +50,18 @@ export const HomePage: React.FC = () => {
       // Only reset if we have meaningful preferences, user is logged in, and it's not the initial load
       // This will trigger when preferences are actually updated via the ProfilePage
       if (hasMeaningfulPreferences) {
-        setShowPersonalizedAlert(true);
         // Clear the dismissed state when preferences are updated
-        localStorage.removeItem(`personalized_alert_dismissed_${user.id}`);
+        setIsAlertDismissed(false);
       }
     }
     if (userPreferences && isInitialLoad.current) {
       isInitialLoad.current = false;
     }
-  }, [userPreferences?.updated_at, user, hasMeaningfulPreferences]);
+  }, [userPreferences?.updated_at, user]);
 
   // Handle alert dismissal
   const handleAlertDismiss = () => {
-    setShowPersonalizedAlert(false);
-    if (user) {
-      localStorage.setItem(`personalized_alert_dismissed_${user.id}`, 'true');
-    }
+    setIsAlertDismissed(true);
   };
 
   // Get personalized feed for authenticated users
@@ -146,7 +127,7 @@ export const HomePage: React.FC = () => {
           Stay informed with the latest news from trusted sources around the
           world
         </Typography>
-        {user && hasMeaningfulPreferences && showPersonalizedAlert && (
+        {user && hasMeaningfulPreferences && !isAlertDismissed && (
           <Alert
             severity='info'
             sx={{ mt: 2 }}

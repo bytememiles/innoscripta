@@ -23,6 +23,7 @@ import { format } from 'date-fns';
 import { ArticleCard, ArticleCardSkeleton } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import useLocalStorage from '../hooks/useLocalStorage';
 import {
   useGetArticlesQuery,
   useGetCategoriesQuery,
@@ -36,19 +37,11 @@ export const SearchPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
 
-  // Check localStorage for alert dismissal state
-  const getAlertDismissedState = () => {
-    if (!user) return false;
-    const dismissed = localStorage.getItem(
-      `personalized_alert_dismissed_${user.id}`
-    );
-    return dismissed === 'true';
-  };
-
-  const [showPersonalizedAlert, setShowPersonalizedAlert] = useState(() => {
-    if (!user) return false;
-    return !getAlertDismissedState();
-  });
+  // Use localStorage hook for alert dismissal state
+  const [isAlertDismissed, setIsAlertDismissed] = useLocalStorage(
+    `personalized_alert_dismissed_${user?.id || 'anonymous'}`,
+    false
+  );
 
   const isInitialLoad = useRef(true);
 
@@ -76,14 +69,6 @@ export const SearchPage: React.FC = () => {
   );
   const shouldUsePersonalizedFeed = Boolean(user && !hasSpecificFilters);
 
-  // Reset alert when personalized feed status changes
-  useEffect(() => {
-    if (shouldUsePersonalizedFeed) {
-      const dismissed = getAlertDismissedState();
-      setShowPersonalizedAlert(!dismissed);
-    }
-  }, [shouldUsePersonalizedFeed]);
-
   // Listen for preference changes from the store
   const { data: userPreferences } = useGetUserPreferencesQuery(undefined, {
     skip: !user,
@@ -108,27 +93,18 @@ export const SearchPage: React.FC = () => {
     ) {
       // Only reset if we have meaningful preferences, personalized feed is active, and it's not the initial load
       if (hasMeaningfulPreferences && user) {
-        setShowPersonalizedAlert(true);
         // Clear the dismissed state when preferences are updated
-        localStorage.removeItem(`personalized_alert_dismissed_${user.id}`);
+        setIsAlertDismissed(false);
       }
     }
     if (userPreferences && isInitialLoad.current) {
       isInitialLoad.current = false;
     }
-  }, [
-    userPreferences?.updated_at,
-    shouldUsePersonalizedFeed,
-    hasMeaningfulPreferences,
-    user,
-  ]);
+  }, [userPreferences?.updated_at, user]);
 
   // Handle alert dismissal
   const handleAlertDismiss = () => {
-    setShowPersonalizedAlert(false);
-    if (user) {
-      localStorage.setItem(`personalized_alert_dismissed_${user.id}`, 'true');
-    }
+    setIsAlertDismissed(true);
   };
 
   const {
@@ -259,7 +235,7 @@ export const SearchPage: React.FC = () => {
         </Typography>
         {shouldUsePersonalizedFeed &&
           hasMeaningfulPreferences &&
-          showPersonalizedAlert && (
+          !isAlertDismissed && (
             <Alert
               severity='info'
               sx={{ mt: 2 }}
