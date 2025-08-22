@@ -54,6 +54,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isInitialized, setIsInitialized] = useState(false);
   const [user, setUser] = useState<User | null>(null);
 
+  // Register unauthorized callback with API service
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      // Clear authentication state
+      setSession(null);
+      setUser(null);
+      setIsAuthenticated(false);
+    };
+
+    // Register the callback
+    apiService.registerUnauthorizedCallback(handleUnauthorized);
+
+    // Cleanup on unmount
+    return () => {
+      apiService.unregisterUnauthorizedCallback();
+    };
+  }, []);
+
   useEffect(() => {
     const init = async () => {
       try {

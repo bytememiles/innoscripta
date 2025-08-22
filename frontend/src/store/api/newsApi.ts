@@ -1,6 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
-import { API_BASE_URL, API_ENDPOINTS } from '../../constants';
+import { API_BASE_URL, API_ENDPOINTS, ROUTES } from '../../constants';
 import type {
   ApiResponse,
   Article,
@@ -11,20 +11,40 @@ import type {
   UserPreferences,
 } from '../../types';
 
+// Custom base query that handles 401 errors
+const baseQueryWithAuth = fetchBaseQuery({
+  baseUrl: API_BASE_URL,
+  prepareHeaders: headers => {
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      headers.set('authorization', `Bearer ${token}`);
+    }
+    headers.set('accept', 'application/json');
+    headers.set('content-type', 'application/json');
+    return headers;
+  },
+});
+
+// Wrapper to handle 401 errors
+const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
+  const result = await baseQueryWithAuth(args, api, extraOptions);
+
+  // Handle 401 unauthorized errors
+  if (result.error && result.error.status === 401) {
+    // Clear authentication data
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user');
+
+    // Redirect to login page
+    window.location.href = ROUTES.LOGIN;
+  }
+
+  return result;
+};
+
 export const newsApi = createApi({
   reducerPath: 'newsApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: API_BASE_URL,
-    prepareHeaders: headers => {
-      const token = localStorage.getItem('auth_token');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      headers.set('accept', 'application/json');
-      headers.set('content-type', 'application/json');
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithReauth,
   tagTypes: ['Article', 'Category', 'Source', 'UserPreferences'],
   endpoints: builder => ({
     // Articles

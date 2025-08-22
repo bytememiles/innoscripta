@@ -4,7 +4,6 @@ import axios, {
   type AxiosResponse,
 } from 'axios';
 
-import { ROUTES } from '../constants/routes';
 import type { ApiError } from '../types';
 
 const API_BASE_URL =
@@ -12,6 +11,7 @@ const API_BASE_URL =
 
 class ApiService {
   public client: AxiosInstance; // Make client public for AuthContext access
+  private onUnauthorized: (() => void) | null = null; // Callback for 401 errors
 
   constructor() {
     this.client = axios.create({
@@ -23,6 +23,16 @@ class ApiService {
     });
 
     this.setupInterceptors();
+  }
+
+  // Register callback for 401 errors
+  public registerUnauthorizedCallback(callback: () => void): void {
+    this.onUnauthorized = callback;
+  }
+
+  // Unregister callback
+  public unregisterUnauthorizedCallback(): void {
+    this.onUnauthorized = null;
   }
 
   private setupInterceptors(): void {
@@ -44,13 +54,16 @@ class ApiService {
     this.client.interceptors.response.use(
       (response: AxiosResponse) => response,
       error => {
-        // Handle 401 unauthorized - don't redirect automatically
-        // Let the components handle authentication errors themselves
+        // Handle 401 unauthorized - automatically sign out the user
         if (error.response?.status === 401) {
+          // Clear local storage
           localStorage.removeItem('auth_token');
           localStorage.removeItem('user');
-          // Remove automatic redirect to prevent page refresh
-          // window.location.href = ROUTES.LOGIN;
+
+          // Trigger the registered unauthorized callback to sign out the user
+          if (this.onUnauthorized) {
+            this.onUnauthorized();
+          }
         }
 
         // Transform error to our ApiError format with enhanced messages
