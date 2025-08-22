@@ -16,6 +16,8 @@ class UserPreference extends Model
         'preferred_authors',
         'preferred_language',
         'preferred_country',
+        'email_notifications',
+        'timezone',
     ];
 
     protected $casts = [

@@ -104,9 +104,11 @@ class UserPreferenceController extends Controller
             'preferred_categories' => 'nullable|array',
             'preferred_categories.*' => 'string|exists:categories,slug',
             'preferred_sources' => 'nullable|array',
-            'preferred_sources.*' => 'string|exists:sources,slug',
+            'preferred_sources.*' => 'string',
             'preferred_authors' => 'nullable|array',
             'preferred_authors.*' => 'string|max:255',
+            'email_notifications' => 'nullable|boolean',
+            'timezone' => 'nullable|string|max:100',
         ]);
 
         if ($validator->fails()) {
@@ -117,12 +119,45 @@ class UserPreferenceController extends Controller
             ], 422);
         }
 
+        // Custom validation for sources - check if they exist by slug or api_name
+        if ($request->has('preferred_sources') && is_array($request->preferred_sources)) {
+            $validSources = [];
+            $invalidSources = [];
+            
+            foreach ($request->preferred_sources as $sourceIdentifier) {
+                $source = \App\Models\Source::where('slug', $sourceIdentifier)
+                    ->orWhere('api_name', $sourceIdentifier)
+                    ->first();
+                
+                if ($source) {
+                    $validSources[] = $source->slug; // Always store the slug
+                } else {
+                    $invalidSources[] = $sourceIdentifier;
+                }
+            }
+            
+            if (!empty($invalidSources)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Some source identifiers are invalid',
+                    'errors' => [
+                        'preferred_sources' => ['The following sources are invalid: ' . implode(', ', $invalidSources)]
+                    ]
+                ], 422);
+            }
+            
+            // Replace the request with validated slug values
+            $request->merge(['preferred_sources' => $validSources]);
+        }
+
         $preferences = UserPreference::updateOrCreate(
             ['user_id' => $request->user()->id],
             [
                 'preferred_categories' => $request->get('preferred_categories', []),
                 'preferred_sources' => $request->get('preferred_sources', []),
                 'preferred_authors' => $request->get('preferred_authors', []),
+                'email_notifications' => $request->get('email_notifications', false),
+                'timezone' => $request->get('timezone', 'UTC'),
             ]
         );
 
