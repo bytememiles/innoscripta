@@ -2,11 +2,15 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Cancel as CancelIcon,
+  PlayArrow as PlayIcon,
   Refresh as RefreshIcon,
+  Sync as SyncIcon,
   Visibility as VisibilityIcon,
 } from '@mui/icons-material';
 import {
+  Alert,
   Box,
+  Button,
   Card,
   CardContent,
   Chip,
@@ -32,6 +36,8 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import {
   useCancelJobMutation,
   useGetQueueJobsQuery,
+  useRetryJobMutation,
+  useSyncQueueStatusMutation,
 } from '../store/api/newsApi';
 
 // Define the job type based on the API response
@@ -62,6 +68,9 @@ export const JobsPage: React.FC = () => {
   // Fetch jobs data
   const { data: jobs, isLoading, error, refetch } = useGetQueueJobsQuery();
   const [cancelJob] = useCancelJobMutation();
+  const [retryJob] = useRetryJobMutation();
+  const [syncQueueStatus, { isLoading: syncing }] =
+    useSyncQueueStatusMutation();
 
   // Ensure jobsList is always an array
   const jobsList = Array.isArray(jobs) ? jobs : [];
@@ -74,6 +83,28 @@ export const JobsPage: React.FC = () => {
       refetch();
     } catch (error) {
       console.error('Failed to cancel job:', error);
+    }
+  };
+
+  // Handle job retry
+  const handleRetryJob = async (jobId: string) => {
+    try {
+      await retryJob(jobId);
+      // Refetch jobs to update the list
+      refetch();
+    } catch (error) {
+      console.error('Failed to retry job:', error);
+    }
+  };
+
+  // Handle queue status sync
+  const handleSyncQueueStatus = async () => {
+    try {
+      await syncQueueStatus();
+      // Refetch jobs to update the list
+      refetch();
+    } catch (error) {
+      console.error('Failed to sync queue status:', error);
     }
   };
 
@@ -216,8 +247,19 @@ export const JobsPage: React.FC = () => {
               display: 'flex',
               justifyContent: isMobile ? 'center' : 'flex-end',
               alignSelf: isMobile ? 'center' : 'flex-end',
+              gap: 1,
             }}
           >
+            <Tooltip title='Sync queue status'>
+              <IconButton
+                onClick={handleSyncQueueStatus}
+                disabled={syncing}
+                color='secondary'
+                size={isMobile ? 'large' : 'medium'}
+              >
+                <SyncIcon />
+              </IconButton>
+            </Tooltip>
             <Tooltip title='Refresh jobs'>
               <IconButton
                 onClick={() => refetch()}
@@ -540,6 +582,17 @@ export const JobsPage: React.FC = () => {
                               onClick={() => handleCancelJob(job.id)}
                             >
                               <CancelIcon />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                        {job.status === 'failed' && (
+                          <Tooltip title='Retry job'>
+                            <IconButton
+                              size='small'
+                              color='primary'
+                              onClick={() => handleRetryJob(job.id)}
+                            >
+                              <PlayIcon />
                             </IconButton>
                           </Tooltip>
                         )}

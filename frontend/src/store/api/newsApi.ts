@@ -115,83 +115,86 @@ export const newsApi = createApi({
       ArticleFilters
     >({
       query: filters => ({
-        url: `${API_ENDPOINTS.ARTICLES}/initiate-scraping`,
+        url: '/articles/initiate-scraping',
         method: 'POST',
         body: filters,
       }),
-      invalidatesTags: ['Article'],
+      transformResponse: (
+        response: ApiResponse<{
+          success: boolean;
+          message: string;
+          job_id: string;
+          estimated_duration: string;
+        }>
+      ) => response.data,
+      invalidatesTags: ['QueueJob'],
     }),
 
-    // Get queue jobs
-    getQueueJobs: builder.query<
-      Array<{
-        id: string;
-        type: string;
-        status: string;
-        filters: any;
-        created_at: string;
-        started_at?: string;
-        completed_at?: string;
-        failed_at?: string;
-        error_message?: string;
-        progress: number;
-      }>,
-      void
-    >({
-      query: () => API_ENDPOINTS.QUEUE_JOBS,
-      transformResponse: (
-        response: ApiResponse<
-          Array<{
-            id: string;
-            type: string;
-            status: string;
-            filters: any;
-            created_at: string;
-            started_at?: string;
-            completed_at?: string;
-            failed_at?: string;
-            error_message?: string;
-            progress: number;
-          }>
-        >
-      ) => response.data,
+    getQueueJobs: builder.query<any[], void>({
+      query: () => '/queue/jobs',
+      transformResponse: (response: ApiResponse<any[]>) => response.data || [],
       providesTags: ['QueueJob'],
     }),
 
-    // Get specific job status
-    getJobStatus: builder.query<
-      {
-        id: string;
-        type: string;
-        status: string;
-        filters: any;
-        created_at: string;
-        started_at?: string;
-        completed_at?: string;
-        failed_at?: string;
-        error_message?: string;
-        progress: number;
-      },
-      string
-    >({
-      query: jobId => `${API_ENDPOINTS.QUEUE_JOBS}/${jobId}`,
-      transformResponse: (
-        response: ApiResponse<{
-          id: string;
-          type: string;
-          status: string;
-          filters: any;
-          created_at: string;
-          started_at?: string;
-          completed_at?: string;
-          failed_at?: string;
-          error_message?: string;
-          progress: number;
-        }>
-      ) => response.data,
+    getJobStatus: builder.query<any, string>({
+      query: jobId => `/queue/jobs/${jobId}`,
+      transformResponse: (response: ApiResponse<any>) => response.data,
       providesTags: (_result, _error, jobId) => [
         { type: 'QueueJob', id: jobId },
       ],
+    }),
+
+    cancelJob: builder.mutation<{ success: boolean; message: string }, string>({
+      query: jobId => ({
+        url: `/queue/jobs/${jobId}`,
+        method: 'DELETE',
+      }),
+      transformResponse: (
+        response: ApiResponse<{ success: boolean; message: string }>
+      ) => response.data,
+      invalidatesTags: ['QueueJob'],
+    }),
+
+    retryJob: builder.mutation<
+      { success: boolean; message: string; new_job_id: string },
+      string
+    >({
+      query: jobId => ({
+        url: `/queue/jobs/${jobId}/retry`,
+        method: 'POST',
+      }),
+      transformResponse: (
+        response: ApiResponse<{
+          success: boolean;
+          message: string;
+          new_job_id: string;
+        }>
+      ) => response.data,
+      invalidatesTags: ['QueueJob'],
+    }),
+
+    syncQueueStatus: builder.mutation<
+      {
+        success: boolean;
+        message: string;
+        output: string[];
+        job_counts: Record<string, number>;
+      },
+      void
+    >({
+      query: () => ({
+        url: '/queue/sync-status',
+        method: 'POST',
+      }),
+      transformResponse: (
+        response: ApiResponse<{
+          success: boolean;
+          message: string;
+          output: string[];
+          job_counts: Record<string, number>;
+        }>
+      ) => response.data,
+      invalidatesTags: ['QueueJob'],
     }),
 
     getArticle: builder.query<Article, string>({
@@ -290,18 +293,6 @@ export const newsApi = createApi({
       ) => response.data.preferences,
       invalidatesTags: ['UserPreferences', 'Article'],
     }),
-
-    // Queue Management
-    cancelJob: builder.mutation<{ success: boolean; message: string }, string>({
-      query: jobId => ({
-        url: API_ENDPOINTS.QUEUE_JOB(jobId),
-        method: 'DELETE',
-      }),
-      transformResponse: (
-        response: ApiResponse<{ success: boolean; message: string }>
-      ) => response.data,
-      invalidatesTags: ['QueueJob'],
-    }),
   }),
 });
 
@@ -332,4 +323,6 @@ export const {
 
   // Queue Management
   useCancelJobMutation,
+  useRetryJobMutation,
+  useSyncQueueStatusMutation,
 } = newsApi;

@@ -32,6 +32,7 @@ import {
 import {
   useCancelJobMutation,
   useGetQueueJobsQuery,
+  useRetryJobMutation,
 } from '../../store/api/newsApi';
 
 interface Job {
@@ -61,6 +62,7 @@ export const JobMonitoringDrawer: React.FC<JobMonitoringDrawerProps> = ({
 
   const { data: jobsResponse, refetch, isLoading } = useGetQueueJobsQuery();
   const [cancelJob] = useCancelJobMutation();
+  const [retryJob] = useRetryJobMutation();
 
   // Ensure jobs is always an array
   const jobs: Job[] = Array.isArray(jobsResponse) ? jobsResponse : [];
@@ -156,6 +158,17 @@ export const JobMonitoringDrawer: React.FC<JobMonitoringDrawerProps> = ({
       refetch();
     } catch (error) {
       console.error('Failed to cancel job:', error);
+    }
+  };
+
+  // Handle job retry
+  const handleRetryJob = async (jobId: string) => {
+    try {
+      await retryJob(jobId);
+      // Refetch jobs to update the list
+      refetch();
+    } catch (error) {
+      console.error('Failed to retry job:', error);
     }
   };
 
@@ -316,6 +329,17 @@ export const JobMonitoringDrawer: React.FC<JobMonitoringDrawerProps> = ({
                                 onClick={() => handleCancelJob(job.id)}
                               >
                                 <CancelIcon />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                          {job.status === 'failed' && (
+                            <Tooltip title='Retry job'>
+                              <IconButton
+                                size='small'
+                                color='primary'
+                                onClick={() => handleRetryJob(job.id)}
+                              >
+                                <PlayIcon />
                               </IconButton>
                             </Tooltip>
                           )}
