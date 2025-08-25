@@ -28,7 +28,7 @@ This News Aggregator demonstrates a **production-ready, enterprise-grade solutio
 | **Personalized News Feed** | ✅ Intelligent | ML-driven preferences + user behavior | Dynamic content adaptation |
 | **Mobile-Responsive Design** | ✅ Premium | Material-UI + custom breakpoints | Touch-optimized, PWA-ready |
 
-### ✅ **Data Sources - **Exceeded (4/3 Required)**
+### ✅ Data Sources - **Exceeded (4/3 Required)**
 
 | Source | Status | Features | Implementation |
 |--------|--------|----------|----------------|
@@ -37,7 +37,7 @@ This News Aggregator demonstrates a **production-ready, enterprise-grade solutio
 | **New York Times** | ✅ Integrated | Premium content, archives | Historical data access |
 | **BBC News** | ✅ Integrated | Trusted source, breaking news | Real-time updates |
 
-### ✅ **Technical Requirements - **Exceeded**
+### ✅ Technical Requirements - **Exceeded**
 
 | Requirement | Status | Implementation | Enhancement |
 |-------------|--------|----------------|-------------|
